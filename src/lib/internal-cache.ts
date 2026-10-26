@@ -1,23 +1,15 @@
 import { logger } from "@vtfk/logger"
-import NodeCache from "node-cache"
+import { TtlCache } from "./ttl-cache.js"
 
-let internalCache: NodeCache | null = null
+const INTERNAL_CACHE_TTL_SECONDS = 10000
 
-export const getInternalCache = (): NodeCache => {
+let internalCache: TtlCache | null = null
+
+export const getInternalCache = (): TtlCache => {
   if (!internalCache) {
     logger("info", ["internal-cache", "Internal cache does not exist - creating"])
-    internalCache = new NodeCache({ stdTTL: 10000 })
+    internalCache = new TtlCache(INTERNAL_CACHE_TTL_SECONDS)
     logger("info", ["internal-cache", "Internal cache created - returning"])
   }
   return internalCache
-}
-
-export const resetInternalCache = (): boolean => {
-  if (!internalCache) {
-    return true
-  }
-  logger("info", ["internal-cache", "Resetting internal cache"])
-  internalCache.flushAll()
-  logger("info", ["internal-cache", "Reset internal cache - done"])
-  return true
 }

@@ -1,9 +1,11 @@
 import { ConfidentialClientApplication } from "@azure/msal-node"
 import { logger } from "@vtfk/logger"
-import NodeCache from "node-cache"
 import { APPREG_CLIENT_ID, APPREG_CLIENT_SECRET, APPREG_TENANT_ID } from "$app/env/private"
+import { TtlCache } from "./ttl-cache.js"
 
-const cache = new NodeCache({ stdTTL: 4000 })
+const TOKEN_CACHE_DEFAULT_TTL_SECONDS = 4000
+
+const cache = new TtlCache(TOKEN_CACHE_DEFAULT_TTL_SECONDS)
 
 type MsalTokenConfig = {
   scope: string

@@ -12,7 +12,8 @@
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "lint": "biome check .",
-    "lint:fix": "biome check --write ."
+    "lint:fix": "biome check --write .",
+    "test": "node --test \"src/**/*.test.ts\""
   },
   "imports": {
     "#lib": "./src/lib/index.js",
@@ -36,7 +37,6 @@
     "@vtfk/logger": "^6.4.2",
     "axios": "^1.20.0",
     "mongodb": "^6.21.0",
-    "node-cache": "^5.1.2",
     "vtfk-schools-info": "^3.4.2"
   }
 }

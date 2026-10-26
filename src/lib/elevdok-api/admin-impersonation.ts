@@ -79,5 +79,5 @@ export const deleteAdminImpersonation = (user: User): void => {
     throw new Error("You do not have permission to do this")
   }
   const internalCache = getInternalCache()
-  internalCache.del(`${user.principalId}-impersonation`)
+  internalCache.delete(`${user.principalId}-impersonation`)
 }
