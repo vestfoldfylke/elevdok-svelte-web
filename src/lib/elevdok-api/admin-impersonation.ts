@@ -1,4 +1,5 @@
 import { logger } from "@vtfk/logger"
+import type { Impersonation } from "#lib/authentication.js"
 import { getInternalCache } from "#lib/internal-cache.js"
 import { closeMongoClient, getMongoClient } from "#lib/mongo-client.js"
 import { FEIDENAVN_SUFFIX, MOCK_API, MONGODB_DB_NAME, MONGODB_USER_IMPERSONATION_COLLECTION } from "$app/env/private"
@@ -12,12 +13,12 @@ const isGuid = (value) => {
  * @param {import("#lib/authentication.js").User} user
  * @returns
  */
-export const getAdminImpersonation = (user) => {
+export const getAdminImpersonation = (user): Impersonation | null => {
   if (!user.hasAdminRole) {
     throw new Error("You do not have permission to do this")
   }
   const internalCache = getInternalCache()
-  const impersonation = internalCache.get(`${user.principalId}-impersonation`)
+  const impersonation = internalCache.get<Impersonation>(`${user.principalId}-impersonation`)
   return impersonation || null
 }
 

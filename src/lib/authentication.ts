@@ -4,44 +4,52 @@ import { ADMIN_ROLE, DEFAULT_ROLE, FEIDENAVN_SUFFIX, LEDER_ROLE, MOCK_AUTH, MOCK
 import { getAdminImpersonation } from "./elevdok-api/admin-impersonation.js"
 import { getActiveRole } from "./elevdok-api/roles.js"
 
-/**
- * @typedef Role
- * @property {string} value
- * @property {string} roleName
- */
+export type Role = {
+  value: string
+  roleName: string
+}
 
-/**
- * @typedef Impersonation
- * @property {string} target
- * @property {"larer" | "leder"} type
- */
+export type Impersonation = {
+  target: string
+  type: "larer" | "leder"
+}
 
-/**
- * @typedef User
- * @property {string} principalName upn
- * @property {string} principalId objectId
- * @property {string} audience guid for the app
- * @property {string} name displayName
- * @property {string} activeRole activeRole value
- * @property {Role[]} roles list of available roles
- * @property {boolean} hasAdminRole if user has admin role
- * @property {Impersonation} [impersonating] is adminuser impersonating another user
- *
- */
+export type User = {
+  /** upn */
+  principalName: string
+  /** objectId */
+  principalId: string
+  /** guid for the app */
+  audience: string
+  /** displayName */
+  name: string
+  activeRole: string
+  roles: Role[]
+  hasAdminRole: boolean
+  impersonating: Impersonation | null
+}
 
-/**
- *
- * @param {Headers} headers
- * @returns {User} current user
- */
-export const getAuthenticatedUser = async (headers) => {
+type Claim = {
+  typ: string
+  val: string
+}
+
+/** Decoded x-ms-client-principal header from App Service authentication */
+type ClientPrincipal = {
+  auth_typ: string
+  claims: Claim[]
+  name_typ: string
+  role_typ: string
+}
+
+export const getAuthenticatedUser = async (headers: Headers): Promise<User> => {
   if (MOCK_AUTH === "true" && NODE_ENV !== "production") {
     logger("warn", ["env.MOCK_AUTH is true, injecting MS auth headers, enjoy your local testing - if this in prod, pray and delete everything"])
     headers.set("x-ms-client-principal-name", `demo.spokelse@${FEIDENAVN_SUFFIX}`)
     headers.set("x-ms-client-principal-id", "12345-4378493-fjdiofjd")
 
     // Create mock claims with necessary values
-    const mockClaims = {
+    const mockClaims: ClientPrincipal = {
       auth_typ: "aad",
       claims: [
         {
@@ -101,16 +109,20 @@ export const getAuthenticatedUser = async (headers) => {
     throw error(500, "Missing authentication headers from Microsoft, something is wrong")
   }
 
-  const decodedClaims = JSON.parse(Buffer.from(encodedClaims, "base64").toString())
+  const decodedClaims: ClientPrincipal | null = JSON.parse(Buffer.from(encodedClaims, "base64").toString())
   if (!decodedClaims) {
     throw error(500, "Det e itj no token her")
   }
   const roles = decodedClaims.claims.filter((claim) => claim.typ === "roles").map((claim) => claim.val)
-  const name = decodedClaims.claims.find((claim) => claim.typ === "name").val
-  const audience = decodedClaims.claims.find((claim) => claim.typ === "aud").val
+  const name = decodedClaims.claims.find((claim) => claim.typ === "name")?.val
+  const audience = decodedClaims.claims.find((claim) => claim.typ === "aud")?.val
+  if (!name || !audience) {
+    throw error(500, "Missing 'name' or 'aud' claim in x-ms-client-principal: App Service authentication must issue both. Check the token configuration of the app registration.")
+  }
 
   let activeRole = ""
-  if (roles.length === 0) {
+  const firstRole = roles[0]
+  if (!firstRole) {
     throw new Error("DU HAKKE TILGANG PÅ NOE DU!")
   }
   if (roles.length > 1) {
@@ -121,13 +133,13 @@ export const getAuthenticatedUser = async (headers) => {
       if (roles.includes(LEDER_ROLE)) {
         activeRole = LEDER_ROLE // Default to leder if user have several, and none selected in db
       } else {
-        activeRole = roles[0] // Else just set first role as active
+        activeRole = firstRole // Else just set first role as active
       }
     } else {
       logger("info", [`User ${principalName} has active db role: ${activeDbRole}`, "Verifying and setting active"])
       if (!roles.includes(activeDbRole)) {
         logger("warn", [`User ${principalName} has active db role: ${activeDbRole} - but no access to this role from entra auth. Will not use illegal role`])
-        activeRole = roles[0]
+        activeRole = firstRole
       } else {
         logger("info", [`User ${principalName} has active db role: ${activeDbRole} and access to this role from entra auth. Will set active role as ${activeDbRole}`])
         activeRole = activeDbRole
@@ -135,7 +147,7 @@ export const getAuthenticatedUser = async (headers) => {
     }
     // Check that activeRole is present in current roles as well. If so - set as active, if not, just set first role as
   } else {
-    activeRole = roles[0]
+    activeRole = firstRole
   }
 
   // Add displayNames to roles
