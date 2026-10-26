@@ -1,13 +1,9 @@
 import { logger } from "@vtfk/logger"
 import NodeCache from "node-cache"
 
-let mockDb = null
+let mockDb: NodeCache | null = null
 
-/**
- *
- * @returns { import('node-cache') }
- */
-export const getMockDb = () => {
+export const getMockDb = (): NodeCache => {
   if (!mockDb) {
     logger("info", ["mock-db", "Mock db does not exist - creating"])
     mockDb = new NodeCache({ stdTTL: 10000 })
