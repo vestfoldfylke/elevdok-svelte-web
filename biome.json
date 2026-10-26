@@ -20,7 +20,12 @@
     "rules": {
       "preset": "recommended",
       "correctness": {
-        "useImportExtensions": "error"
+        "useImportExtensions": {
+          "level": "error",
+          "options": {
+            "forceJsExtensions": true
+          }
+        }
       },
       "style": {
         "useBlockStatements": "error"
@@ -75,6 +80,16 @@
           "correctness": {
             "noUnusedVariables": "off",
             "noUnusedImports": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["**/*.svelte"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "useImportExtensions": { "level": "off" }
           }
         }
       }
