@@ -1,7 +1,7 @@
 import { getAuthenticatedUser } from "#lib/authentication.js"
 import { setActiveRole } from "#lib/elevdok-api/roles.js"
 
-export const POST = async ({ params, request, url }) => {
+export const POST = async ({ request }) => {
   try {
     const { requestedRole } = await request.json()
     if (!requestedRole || typeof requestedRole !== "string") {

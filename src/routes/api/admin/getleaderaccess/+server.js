@@ -1,7 +1,7 @@
 import { getAuthenticatedUser } from "#lib/authentication.js"
 import { getAllLeaderAccess } from "#lib/elevdok-api/leder-access.js"
 
-export const GET = async ({ params, request, url }) => {
+export const GET = async ({ request }) => {
   try {
     const user = await getAuthenticatedUser(request.headers)
     const leaderAccess = await getAllLeaderAccess(user)

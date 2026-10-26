@@ -50,7 +50,7 @@ export const getStudentDocuments = async (user, studentFeidenavn) => {
 
   if (MOCK_API === "true") {
     logger("info", [loggerPrefix, "MOCK_API is true", "Returning mock documents"])
-    const documents = getMockDocuments(teacherStudent, loggerPrefix, 300)
+    const documents = getMockDocuments(teacherStudent, 300)
     result.documents.push(...documents)
     result.errors.push("Bare en mocke-feil for å se hvordan det ser ut")
   } else {

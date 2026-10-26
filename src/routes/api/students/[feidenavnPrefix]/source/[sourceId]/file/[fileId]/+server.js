@@ -2,7 +2,7 @@ import { getAuthenticatedUser } from "#lib/authentication.js"
 import { getFile } from "#lib/elevdok-api/get-file.js"
 import { FEIDENAVN_SUFFIX } from "$app/env/private"
 
-export const GET = async ({ params, request, url }) => {
+export const GET = async ({ params, request }) => {
   try {
     const user = await getAuthenticatedUser(request.headers)
     const studentFeidenavn = `${params.feidenavnPrefix}@${FEIDENAVN_SUFFIX}`

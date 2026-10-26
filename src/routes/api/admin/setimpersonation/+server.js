@@ -1,7 +1,7 @@
 import { getAuthenticatedUser } from "#lib/authentication.js"
 import { setAdminImpersonation } from "#lib/elevdok-api/admin-impersonation.js"
 
-export const POST = async ({ params, request, url }) => {
+export const POST = async ({ request }) => {
   try {
     const { target, type } = await request.json()
     if (!type) {

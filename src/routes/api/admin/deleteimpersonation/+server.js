@@ -1,7 +1,7 @@
 import { getAuthenticatedUser } from "#lib/authentication.js"
 import { deleteAdminImpersonation } from "#lib/elevdok-api/admin-impersonation.js"
 
-export const DELETE = async ({ params, request, url }) => {
+export const DELETE = async ({ request }) => {
   try {
     const user = await getAuthenticatedUser(request.headers)
     deleteAdminImpersonation(user)

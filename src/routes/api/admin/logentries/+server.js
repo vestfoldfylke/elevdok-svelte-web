@@ -1,7 +1,7 @@
 import { getAuthenticatedUser } from "#lib/authentication.js"
 import { getUserLogs } from "#lib/elevdok-api/user-logs.js"
 
-export const GET = async ({ params, request, url }) => {
+export const GET = async ({ request, url }) => {
   try {
     const user = await getAuthenticatedUser(request.headers)
     const studentNumber = url.searchParams.get("student_number")

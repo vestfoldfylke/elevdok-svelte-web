@@ -1,7 +1,7 @@
 import { getAuthenticatedUser } from "#lib/authentication.js"
 import { getAdminImpersonation } from "#lib/elevdok-api/admin-impersonation.js"
 
-export const GET = async ({ params, request, url }) => {
+export const GET = async ({ request }) => {
   try {
     const user = await getAuthenticatedUser(request.headers)
     const impersonation = getAdminImpersonation(user)

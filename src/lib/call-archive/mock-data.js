@@ -28,7 +28,7 @@ const randomValue = (list) => {
   return list[randomNumber]
 }
 
-export const getMockDocuments = (teacherStudent, loggerPrefix, numberOfDocuments = 10) => {
+export const getMockDocuments = (teacherStudent, numberOfDocuments = 10) => {
   const documents = []
   for (const number of Array.from(Array(numberOfDocuments).keys())) {
     const document = {

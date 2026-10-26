@@ -424,7 +424,6 @@ textarea {
   border: 2px solid var(--primary-color);
   padding: var(--spacing-small);
   background-color: var(--primary-background-color);
-  border: 2px solid var(--primary-color);
   border-radius: 0.4rem;
 }
 
