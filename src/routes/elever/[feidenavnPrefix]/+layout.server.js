@@ -1,7 +1,7 @@
 import { error } from "@sveltejs/kit"
 import { logger } from "@vtfk/logger"
-import { getAuthenticatedUser } from "#lib/authentication"
-import { getStudentDocuments } from "#lib/elevdok-api/get-student-documents"
+import { getAuthenticatedUser } from "#lib/authentication.js"
+import { getStudentDocuments } from "#lib/elevdok-api/get-student-documents.js"
 import { FEIDENAVN_SUFFIX } from "$app/env/private"
 
 /** @type {import('./$types').LayoutServerLoad} */

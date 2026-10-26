@@ -1,8 +1,8 @@
 import { error } from "@sveltejs/kit"
 import { logger } from "@vtfk/logger"
-import { getAuthenticatedUser } from "#lib/authentication"
-import { getUserData } from "#lib/elevdok-api/get-user-data"
-import { getSystemInfo } from "#lib/system-info"
+import { getAuthenticatedUser } from "#lib/authentication.js"
+import { getUserData } from "#lib/elevdok-api/get-user-data.js"
+import { getSystemInfo } from "#lib/system-info.js"
 import { MAINTENANCE_MODE } from "$app/env/private"
 
 /** @type {import('./$types').LayoutServerLoad} */

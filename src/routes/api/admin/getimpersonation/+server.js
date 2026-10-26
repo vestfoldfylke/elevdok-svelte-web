@@ -1,5 +1,5 @@
-import { getAuthenticatedUser } from "#lib/authentication"
-import { getAdminImpersonation } from "#lib/elevdok-api/admin-impersonation"
+import { getAuthenticatedUser } from "#lib/authentication.js"
+import { getAdminImpersonation } from "#lib/elevdok-api/admin-impersonation.js"
 
 export const GET = async ({ params, request, url }) => {
   try {

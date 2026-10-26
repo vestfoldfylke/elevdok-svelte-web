@@ -1,5 +1,5 @@
-import { getAuthenticatedUser } from "#lib/authentication"
-import { setActiveRole } from "#lib/elevdok-api/roles"
+import { getAuthenticatedUser } from "#lib/authentication.js"
+import { setActiveRole } from "#lib/elevdok-api/roles.js"
 
 export const POST = async ({ params, request, url }) => {
   try {

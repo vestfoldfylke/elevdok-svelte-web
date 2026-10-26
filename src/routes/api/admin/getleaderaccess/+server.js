@@ -1,5 +1,5 @@
-import { getAuthenticatedUser } from "#lib/authentication"
-import { getAllLeaderAccess } from "#lib/elevdok-api/leder-access"
+import { getAuthenticatedUser } from "#lib/authentication.js"
+import { getAllLeaderAccess } from "#lib/elevdok-api/leder-access.js"
 
 export const GET = async ({ params, request, url }) => {
   try {

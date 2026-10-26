@@ -1,5 +1,5 @@
 <script>
-  import { clickOutside } from "#lib/helpers/click-outside"
+  import { clickOutside } from "#lib/helpers/click-outside.js"
   import { goto } from "$app/navigation"
 
   /** @type {import('./$types').PageData} */

@@ -1,11 +1,11 @@
 import { logger } from "@vtfk/logger"
-import { getInternalCache } from "#lib/internal-cache"
-import { getAllLeaderUsers } from "#lib/microsoft-graph"
+import { getInternalCache } from "#lib/internal-cache.js"
+import { getAllLeaderUsers } from "#lib/microsoft-graph.js"
 import { FRONTEND_APP_ID, LEDER_ROLE } from "$app/env/private"
 
 /**
  *
- * @param {import("#lib/authentication").User} user
+ * @param {import("#lib/authentication.js").User} user
  */
 export const getAllLeaderAccess = async (user) => {
   const loggerPrefix = `getAllLeaderAccess - user: ${user.principalName}`
@@ -33,9 +33,9 @@ export const getAllLeaderAccess = async (user) => {
 
 /**
  *
- * @param {import("#lib/authentication").User} user
+ * @param {import("#lib/authentication.js").User} user
  * @param {string} leaderId
- * @returns {import("#lib/microsoft-graph").LeaderUser[]}
+ * @returns {import("#lib/microsoft-graph.js").LeaderUser[]}
  */
 export const getLeaderAccess = async (user) => {
   const loggerPrefix = `getLeaderAccess - user: ${user.principalName}`

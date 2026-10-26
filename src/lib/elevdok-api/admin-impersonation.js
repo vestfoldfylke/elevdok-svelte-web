@@ -1,6 +1,6 @@
 import { logger } from "@vtfk/logger"
-import { getInternalCache } from "#lib/internal-cache"
-import { closeMongoClient, getMongoClient } from "#lib/mongo-client"
+import { getInternalCache } from "#lib/internal-cache.js"
+import { closeMongoClient, getMongoClient } from "#lib/mongo-client.js"
 import { FEIDENAVN_SUFFIX, MOCK_API, MONGODB_DB_NAME, MONGODB_USER_IMPERSONATION_COLLECTION } from "$app/env/private"
 
 const isGuid = (value) => {
@@ -9,7 +9,7 @@ const isGuid = (value) => {
 
 /**
  *
- * @param {import("#lib/authentication").User} user
+ * @param {import("#lib/authentication.js").User} user
  * @returns
  */
 export const getAdminImpersonation = (user) => {
@@ -23,7 +23,7 @@ export const getAdminImpersonation = (user) => {
 
 /**
  *
- * @param {import("#lib/authentication").User} user
+ * @param {import("#lib/authentication.js").User} user
  * @param {string} target
  * @param {"larer" | "leder"} type
  * @returns
@@ -76,7 +76,7 @@ export const setAdminImpersonation = async (user, target, type) => {
 
 /**
  *
- * @param {import("#lib/authentication").User} user
+ * @param {import("#lib/authentication.js").User} user
  */
 export const deleteAdminImpersonation = (user) => {
   if (!user.hasAdminRole) {

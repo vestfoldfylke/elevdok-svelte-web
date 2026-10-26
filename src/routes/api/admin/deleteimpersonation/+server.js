@@ -1,5 +1,5 @@
-import { getAuthenticatedUser } from "#lib/authentication"
-import { deleteAdminImpersonation } from "#lib/elevdok-api/admin-impersonation"
+import { getAuthenticatedUser } from "#lib/authentication.js"
+import { deleteAdminImpersonation } from "#lib/elevdok-api/admin-impersonation.js"
 
 export const DELETE = async ({ params, request, url }) => {
   try {

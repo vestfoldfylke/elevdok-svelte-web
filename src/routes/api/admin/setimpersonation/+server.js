@@ -1,5 +1,5 @@
-import { getAuthenticatedUser } from "#lib/authentication"
-import { setAdminImpersonation } from "#lib/elevdok-api/admin-impersonation"
+import { getAuthenticatedUser } from "#lib/authentication.js"
+import { setAdminImpersonation } from "#lib/elevdok-api/admin-impersonation.js"
 
 export const POST = async ({ params, request, url }) => {
   try {

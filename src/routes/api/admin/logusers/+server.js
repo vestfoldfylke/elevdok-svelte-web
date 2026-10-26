@@ -1,6 +1,6 @@
 import { logger } from "@vtfk/logger"
-import { getAuthenticatedUser } from "#lib/authentication"
-import { logUserSearch } from "#lib/elevdok-api/user-logs"
+import { getAuthenticatedUser } from "#lib/authentication.js"
+import { logUserSearch } from "#lib/elevdok-api/user-logs.js"
 
 export const GET = async ({ params, request, url }) => {
   try {

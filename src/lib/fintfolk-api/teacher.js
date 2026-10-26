@@ -1,7 +1,7 @@
 import { error } from "@sveltejs/kit"
 import axios from "axios"
-import { sleep } from "#lib/helpers/sleep"
-import { getMsalToken } from "#lib/msal-token"
+import { sleep } from "#lib/helpers/sleep.js"
+import { getMsalToken } from "#lib/msal-token.js"
 import { FEIDENAVN_SUFFIX, FINTFOLK_API_SCOPE, FINTFOLK_API_URL, MOCK_API, NODE_ENV } from "$app/env/private"
 
 const mockTeacher = {

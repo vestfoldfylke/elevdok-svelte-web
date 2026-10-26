@@ -1,7 +1,7 @@
 import { logger } from "@vtfk/logger"
 import { ObjectId } from "mongodb"
-import { getMockDb } from "#lib/mock-db"
-import { closeMongoClient, getMongoClient } from "#lib/mongo-client"
+import { getMockDb } from "#lib/mock-db.js"
+import { closeMongoClient, getMongoClient } from "#lib/mongo-client.js"
 import { MOCK_API, MONGODB_DB_NAME, MONGODB_LOGS_COLLECTION } from "$app/env/private"
 import { getCurrentSchoolYear } from "./get-user-data.js"
 

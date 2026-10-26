@@ -1,14 +1,14 @@
 import { logger } from "@vtfk/logger"
-import { getAzfArchiveDocuments } from "#lib/call-archive/azf-archive"
-import { getMockDocuments } from "#lib/call-archive/mock-data"
-import { hasFileAccessForStudent } from "#lib/permissions"
+import { getAzfArchiveDocuments } from "#lib/call-archive/azf-archive.js"
+import { getMockDocuments } from "#lib/call-archive/mock-data.js"
+import { hasFileAccessForStudent } from "#lib/permissions.js"
 import { DEFAULT_ROLE, LEDER_ROLE, MOCK_API } from "$app/env/private"
 import { getUserData } from "./get-user-data.js"
 import { createUserLogEntry } from "./user-logs.js"
 
 /**
  *
- * @param {import("#lib/authentication").User} user
+ * @param {import("#lib/authentication.js").User} user
  * @param {string} studentFeidenavn
  * @returns
  */

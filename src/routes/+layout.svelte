@@ -4,7 +4,7 @@
   import julehund from "#lib/assets/julehund.png"
   import logo from "#lib/assets/logo.svg"
   import logoDarkmode from "#lib/assets/logo-darkmode.svg"
-  import { clickOutside } from "#lib/helpers/click-outside"
+  import { clickOutside } from "#lib/helpers/click-outside.js"
   import { navigating, page } from "$app/state"
 
   /** @type {import('./$types').PageData} */

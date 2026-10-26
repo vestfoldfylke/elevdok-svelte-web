@@ -1,7 +1,7 @@
 import { logger } from "@vtfk/logger"
 import axios from "axios"
-import { getInternalCache } from "#lib/internal-cache"
-import { getMsalToken } from "#lib/msal-token"
+import { getInternalCache } from "#lib/internal-cache.js"
+import { getMsalToken } from "#lib/msal-token.js"
 import { AZF_ARCHIVE_SCOPE, AZF_ARCHIVE_URL, MAIN_SOURCE_NAME } from "$app/env/private"
 
 export const repackP360Document = (document, feidenavn, source, sourceName) => {

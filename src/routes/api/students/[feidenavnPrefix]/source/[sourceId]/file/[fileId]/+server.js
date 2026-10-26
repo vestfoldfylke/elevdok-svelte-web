@@ -1,5 +1,5 @@
-import { getAuthenticatedUser } from "#lib/authentication"
-import { getFile } from "#lib/elevdok-api/get-file"
+import { getAuthenticatedUser } from "#lib/authentication.js"
+import { getFile } from "#lib/elevdok-api/get-file.js"
 import { FEIDENAVN_SUFFIX } from "$app/env/private"
 
 export const GET = async ({ params, request, url }) => {

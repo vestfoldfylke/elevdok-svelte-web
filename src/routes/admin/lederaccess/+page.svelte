@@ -2,7 +2,7 @@
   import axios from "axios"
   import { onMount } from "svelte"
   import LoadingSpinner from "#lib/components/LoadingSpinner.svelte"
-  import { prettyPrintDate } from "#lib/helpers/pretty-date"
+  import { prettyPrintDate } from "#lib/helpers/pretty-date.js"
 
   /** @type {import('./$types').PageData} */
   export let data

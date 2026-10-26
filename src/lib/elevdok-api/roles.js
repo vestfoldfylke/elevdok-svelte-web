@@ -1,6 +1,6 @@
 import { logger } from "@vtfk/logger"
-import { getMockDb } from "#lib/mock-db"
-import { closeMongoClient, getMongoClient } from "#lib/mongo-client"
+import { getMockDb } from "#lib/mock-db.js"
+import { closeMongoClient, getMongoClient } from "#lib/mongo-client.js"
 import { MOCK_API, MONGODB_DB_NAME, MONGODB_USER_SETTINGS_COLLECTION } from "$app/env/private"
 
 /**
@@ -33,7 +33,7 @@ export const getActiveRole = async (principalId) => {
 
 /**
  *
- * @param {import("#lib/authentication").User} user
+ * @param {import("#lib/authentication.js").User} user
  * @param {string} requestedRole
  * @returns
  */

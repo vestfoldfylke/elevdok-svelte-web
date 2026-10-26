@@ -1,7 +1,7 @@
 import { logger } from "@vtfk/logger"
 import vtfkSchoolsInfo from "vtfk-schools-info"
-import { fintSchool } from "#lib/fintfolk-api/school"
-import { fintTeacher } from "#lib/fintfolk-api/teacher"
+import { fintSchool } from "#lib/fintfolk-api/school.js"
+import { fintTeacher } from "#lib/fintfolk-api/teacher.js"
 import { DEFAULT_ROLE, IOP_FAGLARER_ACCESS_ENABLED, LEDER_ROLE } from "$app/env/private"
 import { getLeaderAccess } from "./leder-access.js"
 
@@ -171,7 +171,7 @@ const getIOPSchools = (teacherStudent) => {
 
 /**
  * @typedef UserData
- * @property {import("#lib/system-info").SystemInfo} systemInfo
+ * @property {import("#lib/system-info.js").SystemInfo} systemInfo
  * @property {PersonData} personData
  * @property {TeacherStudent[]} students
  * @property {LarerKlasse[]} classes
@@ -181,7 +181,7 @@ const getIOPSchools = (teacherStudent) => {
 
 /**
  *
- * @param {import("#lib/authentication").User} user
+ * @param {import("#lib/authentication.js").User} user
  * @param {boolean} maskSsn defaults to true
  * @returns {UserData} users data
  *
