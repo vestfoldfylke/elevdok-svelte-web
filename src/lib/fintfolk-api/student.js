@@ -660,11 +660,15 @@ const mockStudents = [
  * @param {Object} user
  */
 export const fintStudent = async (feidenavn) => {
-  if (!feidenavn) throw error(400, 'Missing required parameter "feidenavn"')
+  if (!feidenavn) {
+    throw error(400, 'Missing required parameter "feidenavn"')
+  }
   if (MOCK_API === "true" && NODE_ENV !== "production") {
     await sleep(1000)
     const mockStudent = mockStudents.find((student) => student.feidenavn === feidenavn)
-    if (!mockStudent) throw error(404, `Could not find student with feidenavn ${feidenavn}`)
+    if (!mockStudent) {
+      throw error(404, `Could not find student with feidenavn ${feidenavn}`)
+    }
     return mockStudent
   }
   const accessToken = await getMsalToken({ scope: FINTFOLK_API_SCOPE })

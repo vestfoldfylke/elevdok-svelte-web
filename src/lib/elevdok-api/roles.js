@@ -18,7 +18,9 @@ export const getActiveRole = async (principalId) => {
     const mongoClient = await getMongoClient()
     const collection = mongoClient.db(MONGODB_DB_NAME).collection(MONGODB_USER_SETTINGS_COLLECTION)
     const userSettings = await collection.findOne({ principalId })
-    if (!userSettings) return null
+    if (!userSettings) {
+      return null
+    }
     return userSettings.activeRole || null
   } catch (error) {
     if (error.toString().startsWith("MongoTopologyClosedError")) {

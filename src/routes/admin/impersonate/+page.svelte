@@ -14,7 +14,9 @@
     errorMessage = ""
     isLoading = true
     try {
-      if (!impersonationTarget) throw new Error("Du må skrive et gyldig brukernavn / epost")
+      if (!impersonationTarget) {
+        throw new Error("Du må skrive et gyldig brukernavn / epost")
+      }
       const { data } = await axios.post("/api/admin/setimpersonation", { target: impersonationTarget, type })
       await refreshAll()
     } catch (error) {

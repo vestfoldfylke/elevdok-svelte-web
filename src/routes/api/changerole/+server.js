@@ -4,7 +4,9 @@ import { setActiveRole } from "#lib/elevdok-api/roles"
 export const POST = async ({ params, request, url }) => {
   try {
     const { requestedRole } = await request.json()
-    if (!requestedRole || typeof requestedRole !== "string") return Response.json({ message: 'Missing "requestedRole" (string)' }, { status: 400 })
+    if (!requestedRole || typeof requestedRole !== "string") {
+      return Response.json({ message: 'Missing "requestedRole" (string)' }, { status: 400 })
+    }
 
     const user = await getAuthenticatedUser(request.headers)
     await setActiveRole(user, requestedRole)

@@ -5,11 +5,17 @@ import { getMsalToken } from "#lib/msal-token"
 import { AZF_ARCHIVE_SCOPE, AZF_ARCHIVE_URL, MAIN_SOURCE_NAME } from "$app/env/private"
 
 export const repackP360Document = (document, feidenavn, source, sourceName) => {
-  if (!document || !feidenavn || !source || !sourceName) throw new Error('Missing required parameter "document" "feidenavn", "source", or "sourceName')
+  if (!document || !feidenavn || !source || !sourceName) {
+    throw new Error('Missing required parameter "document" "feidenavn", "source", or "sourceName')
+  }
 
   // First verify that the document has Contacts and Files as array
-  if (!Array.isArray(document.Contacts)) document.Contacts = []
-  if (!Array.isArray(document.Files)) document.Files = []
+  if (!Array.isArray(document.Contacts)) {
+    document.Contacts = []
+  }
+  if (!Array.isArray(document.Files)) {
+    document.Files = []
+  }
   const repacked = {
     title: document.Title,
     feidenavn,
@@ -42,7 +48,9 @@ export const repackP360Document = (document, feidenavn, source, sourceName) => {
 }
 
 export const getAzfArchiveDocuments = async (ssn, feidenavn, loggerPrefix) => {
-  if (!ssn || !feidenavn || !loggerPrefix) throw new Error('Missing required parameter "ssn" or "loggerPrefix"')
+  if (!ssn || !feidenavn || !loggerPrefix) {
+    throw new Error('Missing required parameter "ssn" or "loggerPrefix"')
+  }
   // Hent først saksnr for elevmappe(r), deretter dokumentene i elevmappe(ne)
   const result = {
     documents: [],
@@ -84,13 +92,17 @@ export const getAzfArchiveDocuments = async (ssn, feidenavn, loggerPrefix) => {
       return allowedStatus && allowedAccessGroup
     })
 
-    if (cases.length > 1) logger("info", [loggerPrefix, `Found several (${cases.length}) elevmapper`])
+    if (cases.length > 1) {
+      logger("info", [loggerPrefix, `Found several (${cases.length}) elevmapper`])
+    }
     if (cases.length === 0) {
       logger("warn", [loggerPrefix, `No elevmappe found for ${feidenavn}`])
       result.errors.push("Fant ingen elevmappe i Public 360")
       return result
     }
-    if (cases.length === 1) logger("info", [loggerPrefix, `Found elevmappe. CaseNumber: ${cases[0].CaseNumber}`])
+    if (cases.length === 1) {
+      logger("info", [loggerPrefix, `Found elevmappe. CaseNumber: ${cases[0].CaseNumber}`])
+    }
     for (const archiveCase of cases) {
       caseNumbers.push(archiveCase.CaseNumber)
     }
@@ -130,7 +142,9 @@ export const getAzfArchiveDocuments = async (ssn, feidenavn, loggerPrefix) => {
 }
 
 export const getAzfArchiveFile = async (fileId, loggerPrefix) => {
-  if (!fileId || !loggerPrefix) throw new Error('Missing required parameter "fileId" or "loggerPrefix"')
+  if (!fileId || !loggerPrefix) {
+    throw new Error('Missing required parameter "fileId" or "loggerPrefix"')
+  }
 
   const accessToken = await getMsalToken({ scope: AZF_ARCHIVE_SCOPE })
 

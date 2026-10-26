@@ -594,7 +594,9 @@ for (let i = 0; i < 2000; i++) {
  */
 export const fintTeacher = async (userPrincipalName) => {
   const identifier = userPrincipalName
-  if (!identifier) throw error(400, 'Missing required parameter "userPrincipalName"')
+  if (!identifier) {
+    throw error(400, 'Missing required parameter "userPrincipalName"')
+  }
   if (MOCK_API === "true" && NODE_ENV !== "production") {
     await sleep(1000)
     return mockTeacher

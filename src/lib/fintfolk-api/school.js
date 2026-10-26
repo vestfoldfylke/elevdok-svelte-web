@@ -114,7 +114,9 @@ const mockSchool = {
  */
 export const fintSchool = async (schoolNumber) => {
   const identifier = schoolNumber
-  if (!identifier) throw error(400, 'Missing required parameter "schoolNumber"')
+  if (!identifier) {
+    throw error(400, 'Missing required parameter "schoolNumber"')
+  }
   if (MOCK_API === "true" && NODE_ENV !== "production") {
     await sleep(1000)
     return mockSchool

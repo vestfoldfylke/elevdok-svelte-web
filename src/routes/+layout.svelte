@@ -14,8 +14,12 @@
   let showUndervisningsgruppeWarning = true
 
   const isActiveRoute = (route, currentRoute) => {
-    if (currentRoute === route) return true
-    if (route.length > 1 && currentRoute.substring(0, route.length) === route) return true
+    if (currentRoute === route) {
+      return true
+    }
+    if (route.length > 1 && currentRoute.substring(0, route.length) === route) {
+      return true
+    }
     return false
   }
 
@@ -30,7 +34,9 @@
     ]
     let currentLink = ""
     for (const part of parts) {
-      if (part === "") continue
+      if (part === "") {
+        continue
+      }
       currentLink += `/${part}`
       pathLinks.push({
         name: part,

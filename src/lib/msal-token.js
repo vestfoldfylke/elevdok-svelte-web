@@ -12,7 +12,9 @@ const cache = new NodeCache({ stdTTL: 4000 })
  * @param {boolean} [config.forceNew]
  */
 export const getMsalToken = async (config) => {
-  if (!config.scope) throw new Error("Missing required parameter config.scope")
+  if (!config.scope) {
+    throw new Error("Missing required parameter config.scope")
+  }
   const cacheKey = `${config.scope}token`
 
   const cachedToken = cache.get(cacheKey)
@@ -34,7 +36,7 @@ export const getMsalToken = async (config) => {
   const token = await confidentialClientApplication.acquireTokenByClientCredential({
     scopes: [config.scope]
   })
-  const expires = Math.floor((token.expiresOn.getTime() - new Date()) / 1000)
+  const expires = Math.floor((token.expiresOn.getTime() - Date.now()) / 1000)
   logger("info", ["getMsalToken", `Got token from Microsoft, expires in ${expires} seconds.`])
   cache.set(cacheKey, `${token.accessToken}==`, expires) // Haha, just to make the cached token not directly usable
   logger("info", ["getMsalToken", "Token stored in cache"])

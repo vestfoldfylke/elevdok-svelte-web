@@ -19,5 +19,7 @@ export const getMongoClient = async () => {
 }
 
 export const closeMongoClient = () => {
-  if (client) client.close()
+  if (client) {
+    client.close()
+  }
 }

@@ -102,13 +102,17 @@ export const getAuthenticatedUser = async (headers) => {
   }
 
   const decodedClaims = JSON.parse(Buffer.from(encodedClaims, "base64").toString())
-  if (!decodedClaims) throw error(500, "Det e itj no token her")
+  if (!decodedClaims) {
+    throw error(500, "Det e itj no token her")
+  }
   const roles = decodedClaims.claims.filter((claim) => claim.typ === "roles").map((claim) => claim.val)
   const name = decodedClaims.claims.find((claim) => claim.typ === "name").val
   const audience = decodedClaims.claims.find((claim) => claim.typ === "aud").val
 
   let activeRole = ""
-  if (roles.length === 0) throw new Error("DU HAKKE TILGANG PÅ NOE DU!")
+  if (roles.length === 0) {
+    throw new Error("DU HAKKE TILGANG PÅ NOE DU!")
+  }
   if (roles.length > 1) {
     // Check in db for activeRole for principalId (save principalName as well)
     logger("info", ["User has more than one role, checking for active role"])
@@ -137,10 +141,18 @@ export const getAuthenticatedUser = async (headers) => {
   // Add displayNames to roles
   const repackedRoles = roles.map((role) => {
     let roleName = ""
-    if (role === DEFAULT_ROLE) roleName = "Lærer"
-    if (role === LEDER_ROLE) roleName = "Leder / Rådgiver"
-    if (role === ADMIN_ROLE) roleName = "Administrator"
-    if (!roleName) throw new Error(`HEIHEI, her mangler det displayName for rollen med verdi ${role}`)
+    if (role === DEFAULT_ROLE) {
+      roleName = "Lærer"
+    }
+    if (role === LEDER_ROLE) {
+      roleName = "Leder / Rådgiver"
+    }
+    if (role === ADMIN_ROLE) {
+      roleName = "Administrator"
+    }
+    if (!roleName) {
+      throw new Error(`HEIHEI, her mangler det displayName for rollen med verdi ${role}`)
+    }
     return {
       value: role,
       roleName
@@ -155,7 +167,9 @@ export const getAuthenticatedUser = async (headers) => {
   // Check if hasAdmin and is impersonating
   if (hasAdminRole) {
     const impersonation = getAdminImpersonation({ principalId, hasAdminRole })
-    if (impersonation) impersonating = impersonation
+    if (impersonation) {
+      impersonating = impersonation
+    }
   }
 
   return {

@@ -11,17 +11,35 @@ const escapeRegex = (str) => {
 
 export const createUserLogEntry = async (logData, loggerPrefix) => {
   const { user, teacherStudent, accessType, action, file } = logData
-  if (!action) throw new Error('Missing required parameter "action"')
-  if (!user) throw new Error('Missing required parameter "user"')
-  if (!teacherStudent) throw new Error('Missing required parameter "teacherStudent"')
-  if (!accessType) throw new Error('Missing required parameter "accessType"')
-  if (!loggerPrefix) throw new Error('Missing required parameter "loggerPrefix"')
+  if (!action) {
+    throw new Error('Missing required parameter "action"')
+  }
+  if (!user) {
+    throw new Error('Missing required parameter "user"')
+  }
+  if (!teacherStudent) {
+    throw new Error('Missing required parameter "teacherStudent"')
+  }
+  if (!accessType) {
+    throw new Error('Missing required parameter "accessType"')
+  }
+  if (!loggerPrefix) {
+    throw new Error('Missing required parameter "loggerPrefix"')
+  }
 
   if (file) {
-    if (!file.id) throw new Error('Missing required parameter "file.id"')
-    if (!file.title) throw new Error('Missing required parameter "file.title"')
-    if (!file.documentNumber) throw new Error('Missing required parameter "file.documentNumber"')
-    if (!file.sourceId) throw new Error('Missing required parameter "file.sourceId"')
+    if (!file.id) {
+      throw new Error('Missing required parameter "file.id"')
+    }
+    if (!file.title) {
+      throw new Error('Missing required parameter "file.title"')
+    }
+    if (!file.documentNumber) {
+      throw new Error('Missing required parameter "file.documentNumber"')
+    }
+    if (!file.sourceId) {
+      throw new Error('Missing required parameter "file.sourceId"')
+    }
   }
 
   logger("info", [loggerPrefix, "Creating logEntry"])
@@ -87,9 +105,13 @@ export const logStudentSearch = async (user, searchName) => {
     const dbKeys = mockDb.keys()
     for (const key of dbKeys) {
       const logElement = mockDb.get(key)
-      if (logElement.type !== "logElement") continue
+      if (logElement.type !== "logElement") {
+        continue
+      }
       if (logElement.student.name.toLowerCase().startsWith(searchName.toLowerCase())) {
-        if (students.some((student) => student.elevnummer === logElement.student.elevnummer)) continue
+        if (students.some((student) => student.elevnummer === logElement.student.elevnummer)) {
+          continue
+        }
         students.push(logElement.student)
       }
     }
@@ -138,9 +160,13 @@ export const logUserSearch = async (user, searchName) => {
     const dbKeys = mockDb.keys()
     for (const key of dbKeys) {
       const logElement = mockDb.get(key)
-      if (logElement.type !== "logElement") continue
+      if (logElement.type !== "logElement") {
+        continue
+      }
       if (logElement.user.name.toLowerCase().startsWith(searchName.toLowerCase())) {
-        if (users.some((user) => user.principalId === logElement.user.principalId)) continue
+        if (users.some((user) => user.principalId === logElement.user.principalId)) {
+          continue
+        }
         users.push(logElement.user)
       }
     }
@@ -189,7 +215,9 @@ export const getUserLogs = async (user, filter) => {
     const dbKeys = mockDb.keys()
     for (const key of dbKeys) {
       const logElement = mockDb.get(key)
-      if (logElement.type !== "logElement") continue
+      if (logElement.type !== "logElement") {
+        continue
+      }
       userLogs.push(logElement)
     }
 

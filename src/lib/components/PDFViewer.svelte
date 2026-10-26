@@ -12,7 +12,9 @@
     return (await fetch(`data:${type};base64,${base64}`)).blob()
   }
 
-  $: if (showPdf) previewModal.showModal()
+  $: if (showPdf) {
+    previewModal.showModal()
+  }
 </script>
 
 <dialog bind:this={previewModal}>

@@ -13,7 +13,9 @@ const isGuid = (value) => {
  * @returns
  */
 export const getAdminImpersonation = (user) => {
-  if (!user.hasAdminRole) throw new Error("You do not have permission to do this")
+  if (!user.hasAdminRole) {
+    throw new Error("You do not have permission to do this")
+  }
   const internalCache = getInternalCache()
   const impersonation = internalCache.get(`${user.principalId}-impersonation`)
   return impersonation || null
@@ -27,10 +29,18 @@ export const getAdminImpersonation = (user) => {
  * @returns
  */
 export const setAdminImpersonation = async (user, target, type) => {
-  if (!user.hasAdminRole) throw new Error("You do not have permission to do this")
-  if (typeof target !== "string") throw new Error("target må værra string")
-  if (!target.endsWith(`@${FEIDENAVN_SUFFIX}`) && !isGuid(target)) throw new Error(`Target må ende på @${FEIDENAVN_SUFFIX} eller værra en guid`)
-  if (!["larer", "leder"].includes(type)) throw new Error('type må værra "larer" eller "leder"')
+  if (!user.hasAdminRole) {
+    throw new Error("You do not have permission to do this")
+  }
+  if (typeof target !== "string") {
+    throw new Error("target må værra string")
+  }
+  if (!target.endsWith(`@${FEIDENAVN_SUFFIX}`) && !isGuid(target)) {
+    throw new Error(`Target må ende på @${FEIDENAVN_SUFFIX} eller værra en guid`)
+  }
+  if (!["larer", "leder"].includes(type)) {
+    throw new Error('type må værra "larer" eller "leder"')
+  }
   const internalCache = getInternalCache()
   internalCache.set(`${user.principalId}-impersonation`, { target, type })
   logger("warn", [
@@ -38,7 +48,9 @@ export const setAdminImpersonation = async (user, target, type) => {
     `${user.principalName} probably need to do this, but logging for extra safety.`,
     "Saving impersonation-logEntry to db as well"
   ])
-  if (MOCK_API === "true") return
+  if (MOCK_API === "true") {
+    return
+  }
   try {
     const mongoClient = await getMongoClient()
     const collection = mongoClient.db(MONGODB_DB_NAME).collection(MONGODB_USER_IMPERSONATION_COLLECTION)
@@ -67,7 +79,9 @@ export const setAdminImpersonation = async (user, target, type) => {
  * @param {import("#lib/authentication").User} user
  */
 export const deleteAdminImpersonation = (user) => {
-  if (!user.hasAdminRole) throw new Error("You do not have permission to do this")
+  if (!user.hasAdminRole) {
+    throw new Error("You do not have permission to do this")
+  }
   const internalCache = getInternalCache()
   internalCache.del(`${user.principalId}-impersonation`)
 }

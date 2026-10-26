@@ -24,7 +24,9 @@ const getSchoolYearFromDate = (date, delimiter = "/") => {
   const previousYear = year - 1
   const nextYear = year + 1
   const midsommar = new Date(`${year}-07-15`)
-  if (date > midsommar) return `${year}${delimiter}${nextYear}`
+  if (date > midsommar) {
+    return `${year}${delimiter}${nextYear}`
+  }
   return `${previousYear}${delimiter}${year}`
 }
 
@@ -84,10 +86,15 @@ export const repackMiniSchool = (school, kontaktlarer) => {
  */
 const getIOPSchools = (teacherStudent) => {
   const IOPCourseIds = ["IOP1000", "IOP2000", "IOP3000", "IOP4000", "IOP5000"]
-  if (!teacherStudent) throw new Error('Missing required parameter "teacherStudent"')
-  if (!Array.isArray(teacherStudent.skoler)) throw new Error('Missing "skoler" array from teacherStudent')
-  if (!teacherStudent.skoler.every((school) => Array.isArray(school.klasser) && school.klasser.every((group) => Array.isArray(group.fag))))
+  if (!teacherStudent) {
+    throw new Error('Missing required parameter "teacherStudent"')
+  }
+  if (!Array.isArray(teacherStudent.skoler)) {
+    throw new Error('Missing "skoler" array from teacherStudent')
+  }
+  if (!teacherStudent.skoler.every((school) => Array.isArray(school.klasser) && school.klasser.every((group) => Array.isArray(group.fag)))) {
     throw new Error('Either missing "klasser" array from skole, or missing "fag" array from klasse')
+  }
   // Getting IOPSchools in case of future requirement where teachers can only see documents for specific schools
   const IOPSchools = teacherStudent.skoler.filter((school) => school.klasser.some((group) => group.fag.some((course) => IOPCourseIds.includes(course.systemId?.identifikatorverdi))))
   return IOPSchools
@@ -193,11 +200,15 @@ export const getUserData = async (user, maskSsn = true) => {
   if (user.activeRole === DEFAULT_ROLE || (user.hasAdminRole && user.impersonating?.type === "larer")) {
     loggerPrefix += " - role: Teacher"
     logger("info", [loggerPrefix, "Fetching teacher data from FINT"])
-    if (user.impersonating?.type === "larer") loggerPrefix += ` - impersonating: ${user.impersonating.target}`
+    if (user.impersonating?.type === "larer") {
+      loggerPrefix += ` - impersonating: ${user.impersonating.target}`
+    }
     const teacherUpn = user.hasAdminRole && user.impersonating?.type === "larer" ? user.impersonating.target : user.principalName
     logger("info", [loggerPrefix, "Fetching teacher data from FINT with teacher id", teacherUpn])
     const teacher = await fintTeacher(teacherUpn)
-    if (!teacher) return userData
+    if (!teacher) {
+      return userData
+    }
 
     userData.personData = {
       upn: teacher.upn,
@@ -214,9 +225,15 @@ export const getUserData = async (user, maskSsn = true) => {
     if (invalidUndervisningsforhold.length > 0) {
       for (const invalid of invalidUndervisningsforhold) {
         let hasElever = false
-        if (invalid.basisgrupper.some((gruppe) => Array.isArray(gruppe.elever) && gruppe.elever.length > 0)) hasElever = true
-        if (invalid.kontaktlarergrupper.some((gruppe) => Array.isArray(gruppe.elever) && gruppe.elever.length > 0)) hasElever = true
-        if (invalid.undervisningsgrupper.some((gruppe) => Array.isArray(gruppe.elever) && gruppe.elever.length > 0)) hasElever = true
+        if (invalid.basisgrupper.some((gruppe) => Array.isArray(gruppe.elever) && gruppe.elever.length > 0)) {
+          hasElever = true
+        }
+        if (invalid.kontaktlarergrupper.some((gruppe) => Array.isArray(gruppe.elever) && gruppe.elever.length > 0)) {
+          hasElever = true
+        }
+        if (invalid.undervisningsgrupper.some((gruppe) => Array.isArray(gruppe.elever) && gruppe.elever.length > 0)) {
+          hasElever = true
+        }
         if (hasElever) {
           logger("warn", [
             loggerPrefix,
@@ -245,8 +262,9 @@ export const getUserData = async (user, maskSsn = true) => {
               })
             } else {
               // Skolen allerede lagt inn, legger inn klassen på skolen (om den ikke er der allerede)
-              if (!existingSchoolOnStudent.klasser.some((group) => group.systemId === basisgruppe.systemId))
+              if (!existingSchoolOnStudent.klasser.some((group) => group.systemId === basisgruppe.systemId)) {
                 existingSchoolOnStudent.klasser.push({ navn: basisgruppe.navn, type: "basisgruppe", systemId: basisgruppe.systemId, fag: [] })
+              }
             }
             if (existingSchoolOnStudent && !existingSchoolOnStudent.kontaktlarer && elev.kontaktlarer) {
               // Sjekker om er kontaktlærer på ekisterende skole (som ikke var funnet fra før av, for sikkerhets skyld)
@@ -275,8 +293,9 @@ export const getUserData = async (user, maskSsn = true) => {
               })
             } else {
               // Skolen allerede lagt inn, legger inn klassen på skolen (om den ikke er der allerede)
-              if (!existingSchoolOnStudent.klasser.some((group) => group.systemId === undervisningsgruppe.systemId))
+              if (!existingSchoolOnStudent.klasser.some((group) => group.systemId === undervisningsgruppe.systemId)) {
                 existingSchoolOnStudent.klasser.push({ navn: undervisningsgruppe.navn, type: "undervisningsgruppe", systemId: undervisningsgruppe.systemId, fag: undervisningsgruppe.fag })
+              }
             }
             if (existingSchoolOnStudent && !existingSchoolOnStudent.kontaktlarer && elev.kontaktlarer) {
               // Sjekker om er kontaktlærer på ekisterende skole (som ikke var funnet fra før av, for sikkerhets skyld)
@@ -309,7 +328,9 @@ export const getUserData = async (user, maskSsn = true) => {
 
     // Fjern kontaktlærer-property rett på eleven (den ligger på skoler i stedet), og sleng på kort-feidenavn på alle elever, sleng på IOP-access rett på skole-info om det IOP er skrudd på i ENV
     students = students.map((stud) => {
-      if (maskSsn) stud.fodselsnummer = `${stud.fodselsnummer.substring(0, 6)}*****`
+      if (maskSsn) {
+        stud.fodselsnummer = `${stud.fodselsnummer.substring(0, 6)}*****`
+      }
       delete stud.kontaktlarer
       // IOP special access
       if (IOP_FAGLARER_ACCESS_ENABLED === "true") {
@@ -336,7 +357,9 @@ export const getUserData = async (user, maskSsn = true) => {
   // If leder / rådgiver or administrator impersonating teacher
   if (user.activeRole === LEDER_ROLE || (user.hasAdminRole && user.impersonating?.type === "leder")) {
     loggerPrefix += " - role: Leder"
-    if (user.impersonating?.type === "leder") loggerPrefix += ` - impersonating: ${user.impersonating.target}`
+    if (user.impersonating?.type === "leder") {
+      loggerPrefix += ` - impersonating: ${user.impersonating.target}`
+    }
     logger("info", [loggerPrefix, "Checking school access"])
     const leaderId = user.hasAdminRole && user.impersonating?.type === "leder" ? user.impersonating.target : user.principalId
 
@@ -375,7 +398,9 @@ export const getUserData = async (user, maskSsn = true) => {
       for (const student of school.elever) {
         const existingStudent = students.find((stud) => stud.elevnummer === student.elevnummer)
         if (existingStudent) {
-          if (!existingStudent.skoler.some((skole) => skole.skolenummer === school.skolenummer)) existingStudent.skoler.push({ ...miniSchool, klasser: [] })
+          if (!existingStudent.skoler.some((skole) => skole.skolenummer === school.skolenummer)) {
+            existingStudent.skoler.push({ ...miniSchool, klasser: [] })
+          }
         } else {
           students.push({ ...student, skoler: [{ ...miniSchool, klasser: [] }] })
         }
@@ -393,8 +418,9 @@ export const getUserData = async (user, maskSsn = true) => {
               existingStudent.skoler.push({ ...miniSchool, klasser: [{ navn: basisgruppe.navn, type: "basisgruppe", systemId: basisgruppe.systemId, fag: [] }] })
             } else {
               // Skolen allerede lagt inn, legger inn klassen på skolen (om den ikke er der allerede)
-              if (!existingSchoolOnStudent.klasser.some((group) => group.systemId === basisgruppe.systemId))
+              if (!existingSchoolOnStudent.klasser.some((group) => group.systemId === basisgruppe.systemId)) {
                 existingSchoolOnStudent.klasser.push({ navn: basisgruppe.navn, type: "basisgruppe", systemId: basisgruppe.systemId, fag: [] })
+              }
             }
             if (existingSchoolOnStudent && !existingSchoolOnStudent.kontaktlarer && elev.kontaktlarer) {
               // Sjekker om er kontaktlærer på ekisterende skole (som ikke var funnet fra før av, for sikkerhets skyld)
@@ -416,7 +442,9 @@ export const getUserData = async (user, maskSsn = true) => {
 
     // Fjern kontaktlærer-property rett på eleven (den ligger på skoler i stedet), og sleng på kort-feidenavn på alle elever, sleng på IOP-access rett på skole-info om det IOP er skrudd på i ENV
     students = students.map((stud) => {
-      if (maskSsn) stud.fodselsnummer = `${stud.fodselsnummer.substring(0, 6)}*****`
+      if (maskSsn) {
+        stud.fodselsnummer = `${stud.fodselsnummer.substring(0, 6)}*****`
+      }
       delete stud.kontaktlarer
 
       return {
