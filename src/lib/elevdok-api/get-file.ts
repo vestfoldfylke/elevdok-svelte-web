@@ -1,20 +1,15 @@
 import { logger } from "@vtfk/logger"
+import type { User } from "#lib/authentication.js"
 import { getAzfArchiveDocuments, getAzfArchiveFile } from "#lib/call-archive/azf-archive.js"
 import { mockFile } from "#lib/call-archive/mock-data.js"
+import { getErrorDetails } from "#lib/helpers/error-details.js"
 import { hasFileAccessForStudent } from "#lib/permissions.js"
 import { DEFAULT_ROLE, LEDER_ROLE, MOCK_API, VTFK_ARCHIVE_ENABLED } from "$app/env/private"
 import { getUserData } from "./get-user-data.js"
 import { createUserLogEntry } from "./user-logs.js"
 
-/**
- *
- * @param {import("#lib/authentication.js").User} user
- * @param {string} studentFeidenavn
- * @param {string} sourceId
- * @param {string} fileId
- * @returns {string} file as base64
- */
-export const getFile = async (user, studentFeidenavn, sourceId, fileId) => {
+/** Returns the file as base64 */
+export const getFile = async (user: User, studentFeidenavn: string, sourceId: string, fileId: string): Promise<string> => {
   const loggerPrefix = `getFile - user: ${user.principalName} - student: ${studentFeidenavn} - sourceId: ${sourceId} - fileId: ${fileId}`
   logger("info", [loggerPrefix, "New request"])
 
@@ -44,13 +39,12 @@ export const getFile = async (user, studentFeidenavn, sourceId, fileId) => {
   const userData = await getUserData(user, false)
   const availableStudents = userData.students
   logger("info", [loggerPrefix, "Validating access to student"])
-  const allowedToView = availableStudents.some((stud) => stud.feidenavn === studentFeidenavn)
-  if (!allowedToView) {
+  const teacherStudent = availableStudents.find((stud) => stud.feidenavn === studentFeidenavn)
+  if (!teacherStudent) {
     logger("warn", [loggerPrefix, "No access to student, or student does not exist"])
     throw new Error("No access to student, or student is not registered")
   }
 
-  const teacherStudent = availableStudents.find((stud) => stud.feidenavn === studentFeidenavn)
   logger("info", [loggerPrefix, "Access to student validated"])
 
   // Sjekk også at bruker har tilgang til å faktisk åpne filen!! Basert på ENV-variabler
@@ -64,7 +58,7 @@ export const getFile = async (user, studentFeidenavn, sourceId, fileId) => {
     logger("info", [loggerPrefix, `Validated access to files for student - accessType: ${type}`])
   }
 
-  const result = {
+  const result: { base64: string | null; metadata: { title: string; documentNumber: string } | null } = {
     base64: null,
     metadata: null
   }
@@ -96,11 +90,15 @@ export const getFile = async (user, studentFeidenavn, sourceId, fileId) => {
       result.base64 = base64
       result.metadata = metadata
     } catch (error) {
-      logger("error", [loggerPrefix, `Failed when fetching file (${fileId}) from mainArchive`, error.response?.data || error.stack || error.toString()])
+      logger("error", [loggerPrefix, `Failed when fetching file (${fileId}) from mainArchive`, getErrorDetails(error)])
       throw new Error("No access to student, or student is not registered")
     }
   } else if (VTFK_ARCHIVE_ENABLED === "true" && sourceId === "vtfk") {
     // implement
+  }
+  if (!result.base64 || !result.metadata) {
+    logger("error", [loggerPrefix, `No file fetched: sourceId ${sourceId} is unknown or not implemented`])
+    throw new Error(`Kan ikke hente filer fra kilden "${sourceId}": kilden er ukjent eller ikke støttet ennå`)
   }
   logger("info", [loggerPrefix, "Got base64file - creating logEntry"])
   const logData = {

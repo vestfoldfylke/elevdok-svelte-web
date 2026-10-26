@@ -1,18 +1,24 @@
 import { logger } from "@vtfk/logger"
+import type { User } from "#lib/authentication.js"
 import { getAzfArchiveDocuments } from "#lib/call-archive/azf-archive.js"
 import { getMockDocuments } from "#lib/call-archive/mock-data.js"
+import type { ArchiveDocument, ArchiveDocumentsResult, ArchiveFile } from "#lib/call-archive/types.js"
+import { getErrorDetails } from "#lib/helpers/error-details.js"
 import { hasFileAccessForStudent } from "#lib/permissions.js"
 import { DEFAULT_ROLE, LEDER_ROLE, MOCK_API } from "$app/env/private"
 import { getUserData } from "./get-user-data.js"
 import { createUserLogEntry } from "./user-logs.js"
 
-/**
- *
- * @param {import("#lib/authentication.js").User} user
- * @param {string} studentFeidenavn
- * @returns
- */
-export const getStudentDocuments = async (user, studentFeidenavn) => {
+export type StudentDocument = ArchiveDocument & {
+  files: (ArchiveFile & { canView: boolean })[]
+}
+
+export type StudentDocumentsResult = {
+  documents: StudentDocument[]
+  errors: string[]
+}
+
+export const getStudentDocuments = async (user: User, studentFeidenavn: string): Promise<StudentDocumentsResult> => {
   const loggerPrefix = `getStudentDocuments - user: ${user.principalName} - student: ${studentFeidenavn}`
   logger("info", [loggerPrefix, "New request"])
 
@@ -34,16 +40,15 @@ export const getStudentDocuments = async (user, studentFeidenavn) => {
   const userData = await getUserData(user, false)
   const availableStudents = userData.students
   logger("info", [loggerPrefix, "Validating access to student"])
-  const allowedToView = availableStudents.some((stud) => stud.feidenavn === studentFeidenavn)
-  if (!allowedToView) {
+  const teacherStudent = availableStudents.find((stud) => stud.feidenavn === studentFeidenavn)
+  if (!teacherStudent) {
     logger("warn", [loggerPrefix, "No access to student, or student does not exist"])
     throw new Error("No access to student, or student is not registered")
   }
 
-  const teacherStudent = availableStudents.find((stud) => stud.feidenavn === studentFeidenavn)
   logger("info", [loggerPrefix, "Access to student validated"])
 
-  const result = {
+  const result: ArchiveDocumentsResult = {
     documents: [],
     errors: []
   }
@@ -62,7 +67,7 @@ export const getStudentDocuments = async (user, studentFeidenavn) => {
       result.documents.push(...documents)
       result.errors.push(...errors)
     } catch (error) {
-      logger("error", [loggerPrefix, "Failed when fetching documents from main archive", error.response?.data || error.stack || error.toString()])
+      logger("error", [loggerPrefix, "Failed when fetching documents from main archive", getErrorDetails(error)])
     }
     // VTFK
     // To be implemented
@@ -70,7 +75,7 @@ export const getStudentDocuments = async (user, studentFeidenavn) => {
 
   logger("info", [loggerPrefix, `Adding viewFiles permission to all ${result.documents.length} documents' files, for easier frontend handling`])
   const { access, type } = hasFileAccessForStudent(user, teacherStudent, loggerPrefix)
-  result.documents = result.documents.map((doc) => {
+  const documents: StudentDocument[] = result.documents.map((doc) => {
     return {
       ...doc,
       files: doc.files.map((file) => {
@@ -83,12 +88,12 @@ export const getStudentDocuments = async (user, studentFeidenavn) => {
   })
 
   // Sort documents - newest first
-  result.documents = result.documents.sort((a, b) => {
-    return new Date(b.documentDate) - new Date(a.documentDate)
+  documents.sort((a, b) => {
+    return new Date(b.documentDate).getTime() - new Date(a.documentDate).getTime()
   })
 
   // Create log element
-  logger("info", [loggerPrefix, `Got ${result.documents.length} - creating logEntry`])
+  logger("info", [loggerPrefix, `Got ${documents.length} - creating logEntry`])
   const logData = {
     user,
     teacherStudent,
@@ -98,5 +103,5 @@ export const getStudentDocuments = async (user, studentFeidenavn) => {
   const logEntryId = await createUserLogEntry(logData, loggerPrefix)
   logger("info", [loggerPrefix, `LogEntry with id ${logEntryId.insertedId} successfully created, returning file`])
 
-  return result
+  return { documents, errors: result.errors }
 }

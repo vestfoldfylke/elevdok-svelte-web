@@ -1,15 +1,67 @@
 import { logger } from "@vtfk/logger"
 import { ObjectId } from "mongodb"
+import type { Impersonation, User } from "#lib/authentication.js"
 import { getMockDb } from "#lib/mock-db.js"
 import { closeMongoClient, getMongoClient } from "#lib/mongo-client.js"
 import { MOCK_API, MONGODB_DB_NAME, MONGODB_LOGS_COLLECTION } from "$app/env/private"
-import { getCurrentSchoolYear } from "./get-user-data.js"
+import { getCurrentSchoolYear, type TeacherStudent } from "./get-user-data.js"
 
-const escapeRegex = (str) => {
+type LogFile = {
+  id: string
+  title: string
+  documentNumber: string
+  sourceId: string
+}
+
+type UserLogData = {
+  user: User
+  teacherStudent: TeacherStudent
+  accessType: string
+  action: string
+  file?: LogFile
+}
+
+type LogStudent = {
+  name: string
+  feidenavn: string
+  elevnummer: string
+}
+
+type LogUser = {
+  name: string
+  principalId: string
+  principalName: string
+}
+
+export type LogEntry = {
+  timestamp: string
+  user: LogUser & {
+    role: string
+    hasAdminRole: boolean
+    impersonating: Impersonation | null
+  }
+  student: LogStudent
+  accessType: string
+  action: string
+  file: LogFile | null
+}
+
+type MockLogEntry = LogEntry & {
+  type: "logElement"
+  _id: string
+}
+
+type LogFilter = {
+  studentNumber: string | null
+  userPrincipalId: string | null
+  documentNumber: string | null
+}
+
+const escapeRegex = (str: string): string => {
   return str.replace(/[/\-\\^$*+?.()|[\]{}]/g, "\\$&")
 }
 
-export const createUserLogEntry = async (logData, loggerPrefix) => {
+export const createUserLogEntry = async (logData: UserLogData, loggerPrefix: string): Promise<{ insertedId: string | ObjectId }> => {
   const { user, teacherStudent, accessType, action, file } = logData
   if (!action) {
     throw new Error('Missing required parameter "action"')
@@ -43,7 +95,7 @@ export const createUserLogEntry = async (logData, loggerPrefix) => {
   }
 
   logger("info", [loggerPrefix, "Creating logEntry"])
-  const logEntry = {
+  const logEntry: LogEntry = {
     timestamp: new Date().toISOString(),
     user: {
       principalName: user.principalName,
@@ -65,22 +117,21 @@ export const createUserLogEntry = async (logData, loggerPrefix) => {
   if (MOCK_API === "true") {
     logger("info", [loggerPrefix, "MOCK_API is true, adding logEntry to mockDb"])
     const mockDb = getMockDb()
-    logEntry.type = "logElement"
     const randomId = new ObjectId().toString()
-    logEntry._id = randomId
-    mockDb.set(randomId, logEntry)
+    const mockLogEntry: MockLogEntry = { ...logEntry, type: "logElement", _id: randomId }
+    mockDb.set(randomId, mockLogEntry)
     logger("info", [loggerPrefix, `MOCK_API is true, document successfully added to mockDb with id: ${randomId}`])
     return { insertedId: randomId }
   }
   logger("info", [loggerPrefix, "Inserting logEntry in db"])
   try {
     const mongoClient = await getMongoClient()
-    const collection = mongoClient.db(MONGODB_DB_NAME).collection(`${MONGODB_LOGS_COLLECTION}-${getCurrentSchoolYear("-")}`)
+    const collection = mongoClient.db(MONGODB_DB_NAME).collection<LogEntry>(`${MONGODB_LOGS_COLLECTION}-${getCurrentSchoolYear("-")}`)
     const insertLogResult = await collection.insertOne(logEntry)
     logger("info", [loggerPrefix, `LogEntry successfully inserted: ${insertLogResult.insertedId}`])
     return insertLogResult
   } catch (error) {
-    if (error.toString().startsWith("MongoTopologyClosedError")) {
+    if (String(error).startsWith("MongoTopologyClosedError")) {
       logger("warn", "Oh no, topology is closed! Closing client")
       closeMongoClient()
     }
@@ -88,7 +139,7 @@ export const createUserLogEntry = async (logData, loggerPrefix) => {
   }
 }
 
-export const logStudentSearch = async (user, searchName) => {
+export const logStudentSearch = async (user: User, searchName: string | null): Promise<LogStudent[]> => {
   const loggerPrefix = `logStudentSearch - user: ${user.principalName} - searchName: ${searchName}`
   logger("info", [loggerPrefix, "New student search"])
   if (!user.hasAdminRole) {
@@ -100,12 +151,12 @@ export const logStudentSearch = async (user, searchName) => {
   }
   if (MOCK_API === "true") {
     logger("info", [loggerPrefix, "MOCK_API is true, getting logs from mockDb"])
-    const students = []
+    const students: LogStudent[] = []
     const mockDb = getMockDb()
     const dbKeys = mockDb.keys()
     for (const key of dbKeys) {
-      const logElement = mockDb.get(key)
-      if (logElement.type !== "logElement") {
+      const logElement = mockDb.get<MockLogEntry | string>(key)
+      if (typeof logElement !== "object" || logElement.type !== "logElement") {
         continue
       }
       if (logElement.student.name.toLowerCase().startsWith(searchName.toLowerCase())) {
@@ -122,12 +173,15 @@ export const logStudentSearch = async (user, searchName) => {
   try {
     const mongoClient = await getMongoClient()
 
-    const collection = mongoClient.db(MONGODB_DB_NAME).collection(`${MONGODB_LOGS_COLLECTION}-${getCurrentSchoolYear("-")}`)
+    const collection = mongoClient.db(MONGODB_DB_NAME).collection<LogEntry>(`${MONGODB_LOGS_COLLECTION}-${getCurrentSchoolYear("-")}`)
 
     const escapedSearchName = escapeRegex(searchName)
     const regex = new RegExp(`^${escapedSearchName}`, "i")
     const distinctStudents = await collection
-      .aggregate([{ $group: { _id: { elevnummer: "$student.elevnummer", name: "$student.name", feidenavn: "$student.feidenavn" } } }, { $match: { "_id.name": { $regex: regex } } }])
+      .aggregate<{ _id: LogStudent }>([
+        { $group: { _id: { elevnummer: "$student.elevnummer", name: "$student.name", feidenavn: "$student.feidenavn" } } },
+        { $match: { "_id.name": { $regex: regex } } }
+      ])
       .sort({ "_id.name": 1 })
       .limit(15)
       .toArray()
@@ -135,7 +189,7 @@ export const logStudentSearch = async (user, searchName) => {
     logger("info", [loggerPrefix, `Found ${distinctStudents.length} students - returning`])
     return distinctStudents.map((student) => student._id)
   } catch (error) {
-    if (error.toString().startsWith("MongoTopologyClosedError")) {
+    if (String(error).startsWith("MongoTopologyClosedError")) {
       logger("warn", "Oh no, topology is closed! Closing client")
       closeMongoClient()
     }
@@ -143,7 +197,7 @@ export const logStudentSearch = async (user, searchName) => {
   }
 }
 
-export const logUserSearch = async (user, searchName) => {
+export const logUserSearch = async (user: User, searchName: string | null): Promise<LogUser[]> => {
   const loggerPrefix = `logUserSearch - user: ${user.principalName} - searchName: ${searchName}`
   logger("info", [loggerPrefix, "New student search"])
   if (!user.hasAdminRole) {
@@ -155,12 +209,12 @@ export const logUserSearch = async (user, searchName) => {
   }
   if (MOCK_API === "true") {
     logger("info", [loggerPrefix, "MOCK_API is true, getting logs from mockDb"])
-    const users = []
+    const users: LogEntry["user"][] = []
     const mockDb = getMockDb()
     const dbKeys = mockDb.keys()
     for (const key of dbKeys) {
-      const logElement = mockDb.get(key)
-      if (logElement.type !== "logElement") {
+      const logElement = mockDb.get<MockLogEntry | string>(key)
+      if (typeof logElement !== "object" || logElement.type !== "logElement") {
         continue
       }
       if (logElement.user.name.toLowerCase().startsWith(searchName.toLowerCase())) {
@@ -179,12 +233,12 @@ export const logUserSearch = async (user, searchName) => {
   try {
     const mongoClient = await getMongoClient()
 
-    const collection = mongoClient.db(MONGODB_DB_NAME).collection(`${MONGODB_LOGS_COLLECTION}-${getCurrentSchoolYear("-")}`)
+    const collection = mongoClient.db(MONGODB_DB_NAME).collection<LogEntry>(`${MONGODB_LOGS_COLLECTION}-${getCurrentSchoolYear("-")}`)
 
     const escapedSearchName = escapeRegex(searchName)
     const regex = new RegExp(`^${escapedSearchName}`, "i")
     const distinctUsers = await collection
-      .aggregate([{ $group: { _id: { principalId: "$user.principalId", name: "$user.name", principalName: "$user.principalName" } } }, { $match: { "_id.name": { $regex: regex } } }])
+      .aggregate<{ _id: LogUser }>([{ $group: { _id: { principalId: "$user.principalId", name: "$user.name", principalName: "$user.principalName" } } }, { $match: { "_id.name": { $regex: regex } } }])
       .sort({ "_id.name": 1 })
       .limit(15)
       .toArray()
@@ -192,7 +246,7 @@ export const logUserSearch = async (user, searchName) => {
     logger("info", [loggerPrefix, `Found ${distinctUsers.length} users - returning`])
     return distinctUsers.map((user) => user._id)
   } catch (error) {
-    if (error.toString().startsWith("MongoTopologyClosedError")) {
+    if (String(error).startsWith("MongoTopologyClosedError")) {
       logger("warn", "Oh no, topology is closed! Closing client")
       closeMongoClient()
     }
@@ -200,7 +254,7 @@ export const logUserSearch = async (user, searchName) => {
   }
 }
 
-export const getUserLogs = async (user, filter) => {
+export const getUserLogs = async (user: User, filter: LogFilter): Promise<LogEntry[]> => {
   const { studentNumber, userPrincipalId, documentNumber } = filter
   const loggerPrefix = `getUserLogs - user: ${user.principalName} - filter: { elevnummer: ${studentNumber}, userPrincipalId: ${userPrincipalId}, documentNumber: ${documentNumber} }`
   if (!user.hasAdminRole) {
@@ -210,12 +264,12 @@ export const getUserLogs = async (user, filter) => {
   logger("info", [loggerPrefix, "Getting user logs from db"])
   if (MOCK_API === "true") {
     logger("info", [loggerPrefix, "MOCK_API is true, getting logs from mockDb"])
-    let userLogs = []
+    let userLogs: MockLogEntry[] = []
     const mockDb = getMockDb()
     const dbKeys = mockDb.keys()
     for (const key of dbKeys) {
-      const logElement = mockDb.get(key)
-      if (logElement.type !== "logElement") {
+      const logElement = mockDb.get<MockLogEntry | string>(key)
+      if (typeof logElement !== "object" || logElement.type !== "logElement") {
         continue
       }
       userLogs.push(logElement)
@@ -234,19 +288,19 @@ export const getUserLogs = async (user, filter) => {
 
     logger("info", [loggerPrefix, "MOCK_API is true", `Found ${userLogs.length} log entries in mockdb - returning`])
     return userLogs.sort((a, b) => {
-      return new Date(b.timestamp) - new Date(a.timestamp)
+      return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     })
   }
   // Get logs from mongodb
   try {
     const mongoClient = await getMongoClient()
-    const collection = mongoClient.db(MONGODB_DB_NAME).collection(`${MONGODB_LOGS_COLLECTION}-${getCurrentSchoolYear("-")}`)
+    const collection = mongoClient.db(MONGODB_DB_NAME).collection<LogEntry>(`${MONGODB_LOGS_COLLECTION}-${getCurrentSchoolYear("-")}`)
     if (!studentNumber && !userPrincipalId && !documentNumber) {
       logger("info", [loggerPrefix, "No filters applied, returning 50 most recent logs"])
       const top50 = await collection.find().sort({ _id: -1 }).limit(50).toArray() // sort({_id:-1}) returns newest first
       return top50
     }
-    const query = {}
+    const query: Record<string, string> = {}
     if (studentNumber) {
       query["student.elevnummer"] = studentNumber
     }
@@ -256,12 +310,12 @@ export const getUserLogs = async (user, filter) => {
     if (documentNumber) {
       query["file.documentNumber"] = documentNumber
     }
-    logger("info", [loggerPrefix, "Querying for logs with query", query])
+    logger("info", [loggerPrefix, "Querying for logs with query", JSON.stringify(query)])
     const logs = await collection.find(query).sort({ _id: -1 }).toArray() // sort({_id:-1}) returns newest first
     logger("info", [loggerPrefix, `Found ${logs.length} log entries - returning`])
     return logs
   } catch (error) {
-    if (error.toString().startsWith("MongoTopologyClosedError")) {
+    if (String(error).startsWith("MongoTopologyClosedError")) {
       logger("warn", "Oh no, topology is closed! Closing client")
       closeMongoClient()
     }

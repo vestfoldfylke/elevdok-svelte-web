@@ -1,13 +1,20 @@
 import { logger } from "@vtfk/logger"
+import type { User } from "#lib/authentication.js"
 import { getInternalCache } from "#lib/internal-cache.js"
-import { getAllLeaderUsers } from "#lib/microsoft-graph.js"
+import { getAllLeaderUsers, type LeaderUser } from "#lib/microsoft-graph.js"
 import { FRONTEND_APP_ID, LEDER_ROLE } from "$app/env/private"
 
-/**
- *
- * @param {import("#lib/authentication.js").User} user
- */
-export const getAllLeaderAccess = async (user) => {
+export type SchoolAccess = {
+  schoolNumber: string
+  schoolName: string
+  leaders: {
+    principalName: string
+    principalId: string
+    displayName: string
+  }[]
+}
+
+export const getAllLeaderAccess = async (user: User): Promise<SchoolAccess[]> => {
   const loggerPrefix = `getAllLeaderAccess - user: ${user.principalName}`
   if (!user.hasAdminRole) {
     logger("warn", [loggerPrefix, "User does not have admin role, no access"])
@@ -18,7 +25,7 @@ export const getAllLeaderAccess = async (user) => {
   // Internal caching in getAllLeaderUsers
   const leaderUsers = await getAllLeaderUsers(FRONTEND_APP_ID)
 
-  const schoolAccess = []
+  const schoolAccess: SchoolAccess[] = []
   for (const leaderUser of leaderUsers) {
     let existingSchool = schoolAccess.find((school) => school.schoolNumber === leaderUser.schoolNumber)
     if (!existingSchool) {
@@ -31,13 +38,7 @@ export const getAllLeaderAccess = async (user) => {
   return schoolAccess
 }
 
-/**
- *
- * @param {import("#lib/authentication.js").User} user
- * @param {string} leaderId
- * @returns {import("#lib/microsoft-graph.js").LeaderUser[]}
- */
-export const getLeaderAccess = async (user) => {
+export const getLeaderAccess = async (user: User): Promise<LeaderUser[]> => {
   const loggerPrefix = `getLeaderAccess - user: ${user.principalName}`
 
   if (user.activeRole !== LEDER_ROLE && !(user.hasAdminRole && user.impersonating && user.impersonating?.type === "leder")) {
@@ -51,7 +52,7 @@ export const getLeaderAccess = async (user) => {
   // Først sjekk om det er et entry i internalCache for denne lederen
   const cacheKey = `leder-access-${leaderId}`
   const internalCache = getInternalCache()
-  const cachedLeaderAccess = internalCache.get(cacheKey)
+  const cachedLeaderAccess = internalCache.get<LeaderUser[]>(cacheKey)
   if (cachedLeaderAccess) {
     logger("info", [
       loggerPrefix,

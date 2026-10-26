@@ -2,15 +2,15 @@
 
 import { logger } from "@vtfk/logger"
 import { FAGLARER_ACCESS_ENABLED, IOP_FAGLARER_ACCESS_ENABLED, LEDER_ROLE } from "$app/env/private"
+import type { User } from "./authentication.js"
+import type { TeacherStudent } from "./elevdok-api/get-user-data.js"
 
-/**
- *
- * @param {import('./authentication').User} user
- * @param {import('./elevdok-api/get-user-data').TeacherStudent} teacherStudent
- * @param {string} loggerPrefix
- * @returns {Object}
- */
-export const hasFileAccessForStudent = (user, teacherStudent, loggerPrefix) => {
+export type FileAccess = {
+  access: boolean
+  type: "leader" | "kontaktlarer" | "faglarer" | "iop" | "ingen filtilgang"
+}
+
+export const hasFileAccessForStudent = (user: User, teacherStudent: TeacherStudent, loggerPrefix: string): FileAccess => {
   logger("info", [loggerPrefix, "Checking if user has leader access"])
   if (user.activeRole === LEDER_ROLE || (user.hasAdminRole && user.impersonating && user.impersonating?.type === "leder")) {
     logger("info", [loggerPrefix, "User has leader access"])

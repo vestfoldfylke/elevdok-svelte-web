@@ -1,19 +1,25 @@
 import { logger } from "@vtfk/logger"
-import type { Impersonation } from "#lib/authentication.js"
+import type { InsertOneResult } from "mongodb"
+import type { Impersonation, User } from "#lib/authentication.js"
 import { getInternalCache } from "#lib/internal-cache.js"
 import { closeMongoClient, getMongoClient } from "#lib/mongo-client.js"
 import { FEIDENAVN_SUFFIX, MOCK_API, MONGODB_DB_NAME, MONGODB_USER_IMPERSONATION_COLLECTION } from "$app/env/private"
 
-const isGuid = (value) => {
+type ImpersonationLogEntry = {
+  timestamp: string
+  user: {
+    principalName: string
+    principalId: string
+  }
+  impersonationTarget: string
+  impersonationRole: Impersonation["type"]
+}
+
+const isGuid = (value: string) => {
   return String(value).match(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[4][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/)
 }
 
-/**
- *
- * @param {import("#lib/authentication.js").User} user
- * @returns
- */
-export const getAdminImpersonation = (user): Impersonation | null => {
+export const getAdminImpersonation = (user: Pick<User, "principalId" | "hasAdminRole">): Impersonation | null => {
   if (!user.hasAdminRole) {
     throw new Error("You do not have permission to do this")
   }
@@ -22,14 +28,7 @@ export const getAdminImpersonation = (user): Impersonation | null => {
   return impersonation || null
 }
 
-/**
- *
- * @param {import("#lib/authentication.js").User} user
- * @param {string} target
- * @param {"larer" | "leder"} type
- * @returns
- */
-export const setAdminImpersonation = async (user, target, type) => {
+export const setAdminImpersonation = async (user: User, target: string, type: Impersonation["type"]): Promise<InsertOneResult<ImpersonationLogEntry> | undefined> => {
   if (!user.hasAdminRole) {
     throw new Error("You do not have permission to do this")
   }
@@ -54,8 +53,8 @@ export const setAdminImpersonation = async (user, target, type) => {
   }
   try {
     const mongoClient = await getMongoClient()
-    const collection = mongoClient.db(MONGODB_DB_NAME).collection(MONGODB_USER_IMPERSONATION_COLLECTION)
-    const logEntry = {
+    const collection = mongoClient.db(MONGODB_DB_NAME).collection<ImpersonationLogEntry>(MONGODB_USER_IMPERSONATION_COLLECTION)
+    const logEntry: ImpersonationLogEntry = {
       timestamp: new Date().toISOString(),
       user: {
         principalName: user.principalName,
@@ -67,7 +66,7 @@ export const setAdminImpersonation = async (user, target, type) => {
     const insertLogResult = await collection.insertOne(logEntry)
     return insertLogResult
   } catch (error) {
-    if (error.toString().startsWith("MongoTopologyClosedError")) {
+    if (String(error).startsWith("MongoTopologyClosedError")) {
       logger("warn", "Oh no, topology is closed! Closing client")
       closeMongoClient()
     }
@@ -75,11 +74,7 @@ export const setAdminImpersonation = async (user, target, type) => {
   }
 }
 
-/**
- *
- * @param {import("#lib/authentication.js").User} user
- */
-export const deleteAdminImpersonation = (user) => {
+export const deleteAdminImpersonation = (user: User): void => {
   if (!user.hasAdminRole) {
     throw new Error("You do not have permission to do this")
   }

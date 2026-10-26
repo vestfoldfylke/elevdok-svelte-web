@@ -1,7 +1,9 @@
 import { logger } from "@vtfk/logger"
 import vtfkSchoolsInfo from "vtfk-schools-info"
+import type { User } from "#lib/authentication.js"
 import { fintSchool } from "#lib/fintfolk-api/school.js"
 import { fintTeacher } from "#lib/fintfolk-api/teacher.js"
+import type { FintElev, FintFag, FintGruppeElev, FintSkole } from "#lib/fintfolk-api/types.js"
 import { DEFAULT_ROLE, IOP_FAGLARER_ACCESS_ENABLED, LEDER_ROLE } from "$app/env/private"
 import { getLeaderAccess } from "./leder-access.js"
 
@@ -18,7 +20,7 @@ const allowedUndervisningsforholdDescription = [
   "Lektor med tilleggsutdanning"
 ]
 
-const getSchoolYearFromDate = (date, delimiter = "/") => {
+const getSchoolYearFromDate = (date: Date, delimiter = "/"): string => {
   // Hvis vi er etter 15 juli inneværende år, så swapper vi til current/next. Ellers bruker vi previous/current
   const year = date.getFullYear()
   const previousYear = year - 1
@@ -30,27 +32,21 @@ const getSchoolYearFromDate = (date, delimiter = "/") => {
   return `${previousYear}${delimiter}${year}`
 }
 
-export const getCurrentSchoolYear = (delimiter = "/") => {
+export const getCurrentSchoolYear = (delimiter = "/"): string => {
   return getSchoolYearFromDate(new Date(), delimiter)
 }
 
-/**
- * @typedef MiniSchool
- * @property {string} kortkortnavn shortName without UT- or OPT-
- * @property {string} skolenummer
- * @property {string} kortnavn
- * @property {string} navn
- * @property {true} kontaktlarer is current user contactTeacher for student at this school
- *
- */
+export type MiniSchool = {
+  /** shortName without UT- or OPT- */
+  kortkortnavn: string
+  skolenummer: string
+  kortnavn: string
+  navn: string
+  /** is current user contactTeacher for student at this school */
+  kontaktlarer: boolean
+}
 
-/**
- *
- * @param {Object} school
- * @param {boolean} kontaktlarer
- * @returns {MiniSchool} repackedSchool
- */
-export const repackMiniSchool = (school, kontaktlarer) => {
+export const repackMiniSchool = (school: FintSkole, kontaktlarer: boolean | undefined): MiniSchool => {
   if (!school.skolenummer) {
     logger("error", ["Could not find schoolNumber for school in FINT!"])
     throw new Error("Could not find schoolNumber for school in FINT!")
@@ -59,11 +55,12 @@ export const repackMiniSchool = (school, kontaktlarer) => {
   if (!school.kortnavn) {
     const schoolsInfo = vtfkSchoolsInfo({ schoolNumber: school.skolenummer })
     if (schoolsInfo.length === 1) {
-      if (!schoolsInfo[0].shortName) {
+      const shortName = schoolsInfo[0]?.shortName
+      if (!shortName) {
         logger("error", [`Could not find shortName for school with schoolNumber "${school.skolenummer}" in vtfk-schools-info!`])
         throw new Error(`Could not find shortName for school with schoolNumber "${school.skolenummer}" in vtfk-schools-info!`)
       }
-      school.kortnavn = schoolsInfo[0].shortName // Sett kortnavn til kortnavnet i vtfk-schools-info dersom vi fant en skole på skolenummeret
+      school.kortnavn = shortName // Sett kortnavn til kortnavnet i vtfk-schools-info dersom vi fant en skole på skolenummeret
     } else {
       logger("error", [`Could not find school with schoolNumber "${school.skolenummer}" in vtfk-schools-info!`])
       throw new Error(`Could not find school with schoolNumber "${school.skolenummer}" in vtfk-schools-info!`)
@@ -79,12 +76,7 @@ export const repackMiniSchool = (school, kontaktlarer) => {
   }
 }
 
-/**
- *
- * @param {TeacherStudent} teacherStudent
- * @returns {MiniSchool[]} IOPSchools
- */
-const getIOPSchools = (teacherStudent) => {
+const getIOPSchools = (teacherStudent: { skoler: ElevSkole[] }): ElevSkole[] => {
   const IOPCourseIds = ["IOP1000", "IOP2000", "IOP3000", "IOP4000", "IOP5000"]
   if (!teacherStudent) {
     throw new Error('Missing required parameter "teacherStudent"')
@@ -100,96 +92,65 @@ const getIOPSchools = (teacherStudent) => {
   return IOPSchools
 }
 
-/**
- * @typedef Fag
- * @property {string} systemId
- * @property {string} navn
- * @property {string[]} grepreferanse
- *
- */
+export type ElevKlasse = {
+  navn: string
+  systemId: string
+  type: "basisgruppe" | "undervisningsgruppe"
+  fag: FintFag[]
+}
 
-/**
- * @typedef ElevKlasse
- * @property {string} navn
- * @property {string} navn
- * @property {"basisgruppe" | "undervisningsgruppe"} type
- * @property {Fag[]} fag
- *
- */
+export type ElevSkole = MiniSchool & {
+  klasser: ElevKlasse[]
+  /** om brukeren har tilgang via iop-klasse */
+  iop?: boolean
+}
 
-/**
- * @typedef ElevSkoleProps
- * @property {ElevKlasse[]} klasser
- * @property {boolean} iop om brukeren har tilgang via iop-klasse
- *
- */
+export type TeacherStudent = FintElev & {
+  feidenavn: string
+  skoler: ElevSkole[]
+  /** feidenavn without "@fylke.no" */
+  feidenavnPrefix: string
+}
 
-/**
- * @typedef {MiniSchool & ElevSkoleProps} ElevSkole
- */
+/** A student while it is being assembled from FINT groups, before feidenavnPrefix is added */
+type StudentDraft = FintGruppeElev & {
+  skoler: ElevSkole[]
+}
 
-/**
- * @typedef TeacherStudent
- * @property {string} navn
- * @property {string} fornavn
- * @property {string} etternavn
- * @property {string} feidenavn
- * @property {string} elevnummer
- * @property {string} fodselsnummer
- * @property {ElevSkole[]} skoler
- * @property {string} feidenavnPrefix feidenavn without "@fylke.no"
- *
- */
+export type PersonData = {
+  upn: string
+  feidenavn: string
+  ansattnummer: string
+  name: string
+  firstName: string
+  lastName: string
+}
 
-/**
- * @typedef PersonData
- * @property {string} upn
- * @property {string} feidenavn
- * @property {string} ansattnummer
- * @property {string} name
- * @property {string} firstName
- * @property {string} lastName
- *
- */
+export type LarerKlasse = {
+  navn: string
+  type: string
+  systemId: string
+  fag: string[]
+  /** school full name */
+  skole: string
+}
 
-/**
- * @typedef LarerKlasse
- * @property {string} navn
- * @property {string} type
- * @property {string} systemId
- * @property {string[]} fag
- * @property {string} skole school full name
- *
- */
+export type InvalidUndervisningsforhold = {
+  beskrivelse: string
+  systemId: string
+}
 
-/**
- * @typedef InvalidUndervisningsforhold
- * @property {string} beskrivelse
- * @property {string} systemId
- *
- */
+export type UserData = {
+  personData: PersonData | null
+  students: TeacherStudent[]
+  classes: LarerKlasse[]
+  invalidUndervisningsforhold: InvalidUndervisningsforhold[]
+}
 
-/**
- * @typedef UserData
- * @property {import("#lib/system-info.js").SystemInfo} systemInfo
- * @property {PersonData} personData
- * @property {TeacherStudent[]} students
- * @property {LarerKlasse[]} classes
- * @property {InvalidUndervisningsforhold[]} invalidUndervisningsforhold
- *
- */
-
-/**
- *
- * @param {import("#lib/authentication.js").User} user
- * @param {boolean} maskSsn defaults to true
- * @returns {UserData} users data
- *
- */
-export const getUserData = async (user, maskSsn = true) => {
+export const getUserData = async (user: User, maskSsn = true): Promise<UserData> => {
   let loggerPrefix = `getUserData - user: ${user.principalName}`
   logger("info", [loggerPrefix, "New request"])
-  const userData = {
+  const userData: UserData = {
     personData: null,
     invalidUndervisningsforhold: [],
     students: [],
@@ -246,7 +207,7 @@ export const getUserData = async (user, maskSsn = true) => {
     logger("info", [loggerPrefix, `Validated undervsiningsforhold description - ${validUndervisningsforhold.length} valid undervisningsforhold`])
 
     // Kontaktlærer flyttes fra rett på eleven til skolearrayet på eleven - sett om læreren er kontaktlærer for eleven på gitt skole
-    let students = []
+    const students: StudentDraft[] = []
     for (const undervisningsforhold of validUndervisningsforhold) {
       for (const basisgruppe of undervisningsforhold.basisgrupper.filter((gruppe) => gruppe.aktiv)) {
         for (const elev of basisgruppe.elever) {
@@ -323,11 +284,11 @@ export const getUserData = async (user, maskSsn = true) => {
         loggerPrefix,
         `Fount ${studentsWithoutFeidenavn.length} students without feidenavn, filtering them away... Elevnummers: ${studentsWithoutFeidenavn.map((stud) => stud.elevnummer).join(", ")}`
       ])
-      students = students.filter((stud) => stud.feidenavn)
     }
+    const studentsWithFeidenavn = students.filter((stud): stud is StudentDraft & { feidenavn: string } => Boolean(stud.feidenavn))
 
     // Fjern kontaktlærer-property rett på eleven (den ligger på skoler i stedet), og sleng på kort-feidenavn på alle elever, sleng på IOP-access rett på skole-info om det IOP er skrudd på i ENV
-    students = students.map((stud) => {
+    const teacherStudents: TeacherStudent[] = studentsWithFeidenavn.map((stud) => {
       if (maskSsn) {
         stud.fodselsnummer = `${stud.fodselsnummer.substring(0, 6)}*****`
       }
@@ -348,9 +309,9 @@ export const getUserData = async (user, maskSsn = true) => {
       }
     })
     // Sorter elevene alfabetisk
-    students.sort((a, b) => (a.navn > b.navn ? 1 : b.navn > a.navn ? -1 : 0))
+    teacherStudents.sort((a, b) => (a.navn > b.navn ? 1 : b.navn > a.navn ? -1 : 0))
 
-    userData.students = students
+    userData.students = teacherStudents
   }
 
   // TODO - finn ut av leder rådgiver
@@ -367,7 +328,7 @@ export const getUserData = async (user, maskSsn = true) => {
     // Sjekker først om vi har schoolaccess for brukeren i cachen
     const leaderAccess = await getLeaderAccess(user)
 
-    let students = []
+    const students: StudentDraft[] = []
     for (const schoolAccess of leaderAccess) {
       logger("info", [loggerPrefix, `Fetching data for school ${schoolAccess.schoolName} (${schoolAccess.schoolNumber}) from FINT`])
       const school = await fintSchool(schoolAccess.schoolNumber)
@@ -381,11 +342,12 @@ export const getUserData = async (user, maskSsn = true) => {
       if (school.skolenummer && !school.kortnavn) {
         const schoolsInfo = vtfkSchoolsInfo({ schoolNumber: school.skolenummer })
         if (schoolsInfo.length === 1) {
-          if (!schoolsInfo[0].shortName) {
+          const shortName = schoolsInfo[0]?.shortName
+          if (!shortName) {
             logger("error", [loggerPrefix, `Could not find shortName for school with schoolNumber "${school.skolenummer}" in vtfk-schools-info!`])
             throw new Error(`Could not find shortName for school with schoolNumber "${school.skolenummer}" in vtfk-schools-info!`)
           }
-          school.kortnavn = schoolsInfo[0].shortName // Sett kortnavn til kortnavnet i vtfk-schools-info dersom vi fant en skole på skolenummeret
+          school.kortnavn = shortName // Sett kortnavn til kortnavnet i vtfk-schools-info dersom vi fant en skole på skolenummeret
         } else {
           logger("info", [loggerPrefix, `Could not find school with schoolNumber "${school.skolenummer}" in vtfk-schools-info. Simply setting shortname to "SKOLE"`])
           school.kortnavn = school.organisasjon?.kortnavn || "SKOLE" // Sett kortnavn til SKOLE dersom vi ikke finner noe annet
@@ -437,11 +399,11 @@ export const getUserData = async (user, maskSsn = true) => {
     const studentsWithoutFeidenavn = students.filter((stud) => !stud.feidenavn)
     if (studentsWithoutFeidenavn.length > 0) {
       logger("warn", [loggerPrefix, `Fount ${studentsWithoutFeidenavn.length} students without feidenavn, filtering them away...`])
-      students = students.filter((stud) => stud.feidenavn)
     }
+    const studentsWithFeidenavn = students.filter((stud): stud is StudentDraft & { feidenavn: string } => Boolean(stud.feidenavn))
 
     // Fjern kontaktlærer-property rett på eleven (den ligger på skoler i stedet), og sleng på kort-feidenavn på alle elever, sleng på IOP-access rett på skole-info om det IOP er skrudd på i ENV
-    students = students.map((stud) => {
+    const teacherStudents: TeacherStudent[] = studentsWithFeidenavn.map((stud) => {
       if (maskSsn) {
         stud.fodselsnummer = `${stud.fodselsnummer.substring(0, 6)}*****`
       }
@@ -453,9 +415,9 @@ export const getUserData = async (user, maskSsn = true) => {
       }
     })
     // Sorter elevene alfabetisk
-    students.sort((a, b) => (a.navn > b.navn ? 1 : b.navn > a.navn ? -1 : 0))
+    teacherStudents.sort((a, b) => (a.navn > b.navn ? 1 : b.navn > a.navn ? -1 : 0))
 
-    userData.students = students
+    userData.students = teacherStudents
 
     return userData
   }
