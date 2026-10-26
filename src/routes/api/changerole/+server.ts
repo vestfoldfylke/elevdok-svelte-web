@@ -1,7 +1,9 @@
 import { getAuthenticatedUser } from "#lib/authentication.js"
 import { setActiveRole } from "#lib/elevdok-api/roles.js"
+import { getErrorDetails } from "#lib/helpers/error-details.js"
+import type { RequestHandler } from "./$types"
 
-export const POST = async ({ request }) => {
+export const POST: RequestHandler = async ({ request }) => {
   try {
     const { requestedRole } = await request.json()
     if (!requestedRole || typeof requestedRole !== "string") {
@@ -13,6 +15,6 @@ export const POST = async ({ request }) => {
 
     return Response.json({ requestedRole })
   } catch (error) {
-    return Response.json({ message: "Failed when changing role for user", error: error.response?.data || error.stack || error.toString() }, { status: 500 })
+    return Response.json({ message: "Failed when changing role for user", error: getErrorDetails(error) }, { status: 500 })
   }
 }

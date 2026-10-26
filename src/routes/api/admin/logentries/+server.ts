@@ -1,7 +1,9 @@
 import { getAuthenticatedUser } from "#lib/authentication.js"
 import { getUserLogs } from "#lib/elevdok-api/user-logs.js"
+import { getErrorDetails } from "#lib/helpers/error-details.js"
+import type { RequestHandler } from "./$types"
 
-export const GET = async ({ request, url }) => {
+export const GET: RequestHandler = async ({ request, url }) => {
   try {
     const user = await getAuthenticatedUser(request.headers)
     const studentNumber = url.searchParams.get("student_number")
@@ -18,6 +20,6 @@ export const GET = async ({ request, url }) => {
 
     return Response.json(logEntries)
   } catch (error) {
-    return Response.json({ message: "Failed when getting log entries", error: error.response?.data || error.stack || error.toString() }, { status: 400 })
+    return Response.json({ message: "Failed when getting log entries", error: getErrorDetails(error) }, { status: 400 })
   }
 }

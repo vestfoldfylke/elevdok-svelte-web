@@ -1,8 +1,10 @@
 import { getAuthenticatedUser } from "#lib/authentication.js"
 import { getFile } from "#lib/elevdok-api/get-file.js"
+import { getErrorDetails } from "#lib/helpers/error-details.js"
 import { FEIDENAVN_SUFFIX } from "$app/env/private"
+import type { RequestHandler } from "./$types"
 
-export const GET = async ({ params, request }) => {
+export const GET: RequestHandler = async ({ params, request }) => {
   try {
     const user = await getAuthenticatedUser(request.headers)
     const studentFeidenavn = `${params.feidenavnPrefix}@${FEIDENAVN_SUFFIX}`
@@ -11,6 +13,6 @@ export const GET = async ({ params, request }) => {
     const base64 = await getFile(user, studentFeidenavn, sourceId, fileId)
     return Response.json(base64)
   } catch (error) {
-    return Response.json({ message: "Failed when getting student", error: error.response?.data || error.stack || error.toString() }, { status: 500 })
+    return Response.json({ message: "Failed when getting student", error: getErrorDetails(error) }, { status: 500 })
   }
 }

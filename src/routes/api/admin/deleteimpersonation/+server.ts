@@ -1,13 +1,15 @@
 import { getAuthenticatedUser } from "#lib/authentication.js"
 import { deleteAdminImpersonation } from "#lib/elevdok-api/admin-impersonation.js"
+import { getErrorDetails } from "#lib/helpers/error-details.js"
+import type { RequestHandler } from "./$types"
 
-export const DELETE = async ({ request }) => {
+export const DELETE: RequestHandler = async ({ request }) => {
   try {
     const user = await getAuthenticatedUser(request.headers)
     deleteAdminImpersonation(user)
 
     return Response.json({ message: "Deleted" })
   } catch (error) {
-    return Response.json({ message: "Failed when deleting user impersonation", error: error.response?.data || error.stack || error.toString() }, { status: 400 })
+    return Response.json({ message: "Failed when deleting user impersonation", error: getErrorDetails(error) }, { status: 400 })
   }
 }

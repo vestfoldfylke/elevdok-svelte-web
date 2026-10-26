@@ -1,8 +1,10 @@
 import { logger } from "@vtfk/logger"
 import { getAuthenticatedUser } from "#lib/authentication.js"
 import { logStudentSearch } from "#lib/elevdok-api/user-logs.js"
+import { getErrorDetails } from "#lib/helpers/error-details.js"
+import type { RequestHandler } from "./$types"
 
-export const GET = async ({ request, url }) => {
+export const GET: RequestHandler = async ({ request, url }) => {
   try {
     const user = await getAuthenticatedUser(request.headers)
     const searchName = url.searchParams.get("search_name")
@@ -10,7 +12,7 @@ export const GET = async ({ request, url }) => {
     const students = await logStudentSearch(user, searchName)
     return Response.json(students)
   } catch (error) {
-    logger("error", ["Failed when getting log students", error.response?.data || error.stack || error.toString()])
-    return Response.json({ message: "Feilet ved henting av elever", error: error.response?.data || error.stack || error.toString() }, { status: 400 })
+    logger("error", ["Failed when getting log students", getErrorDetails(error)])
+    return Response.json({ message: "Feilet ved henting av elever", error: getErrorDetails(error) }, { status: 400 })
   }
 }

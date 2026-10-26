@@ -2,11 +2,12 @@ import { error } from "@sveltejs/kit"
 import { logger } from "@vtfk/logger"
 import { getAuthenticatedUser } from "#lib/authentication.js"
 import { getUserData } from "#lib/elevdok-api/get-user-data.js"
+import { getErrorDetails } from "#lib/helpers/error-details.js"
 import { getSystemInfo } from "#lib/system-info.js"
 import { MAINTENANCE_MODE } from "$app/env/private"
+import type { LayoutServerLoad } from "./$types"
 
-/** @type {import('./$types').LayoutServerLoad} */
-export async function load({ request }) {
+export const load: LayoutServerLoad = async ({ request }) => {
   try {
     const user = await getAuthenticatedUser(request.headers)
 
@@ -27,7 +28,7 @@ export async function load({ request }) {
       ...userData
     }
   } catch (err) {
-    logger("error", ["Could not get data...", err.response?.data || err.stack || err.toString()])
-    throw error(500, `Could not get data... ${err.toString()}`)
+    logger("error", ["Could not get data...", getErrorDetails(err)])
+    throw error(500, `Could not get data... ${String(err)}`)
   }
 }
