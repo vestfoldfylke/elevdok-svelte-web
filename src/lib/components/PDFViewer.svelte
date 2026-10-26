@@ -1,20 +1,18 @@
 <script>
-
   export let base64Data
   export let showPdf = false
   export let title = "Tittel her"
   export let closePdf = () => {
     showPdf = false
   }
-  
+
   let previewModal
 
-  const b64toBlob = async (base64, type = 'application/octet-stream') => {
+  const b64toBlob = async (base64, type = "application/octet-stream") => {
     return (await fetch(`data:${type};base64,${base64}`)).blob()
   }
 
   $: if (showPdf) previewModal.showModal()
-
 </script>
 
 <dialog bind:this={previewModal}>

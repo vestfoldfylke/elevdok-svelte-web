@@ -1,13 +1,12 @@
 <script>
-  import File from "#lib/components/File.svelte";
-  import { prettyPrintDate } from "#lib/helpers/pretty-date";
+  import File from "#lib/components/File.svelte"
+  import { prettyPrintDate } from "#lib/helpers/pretty-date"
 
   export let document
   export let currentIndex
   export let open = false
 
   const isEven = currentIndex % 2 === 0
-
 </script>
 
 <button class="documentBoxButton{isEven ? ' even' : ''}{open ? ' open' : ''}" on:click={() => {open = !open}}>

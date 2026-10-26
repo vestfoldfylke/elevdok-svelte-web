@@ -1,32 +1,32 @@
 <script>
-  import LoadingSpinner from '#lib/components/LoadingSpinner.svelte';
-  import { prettyPrintDate } from '#lib/helpers/pretty-date';
-    import { sleep } from '#lib/helpers/sleep';
-  import axios from 'axios';
-  import { onMount } from 'svelte';
+  import axios from "axios"
+  import { onMount } from "svelte"
+  import LoadingSpinner from "#lib/components/LoadingSpinner.svelte"
+  import { prettyPrintDate } from "#lib/helpers/pretty-date"
+  import { sleep } from "#lib/helpers/sleep"
 
   /** @type {import('./$types').PageData} */
   export let data
 
-  let errorMessage = ''
+  let errorMessage = ""
   let searchValue
   let loading
 
   let initialStudentSearch = false
-  let studentSearchName = ''
+  let studentSearchName = ""
   let selectedStudent = null
   let students = []
-  let studentErrorMessage = ''
+  let studentErrorMessage = ""
 
   let initialUserSearch = false
-  let userSearchName = ''
+  let userSearchName = ""
   let selectedUser = null
   let users = []
-  let userErrorMessage = ''
+  let userErrorMessage = ""
 
-  let documentNumber = ''
+  let documentNumber = ""
   let selectedDocumentNumber = null
-  let documentNumberErrorMessage = ''
+  let documentNumberErrorMessage = ""
 
   let logElements = []
 
@@ -34,7 +34,7 @@
     event.preventDefault()
     students = null
     try {
-      const { data } = await axios.get(studentSearchName ? `/api/admin/logstudents?search_name=${studentSearchName}` : '/api/admin/logstudents')
+      const { data } = await axios.get(studentSearchName ? `/api/admin/logstudents?search_name=${studentSearchName}` : "/api/admin/logstudents")
       students = data
     } catch (error) {
       studentErrorMessage = error.response?.data || error.toString()
@@ -47,7 +47,7 @@
     event.preventDefault()
     users = null
     try {
-      const { data } = await axios.get(userSearchName ? `/api/admin/logusers?search_name=${userSearchName}` : '/api/admin/logusers')
+      const { data } = await axios.get(userSearchName ? `/api/admin/logusers?search_name=${userSearchName}` : "/api/admin/logusers")
       users = data
     } catch (error) {
       userErrorMessage = error.response?.data || error.toString()
@@ -59,13 +59,13 @@
   const setDocumentNumber = async (event) => {
     event.preventDefault()
     try {
-      const documentNumberParts = documentNumber.split('/')
+      const documentNumberParts = documentNumber.split("/")
       if (documentNumberParts.length !== 2) {
-        throw new Error('Dokumentnummeret må være på formatet 24/12345-3')
+        throw new Error("Dokumentnummeret må være på formatet 24/12345-3")
       }
-      const secondParts = documentNumberParts[1].split('-')
+      const secondParts = documentNumberParts[1].split("-")
       if (secondParts.length !== 2) {
-        throw new Error('Dokumentnummeret må være på formatet 24/12345-2')
+        throw new Error("Dokumentnummeret må være på formatet 24/12345-2")
       }
       selectedDocumentNumber = documentNumber.trim()
     } catch (error) {
@@ -74,21 +74,21 @@
   }
 
   const getLogElements = async () => {
-    errorMessage = ''
+    errorMessage = ""
     loading = true
     try {
-      let url = '/api/admin/logentries'
+      let url = "/api/admin/logentries"
       let addedQuery = false
       if (selectedStudent) {
         url += `?student_number=${selectedStudent.elevnummer}`
         addedQuery = true
       }
       if (selectedUser) {
-        url += `${addedQuery ? '&' : '?'}user_principal_id=${selectedUser.principalId}`
+        url += `${addedQuery ? "&" : "?"}user_principal_id=${selectedUser.principalId}`
         addedQuery = true
       }
       if (selectedDocumentNumber) {
-        url += `${addedQuery ? '&' : '?'}document_number=${selectedDocumentNumber}`
+        url += `${addedQuery ? "&" : "?"}document_number=${selectedDocumentNumber}`
         addedQuery = true
       }
       const { data } = await axios.get(url)
@@ -103,7 +103,6 @@
   onMount(async () => {
     await getLogElements()
   })
-
 </script>
 
 {#if data.user.hasAdminRole}

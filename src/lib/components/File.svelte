@@ -1,12 +1,12 @@
 <script>
-  import axios from "axios";
-  import PDFViewer from "./PDFViewer.svelte";
-  import LoadingSpinner from "./LoadingSpinner.svelte";
+  import axios from "axios"
+  import LoadingSpinner from "./LoadingSpinner.svelte"
+  import PDFViewer from "./PDFViewer.svelte"
 
   export let file
   export let document
 
-  const studentFeidenavnPrefix = document.feidenavn.substring(0, document.feidenavn.indexOf('@'))
+  const studentFeidenavnPrefix = document.feidenavn.substring(0, document.feidenavn.indexOf("@"))
   const pdfUrl = `/api/students/${studentFeidenavnPrefix}/source/${document.source}/file/${file.id}`
 
   let displayFile = false
@@ -18,7 +18,7 @@
     errorMessage = ""
     fileLoading = true
     try {
-      const studentFeidenavnPrefix = document.feidenavn.substring(0, document.feidenavn.indexOf('@'))
+      const studentFeidenavnPrefix = document.feidenavn.substring(0, document.feidenavn.indexOf("@"))
       const { data } = await axios.get(`/api/students/${studentFeidenavnPrefix}/source/${document.source}/file/${file.id}`)
       base64Data = data
       fileLoading = false

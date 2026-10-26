@@ -1,41 +1,40 @@
 <script>
-  import Document from "#lib/components/Document.svelte";
-  import { goto } from "$app/navigation";
-  import { page } from "$app/state";
-  import LoadingSpinner from "#lib/components/LoadingSpinner.svelte";
-  import Pagination from "#lib/components/Pagination.svelte";
+  import Document from "#lib/components/Document.svelte"
+  import LoadingSpinner from "#lib/components/LoadingSpinner.svelte"
+  import Pagination from "#lib/components/Pagination.svelte"
+  import { goto } from "$app/navigation"
+  import { page } from "$app/state"
 
   /** @type {import('./$types').PageData} */
   export let data
 
-  let student = data.students.find(stud => stud.feidenavnPrefix === page.params.feidenavnPrefix)
+  let student = data.students.find((stud) => stud.feidenavnPrefix === page.params.feidenavnPrefix)
 
   let showArchiveWarning = true
   let documentsPerPage = 10
-	let currentPage = 0 // zero-indexed
-	let documents = data.studentDocuments.documents
-	let originalDocuments = JSON.parse(JSON.stringify(data.studentDocuments.documents))
-	let searchValue
+  let currentPage = 0 // zero-indexed
+  let documents = data.studentDocuments.documents
+  let originalDocuments = JSON.parse(JSON.stringify(data.studentDocuments.documents))
+  let searchValue
 
-	const nextPage = () => {
-		currentPage++
-	}
-	const previousPage = () => {
-		currentPage--
-	}
-	const gotoPage = (pageNumber) => {
-		currentPage = pageNumber
-	}
+  const nextPage = () => {
+    currentPage++
+  }
+  const previousPage = () => {
+    currentPage--
+  }
+  const gotoPage = (pageNumber) => {
+    currentPage = pageNumber
+  }
 
-	const search = (searchValue) => {
-		const filterFunc = (document) => {
-			const sv = searchValue.toLowerCase()
-      return (document.title.toLowerCase().startsWith(sv) || document.documentNumber.toLowerCase().startsWith(sv) || document.title.toLowerCase().includes(sv))
-		}
-		documents = originalDocuments.filter(filterFunc)
+  const search = (searchValue) => {
+    const filterFunc = (document) => {
+      const sv = searchValue.toLowerCase()
+      return document.title.toLowerCase().startsWith(sv) || document.documentNumber.toLowerCase().startsWith(sv) || document.title.toLowerCase().includes(sv)
+    }
+    documents = originalDocuments.filter(filterFunc)
     currentPage = 0
-	}
-
+  }
 </script>
 
 <h2>Elevens dokumenter</h2>

@@ -1,5 +1,5 @@
-import { getAuthenticatedUser } from '#lib/authentication'
-import { getAllLeaderAccess } from '#lib/elevdok-api/leder-access'
+import { getAuthenticatedUser } from "#lib/authentication"
+import { getAllLeaderAccess } from "#lib/elevdok-api/leder-access"
 
 export const GET = async ({ params, request, url }) => {
   try {
@@ -8,6 +8,6 @@ export const GET = async ({ params, request, url }) => {
 
     return Response.json(leaderAccess)
   } catch (error) {
-    return Response.json({ message: 'Failed when getting all leader access', error: error.response?.data || error.stack || error.toString() }, { status: 400 })
+    return Response.json({ message: "Failed when getting all leader access", error: error.response?.data || error.stack || error.toString() }, { status: 400 })
   }
 }

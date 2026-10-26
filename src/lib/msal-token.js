@@ -1,7 +1,7 @@
-import { APPREG_CLIENT_ID, APPREG_CLIENT_SECRET, APPREG_TENANT_ID } from '$app/env/private'
-import { ConfidentialClientApplication } from '@azure/msal-node'
-import { logger } from '@vtfk/logger'
-import NodeCache from 'node-cache'
+import { ConfidentialClientApplication } from "@azure/msal-node"
+import { logger } from "@vtfk/logger"
+import NodeCache from "node-cache"
+import { APPREG_CLIENT_ID, APPREG_CLIENT_SECRET, APPREG_TENANT_ID } from "$app/env/private"
 
 const cache = new NodeCache({ stdTTL: 4000 })
 
@@ -12,7 +12,7 @@ const cache = new NodeCache({ stdTTL: 4000 })
  * @param {boolean} [config.forceNew]
  */
 export const getMsalToken = async (config) => {
-  if (!config.scope) throw new Error('Missing required parameter config.scope')
+  if (!config.scope) throw new Error("Missing required parameter config.scope")
   const cacheKey = `${config.scope}token`
 
   const cachedToken = cache.get(cacheKey)
@@ -21,7 +21,7 @@ export const getMsalToken = async (config) => {
     return cachedToken.substring(0, cachedToken.length - 2)
   }
 
-  logger('info', ['getMsalToken', 'no token in cache, fetching new from Microsoft'])
+  logger("info", ["getMsalToken", "no token in cache, fetching new from Microsoft"])
 
   const confidentialClientApplication = new ConfidentialClientApplication({
     auth: {
@@ -35,9 +35,9 @@ export const getMsalToken = async (config) => {
     scopes: [config.scope]
   })
   const expires = Math.floor((token.expiresOn.getTime() - new Date()) / 1000)
-  logger('info', ['getMsalToken', `Got token from Microsoft, expires in ${expires} seconds.`])
+  logger("info", ["getMsalToken", `Got token from Microsoft, expires in ${expires} seconds.`])
   cache.set(cacheKey, `${token.accessToken}==`, expires) // Haha, just to make the cached token not directly usable
-  logger('info', ['getMsalToken', 'Token stored in cache'])
+  logger("info", ["getMsalToken", "Token stored in cache"])
 
   return token.accessToken
 }

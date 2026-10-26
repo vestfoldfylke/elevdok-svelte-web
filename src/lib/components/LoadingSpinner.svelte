@@ -1,5 +1,5 @@
 <script>
-  export let width = '10'
+  export let width = "10"
 </script>
 
 <div class="spinner" style="width: {width}rem">

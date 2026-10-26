@@ -1,35 +1,39 @@
 <script>
-	import { clickOutside } from '#lib/helpers/click-outside'
-	import { goto } from '$app/navigation'
-  import Pagination from '#lib/components/Pagination.svelte';
+  import Pagination from "#lib/components/Pagination.svelte"
+  import { clickOutside } from "#lib/helpers/click-outside"
+  import { goto } from "$app/navigation"
 
-	/** @type {import('./$types').PageData} */
-	export let data
+  /** @type {import('./$types').PageData} */
+  export let data
 
-	let studentsPerPage = 10
-	let currentPage = 0 // zero-indexed
-	let students = data.students
-	let originalStudents = JSON.parse(JSON.stringify(data.students))
-	let searchValue
+  let studentsPerPage = 10
+  let currentPage = 0 // zero-indexed
+  let students = data.students
+  let originalStudents = JSON.parse(JSON.stringify(data.students))
+  let searchValue
 
-	const nextPage = () => {
-		currentPage++
-	}
-	const previousPage = () => {
-		currentPage--
-	}
-	const gotoPage = (pageNumber) => {
-		currentPage = pageNumber
-	}
+  const nextPage = () => {
+    currentPage++
+  }
+  const previousPage = () => {
+    currentPage--
+  }
+  const gotoPage = (pageNumber) => {
+    currentPage = pageNumber
+  }
 
-	const search = (searchValue) => {
-		const filterFunc = (student) => {
-			const sv = searchValue.toLowerCase()
-			return (student.navn.toLowerCase().startsWith(sv) || student.etternavn.toLowerCase().startsWith(sv) || student.skoler.some(school => school.klasser.some(group => group.navn.toLowerCase().includes(sv))))
-		}
-		students = originalStudents.filter(filterFunc)
+  const search = (searchValue) => {
+    const filterFunc = (student) => {
+      const sv = searchValue.toLowerCase()
+      return (
+        student.navn.toLowerCase().startsWith(sv) ||
+        student.etternavn.toLowerCase().startsWith(sv) ||
+        student.skoler.some((school) => school.klasser.some((group) => group.navn.toLowerCase().includes(sv)))
+      )
+    }
+    students = originalStudents.filter(filterFunc)
     currentPage = 0
-	}
+  }
 </script>
 
 <h2>Dine elever</h2>

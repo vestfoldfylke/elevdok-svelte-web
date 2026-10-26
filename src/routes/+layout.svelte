@@ -1,14 +1,14 @@
 <script>
-  import '../app.css' // Add global css (and make it hot reload in dev)
-  import '../style.css' // Add custom css (and make it hot reload in dev)
-  import logo from '#lib/assets/logo.svg'
-  import julehund from '#lib/assets/julehund.png'
-  import logoDarkmode from '#lib/assets/logo-darkmode.svg'
-  import { navigating, page } from '$app/state'
-  import { clickOutside } from '#lib/helpers/click-outside'
+  import "../app.css" // Add global css (and make it hot reload in dev)
+  import "../style.css" // Add custom css (and make it hot reload in dev)
+  import julehund from "#lib/assets/julehund.png"
+  import logo from "#lib/assets/logo.svg"
+  import logoDarkmode from "#lib/assets/logo-darkmode.svg"
+  import { clickOutside } from "#lib/helpers/click-outside"
+  import { navigating, page } from "$app/state"
 
   /** @type {import('./$types').PageData} */
-	export let data
+  export let data
 
   let showUsermenu = false
   let showUndervisningsgruppeWarning = true
@@ -20,17 +20,17 @@
   }
 
   const getPathLinks = (path) => {
-    const parts = path.split('/')
+    const parts = path.split("/")
     const pathLinks = [
       {
-        name: 'Hjem',
-        href: '/',
+        name: "Hjem",
+        href: "/",
         addSlashBefore: false
       }
     ]
-    let currentLink = ''
+    let currentLink = ""
     for (const part of parts) {
-      if (part === '') continue
+      if (part === "") continue
       currentLink += `/${part}`
       pathLinks.push({
         name: part,
@@ -43,15 +43,15 @@
 
   const sideMenuItems = [
     {
-      title: 'Hjem',
-      href: '/',
-      icon: 'home'
+      title: "Hjem",
+      href: "/",
+      icon: "home"
     },
     {
-      title: 'Elever',
-      href: '/elever',
-      icon: 'person'
-    },
+      title: "Elever",
+      href: "/elever",
+      icon: "person"
+    }
     /*
     {
       title: 'Hjelp',
@@ -63,16 +63,15 @@
 
   if (data.user.hasAdminRole) {
     sideMenuItems.push({
-      title: 'Admin',
-      href: '/admin',
-      icon: 'settings'
+      title: "Admin",
+      href: "/admin",
+      icon: "settings"
     })
   }
 
   const getAvailableRoles = (roles, activeRole) => {
-    return roles.filter(role => role.value !== activeRole)
+    return roles.filter((role) => role.value !== activeRole)
   }
-
 </script>
 
 <div class="layout">

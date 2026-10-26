@@ -1,21 +1,21 @@
 <script>
-  import { refreshAll } from '$app/navigation';
-  import LoadingSpinner from '#lib/components/LoadingSpinner.svelte';
-  import axios from 'axios';
+  import axios from "axios"
+  import LoadingSpinner from "#lib/components/LoadingSpinner.svelte"
+  import { refreshAll } from "$app/navigation"
 
   /** @type {import('./$types').PageData} */
   export let data
 
   let impersonationTarget
-  let errorMessage = ''
+  let errorMessage = ""
   let isLoading = false
 
   const setImpersonation = async (type) => {
-    errorMessage = ''
+    errorMessage = ""
     isLoading = true
     try {
-      if (!impersonationTarget) throw new Error('Du må skrive et gyldig brukernavn / epost')
-      const { data } = await axios.post('/api/admin/setimpersonation', { target: impersonationTarget, type })
+      if (!impersonationTarget) throw new Error("Du må skrive et gyldig brukernavn / epost")
+      const { data } = await axios.post("/api/admin/setimpersonation", { target: impersonationTarget, type })
       await refreshAll()
     } catch (error) {
       errorMessage = error.response?.data || error.toString()
@@ -24,17 +24,16 @@
   }
 
   const deleteImpersonation = async () => {
-    errorMessage = ''
+    errorMessage = ""
     isLoading = true
     try {
-      const { data } = await axios.delete('/api/admin/deleteimpersonation')
+      const { data } = await axios.delete("/api/admin/deleteimpersonation")
       await refreshAll()
     } catch (error) {
       errorMessage = error.response?.data || error.toString()
     }
     isLoading = false
   }
-
 </script>
 
 {#if data.user.hasAdminRole}

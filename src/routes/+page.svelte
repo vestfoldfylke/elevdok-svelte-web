@@ -1,9 +1,9 @@
 <script>
-	import { clickOutside } from '#lib/helpers/click-outside'
-	import { goto } from '$app/navigation'
+  import { clickOutside } from "#lib/helpers/click-outside"
+  import { goto } from "$app/navigation"
 
-	/** @type {import('./$types').PageData} */
-	export let data
+  /** @type {import('./$types').PageData} */
+  export let data
 </script>
 
 <h2>Hei, {data.user.name}</h2>

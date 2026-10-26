@@ -1,5 +1,5 @@
-import { getAuthenticatedUser } from '#lib/authentication'
-import { getAdminImpersonation } from '#lib/elevdok-api/admin-impersonation'
+import { getAuthenticatedUser } from "#lib/authentication"
+import { getAdminImpersonation } from "#lib/elevdok-api/admin-impersonation"
 
 export const GET = async ({ params, request, url }) => {
   try {
@@ -8,6 +8,6 @@ export const GET = async ({ params, request, url }) => {
 
     return Response.json({ impersonation })
   } catch (error) {
-    return Response.json({ message: 'Failed when getting user impersonation', error: error.response?.data || error.stack || error.toString() }, { status: 400 })
+    return Response.json({ message: "Failed when getting user impersonation", error: error.response?.data || error.stack || error.toString() }, { status: 400 })
   }
 }

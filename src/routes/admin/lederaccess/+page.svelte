@@ -1,20 +1,20 @@
 <script>
-  import LoadingSpinner from '#lib/components/LoadingSpinner.svelte';
-  import { prettyPrintDate } from '#lib/helpers/pretty-date';
-  import axios from 'axios';
-  import { onMount } from 'svelte';
+  import axios from "axios"
+  import { onMount } from "svelte"
+  import LoadingSpinner from "#lib/components/LoadingSpinner.svelte"
+  import { prettyPrintDate } from "#lib/helpers/pretty-date"
 
   /** @type {import('./$types').PageData} */
   export let data
 
-  let errorMessage = ''
+  let errorMessage = ""
   let searchValue
   let loading
 
   let schoolAccess = []
 
   const getLeaderAccess = async () => {
-    errorMessage = ''
+    errorMessage = ""
     loading = true
     try {
       const { data } = await axios.get(`/api/admin/getleaderaccess`)
@@ -29,7 +29,6 @@
   onMount(async () => {
     await getLeaderAccess()
   })
-
 </script>
 
 {#if data.user.hasAdminRole}

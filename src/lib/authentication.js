@@ -1,8 +1,8 @@
-import { ADMIN_ROLE, DEFAULT_ROLE, FEIDENAVN_SUFFIX, LEDER_ROLE, MOCK_AUTH, MOCK_AUTH_ADMIN_ROLE, MOCK_AUTH_LARER_ROLE, MOCK_AUTH_LEDER_ROLE, NODE_ENV } from '$app/env/private'
-import { error } from '@sveltejs/kit'
-import { logger } from '@vtfk/logger'
-import { getActiveRole } from './elevdok-api/roles'
-import { getAdminImpersonation } from './elevdok-api/admin-impersonation'
+import { error } from "@sveltejs/kit"
+import { logger } from "@vtfk/logger"
+import { ADMIN_ROLE, DEFAULT_ROLE, FEIDENAVN_SUFFIX, LEDER_ROLE, MOCK_AUTH, MOCK_AUTH_ADMIN_ROLE, MOCK_AUTH_LARER_ROLE, MOCK_AUTH_LEDER_ROLE, NODE_ENV } from "$app/env/private"
+import { getAdminImpersonation } from "./elevdok-api/admin-impersonation.js"
+import { getActiveRole } from "./elevdok-api/roles.js"
 
 /**
  * @typedef Role
@@ -27,7 +27,7 @@ import { getAdminImpersonation } from './elevdok-api/admin-impersonation'
  * @property {boolean} hasAdminRole if user has admin role
  * @property {Impersonation} [impersonating] is adminuser impersonating another user
  *
-*/
+ */
 
 /**
  *
@@ -35,83 +35,83 @@ import { getAdminImpersonation } from './elevdok-api/admin-impersonation'
  * @returns {User} current user
  */
 export const getAuthenticatedUser = async (headers) => {
-  if (MOCK_AUTH === 'true' && NODE_ENV !== 'production') {
-    logger('warn', ['env.MOCK_AUTH is true, injecting MS auth headers, enjoy your local testing - if this in prod, pray and delete everything'])
-    headers.set('x-ms-client-principal-name', `demo.spokelse@${FEIDENAVN_SUFFIX}`)
-    headers.set('x-ms-client-principal-id', '12345-4378493-fjdiofjd')
+  if (MOCK_AUTH === "true" && NODE_ENV !== "production") {
+    logger("warn", ["env.MOCK_AUTH is true, injecting MS auth headers, enjoy your local testing - if this in prod, pray and delete everything"])
+    headers.set("x-ms-client-principal-name", `demo.spokelse@${FEIDENAVN_SUFFIX}`)
+    headers.set("x-ms-client-principal-id", "12345-4378493-fjdiofjd")
 
     // Create mock claims with necessary values
     const mockClaims = {
-      auth_typ: 'aad',
+      auth_typ: "aad",
       claims: [
         {
-          typ: 'aud',
-          val: 'guid-guid'
+          typ: "aud",
+          val: "guid-guid"
         },
         {
-          typ: 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress',
+          typ: "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress",
           val: `demo.spokelse@${FEIDENAVN_SUFFIX}`
         },
         {
-          typ: 'name',
-          val: 'Demo Spøkelse'
+          typ: "name",
+          val: "Demo Spøkelse"
         },
         {
-          typ: 'http://schemas.microsoft.com/identity/claims/objectidentifier',
-          val: '12345-4378493-fjdiofjd'
+          typ: "http://schemas.microsoft.com/identity/claims/objectidentifier",
+          val: "12345-4378493-fjdiofjd"
         },
         {
-          typ: 'preferred_username',
+          typ: "preferred_username",
           val: `demo.spokelse@${FEIDENAVN_SUFFIX}`
         }
       ],
-      name_typ: 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress',
-      role_typ: 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role'
+      name_typ: "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress",
+      role_typ: "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
     }
-    if (MOCK_AUTH_LARER_ROLE === 'true') {
+    if (MOCK_AUTH_LARER_ROLE === "true") {
       mockClaims.claims.push({
-        typ: 'roles',
+        typ: "roles",
         val: DEFAULT_ROLE
       })
     }
-    if (MOCK_AUTH_LEDER_ROLE === 'true') {
+    if (MOCK_AUTH_LEDER_ROLE === "true") {
       mockClaims.claims.push({
-        typ: 'roles',
+        typ: "roles",
         val: LEDER_ROLE
       })
     }
-    if (MOCK_AUTH_ADMIN_ROLE === 'true') {
+    if (MOCK_AUTH_ADMIN_ROLE === "true") {
       mockClaims.claims.push({
-        typ: 'roles',
+        typ: "roles",
         val: ADMIN_ROLE
       })
     }
 
-    const mockClaimsBase64 = Buffer.from(JSON.stringify(mockClaims), 'utf-8').toString('base64')
-    headers.set('x-ms-client-principal', mockClaimsBase64)
+    const mockClaimsBase64 = Buffer.from(JSON.stringify(mockClaims), "utf-8").toString("base64")
+    headers.set("x-ms-client-principal", mockClaimsBase64)
   }
 
   // Get MS Auth headers (https://learn.microsoft.com/en-us/azure/app-service/configure-authentication-user-identities)
-  const principalName = headers.get('x-ms-client-principal-name')
-  const principalId = headers.get('x-ms-client-principal-id')
-  const encodedClaims = headers.get('x-ms-client-principal')
+  const principalName = headers.get("x-ms-client-principal-name")
+  const principalId = headers.get("x-ms-client-principal-id")
+  const encodedClaims = headers.get("x-ms-client-principal")
 
   if (!principalName || !principalId || !encodedClaims) {
-    logger('warn', ['Missing authentication headers from Microsoft, something is wrong'])
-    throw error(500, 'Missing authentication headers from Microsoft, something is wrong')
+    logger("warn", ["Missing authentication headers from Microsoft, something is wrong"])
+    throw error(500, "Missing authentication headers from Microsoft, something is wrong")
   }
 
-  const decodedClaims = JSON.parse(Buffer.from(encodedClaims, 'base64').toString())
-  if (!decodedClaims) throw error(500, 'Det e itj no token her')
-  const roles = decodedClaims.claims.filter(claim => claim.typ === 'roles').map(claim => claim.val)
-  const name = decodedClaims.claims.find(claim => claim.typ === 'name').val
-  const audience = decodedClaims.claims.find(claim => claim.typ === 'aud').val
+  const decodedClaims = JSON.parse(Buffer.from(encodedClaims, "base64").toString())
+  if (!decodedClaims) throw error(500, "Det e itj no token her")
+  const roles = decodedClaims.claims.filter((claim) => claim.typ === "roles").map((claim) => claim.val)
+  const name = decodedClaims.claims.find((claim) => claim.typ === "name").val
+  const audience = decodedClaims.claims.find((claim) => claim.typ === "aud").val
 
-  let activeRole = ''
-  if (roles.length === 0) throw new Error('DU HAKKE TILGANG PÅ NOE DU!')
+  let activeRole = ""
+  if (roles.length === 0) throw new Error("DU HAKKE TILGANG PÅ NOE DU!")
   if (roles.length > 1) {
     // Check in db for activeRole for principalId (save principalName as well)
-    logger('info', ['User has more than one role, checking for active role'])
+    logger("info", ["User has more than one role, checking for active role"])
     const activeDbRole = await getActiveRole(principalId)
     if (!activeDbRole) {
       if (roles.includes(LEDER_ROLE)) {
@@ -120,12 +120,12 @@ export const getAuthenticatedUser = async (headers) => {
         activeRole = roles[0] // Else just set first role as active
       }
     } else {
-      logger('info', [`User ${principalName} has active db role: ${activeDbRole}`, 'Verifying and setting active'])
+      logger("info", [`User ${principalName} has active db role: ${activeDbRole}`, "Verifying and setting active"])
       if (!roles.includes(activeDbRole)) {
-        logger('warn', [`User ${principalName} has active db role: ${activeDbRole} - but no access to this role from entra auth. Will not use illegal role`])
+        logger("warn", [`User ${principalName} has active db role: ${activeDbRole} - but no access to this role from entra auth. Will not use illegal role`])
         activeRole = roles[0]
       } else {
-        logger('info', [`User ${principalName} has active db role: ${activeDbRole} and access to this role from entra auth. Will set active role as ${activeDbRole}`])
+        logger("info", [`User ${principalName} has active db role: ${activeDbRole} and access to this role from entra auth. Will set active role as ${activeDbRole}`])
         activeRole = activeDbRole
       }
     }
@@ -135,11 +135,11 @@ export const getAuthenticatedUser = async (headers) => {
   }
 
   // Add displayNames to roles
-  const repackedRoles = roles.map(role => {
-    let roleName = ''
-    if (role === DEFAULT_ROLE) roleName = 'Lærer'
-    if (role === LEDER_ROLE) roleName = 'Leder / Rådgiver'
-    if (role === ADMIN_ROLE) roleName = 'Administrator'
+  const repackedRoles = roles.map((role) => {
+    let roleName = ""
+    if (role === DEFAULT_ROLE) roleName = "Lærer"
+    if (role === LEDER_ROLE) roleName = "Leder / Rådgiver"
+    if (role === ADMIN_ROLE) roleName = "Administrator"
     if (!roleName) throw new Error(`HEIHEI, her mangler det displayName for rollen med verdi ${role}`)
     return {
       value: role,
@@ -150,7 +150,7 @@ export const getAuthenticatedUser = async (headers) => {
   let impersonating = null
 
   // Check if has admin role (for easier checks later on)
-  const hasAdminRole = repackedRoles.some(role => role.value === ADMIN_ROLE)
+  const hasAdminRole = repackedRoles.some((role) => role.value === ADMIN_ROLE)
 
   // Check if hasAdmin and is impersonating
   if (hasAdminRole) {

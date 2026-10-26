@@ -1,7 +1,7 @@
-import { FEIDENAVN_SUFFIX, MOCK_API, MONGODB_DB_NAME, MONGODB_USER_IMPERSONATION_COLLECTION } from '$app/env/private'
-import { getInternalCache } from '#lib/internal-cache'
-import { closeMongoClient, getMongoClient } from '#lib/mongo-client'
-import { logger } from '@vtfk/logger'
+import { logger } from "@vtfk/logger"
+import { getInternalCache } from "#lib/internal-cache"
+import { closeMongoClient, getMongoClient } from "#lib/mongo-client"
+import { FEIDENAVN_SUFFIX, MOCK_API, MONGODB_DB_NAME, MONGODB_USER_IMPERSONATION_COLLECTION } from "$app/env/private"
 
 const isGuid = (value) => {
   return String(value).match(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[4][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/)
@@ -13,7 +13,7 @@ const isGuid = (value) => {
  * @returns
  */
 export const getAdminImpersonation = (user) => {
-  if (!user.hasAdminRole) throw new Error('You do not have permission to do this')
+  if (!user.hasAdminRole) throw new Error("You do not have permission to do this")
   const internalCache = getInternalCache()
   const impersonation = internalCache.get(`${user.principalId}-impersonation`)
   return impersonation || null
@@ -27,14 +27,18 @@ export const getAdminImpersonation = (user) => {
  * @returns
  */
 export const setAdminImpersonation = async (user, target, type) => {
-  if (!user.hasAdminRole) throw new Error('You do not have permission to do this')
-  if (typeof target !== 'string') throw new Error('target må værra string')
+  if (!user.hasAdminRole) throw new Error("You do not have permission to do this")
+  if (typeof target !== "string") throw new Error("target må værra string")
   if (!target.endsWith(`@${FEIDENAVN_SUFFIX}`) && !isGuid(target)) throw new Error(`Target må ende på @${FEIDENAVN_SUFFIX} eller værra en guid`)
-  if (!['larer', 'leder'].includes(type)) throw new Error('type må værra "larer" eller "leder"')
+  if (!["larer", "leder"].includes(type)) throw new Error('type må værra "larer" eller "leder"')
   const internalCache = getInternalCache()
   internalCache.set(`${user.principalId}-impersonation`, { target, type })
-  logger('warn', [`Admin user ${user.principalName} is impersonating user ${target} (type: ${type})`, `${user.principalName} probably need to do this, but logging for extra safety.`, 'Saving impersonation-logEntry to db as well'])
-  if (MOCK_API === 'true') return
+  logger("warn", [
+    `Admin user ${user.principalName} is impersonating user ${target} (type: ${type})`,
+    `${user.principalName} probably need to do this, but logging for extra safety.`,
+    "Saving impersonation-logEntry to db as well"
+  ])
+  if (MOCK_API === "true") return
   try {
     const mongoClient = await getMongoClient()
     const collection = mongoClient.db(MONGODB_DB_NAME).collection(MONGODB_USER_IMPERSONATION_COLLECTION)
@@ -50,8 +54,8 @@ export const setAdminImpersonation = async (user, target, type) => {
     const insertLogResult = await collection.insertOne(logEntry)
     return insertLogResult
   } catch (error) {
-    if (error.toString().startsWith('MongoTopologyClosedError')) {
-      logger('warn', 'Oh no, topology is closed! Closing client')
+    if (error.toString().startsWith("MongoTopologyClosedError")) {
+      logger("warn", "Oh no, topology is closed! Closing client")
       closeMongoClient()
     }
     throw error
@@ -63,7 +67,7 @@ export const setAdminImpersonation = async (user, target, type) => {
  * @param {import("#lib/authentication").User} user
  */
 export const deleteAdminImpersonation = (user) => {
-  if (!user.hasAdminRole) throw new Error('You do not have permission to do this')
+  if (!user.hasAdminRole) throw new Error("You do not have permission to do this")
   const internalCache = getInternalCache()
   internalCache.del(`${user.principalId}-impersonation`)
 }
