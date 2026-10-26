@@ -1,9 +1,9 @@
 <script>
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
   /** @type {import('./$types').PageData} */
   export let data
 
-  let student = data.students.find(stud => stud.feidenavnPrefix === $page.params.feidenavnPrefix)
+  let student = data.students.find(stud => stud.feidenavnPrefix === page.params.feidenavnPrefix)
 </script>
 
 {#if !student}

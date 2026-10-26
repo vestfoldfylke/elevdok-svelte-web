@@ -1,6 +1,6 @@
-import { env } from '$env/dynamic/private'
-import { getMockDb } from '$lib/mock-db'
-import { closeMongoClient, getMongoClient } from '$lib/mongo-client'
+import { MOCK_API, MONGODB_DB_NAME, MONGODB_LOGS_COLLECTION } from '$app/env/private'
+import { getMockDb } from '#lib/mock-db'
+import { closeMongoClient, getMongoClient } from '#lib/mongo-client'
 import { logger } from '@vtfk/logger'
 import { ObjectId } from 'mongodb'
 import { getCurrentSchoolYear } from './get-user-data'
@@ -44,7 +44,7 @@ export const createUserLogEntry = async (logData, loggerPrefix) => {
     action,
     file: file || null
   }
-  if (env.MOCK_API === 'true') {
+  if (MOCK_API === 'true') {
     logger('info', [loggerPrefix, 'MOCK_API is true, adding logEntry to mockDb'])
     const mockDb = getMockDb()
     logEntry.type = 'logElement'
@@ -57,7 +57,7 @@ export const createUserLogEntry = async (logData, loggerPrefix) => {
   logger('info', [loggerPrefix, 'Inserting logEntry in db'])
   try {
     const mongoClient = await getMongoClient()
-    const collection = mongoClient.db(env.MONGODB_DB_NAME).collection(`${env.MONGODB_LOGS_COLLECTION}-${getCurrentSchoolYear('-')}`)
+    const collection = mongoClient.db(MONGODB_DB_NAME).collection(`${MONGODB_LOGS_COLLECTION}-${getCurrentSchoolYear('-')}`)
     const insertLogResult = await collection.insertOne(logEntry)
     logger('info', [loggerPrefix, `LogEntry successfully inserted: ${insertLogResult.insertedId}`])
     return insertLogResult
@@ -80,7 +80,7 @@ export const logStudentSearch = async (user, searchName) => {
   if (!searchName) {
     searchName = ''
   }
-  if (env.MOCK_API === 'true') {
+  if (MOCK_API === 'true') {
     logger('info', [loggerPrefix, 'MOCK_API is true, getting logs from mockDb'])
     const students = []
     const mockDb = getMockDb()
@@ -100,7 +100,7 @@ export const logStudentSearch = async (user, searchName) => {
   try {
     const mongoClient = await getMongoClient()
 
-    const collection = mongoClient.db(env.MONGODB_DB_NAME).collection(`${env.MONGODB_LOGS_COLLECTION}-${getCurrentSchoolYear('-')}`)
+    const collection = mongoClient.db(MONGODB_DB_NAME).collection(`${MONGODB_LOGS_COLLECTION}-${getCurrentSchoolYear('-')}`)
 
     const escapedSearchName = escapeRegex(searchName)
     const regex = new RegExp(`^${escapedSearchName}`, 'i')
@@ -127,7 +127,7 @@ export const logUserSearch = async (user, searchName) => {
   if (!searchName) {
     searchName = ''
   }
-  if (env.MOCK_API === 'true') {
+  if (MOCK_API === 'true') {
     logger('info', [loggerPrefix, 'MOCK_API is true, getting logs from mockDb'])
     const users = []
     const mockDb = getMockDb()
@@ -147,7 +147,7 @@ export const logUserSearch = async (user, searchName) => {
   try {
     const mongoClient = await getMongoClient()
 
-    const collection = mongoClient.db(env.MONGODB_DB_NAME).collection(`${env.MONGODB_LOGS_COLLECTION}-${getCurrentSchoolYear('-')}`)
+    const collection = mongoClient.db(MONGODB_DB_NAME).collection(`${MONGODB_LOGS_COLLECTION}-${getCurrentSchoolYear('-')}`)
 
     const escapedSearchName = escapeRegex(searchName)
     const regex = new RegExp(`^${escapedSearchName}`, 'i')
@@ -172,7 +172,7 @@ export const getUserLogs = async (user, filter) => {
     throw new Error('You do not have permission to do this')
   }
   logger('info', [loggerPrefix, 'Getting user logs from db'])
-  if (env.MOCK_API === 'true') {
+  if (MOCK_API === 'true') {
     logger('info', [loggerPrefix, 'MOCK_API is true, getting logs from mockDb'])
     let userLogs = []
     const mockDb = getMockDb()
@@ -200,7 +200,7 @@ export const getUserLogs = async (user, filter) => {
   // Get logs from mongodb
   try {
     const mongoClient = await getMongoClient()
-    const collection = mongoClient.db(env.MONGODB_DB_NAME).collection(`${env.MONGODB_LOGS_COLLECTION}-${getCurrentSchoolYear('-')}`)
+    const collection = mongoClient.db(MONGODB_DB_NAME).collection(`${MONGODB_LOGS_COLLECTION}-${getCurrentSchoolYear('-')}`)
     if (!studentNumber && !userPrincipalId && !documentNumber) {
       logger('info', [loggerPrefix, 'No filters applied, returning 50 most recent logs'])
       const top50 = await collection.find().sort({ _id: -1 }).limit(50).toArray() // sort({_id:-1}) returns newest first

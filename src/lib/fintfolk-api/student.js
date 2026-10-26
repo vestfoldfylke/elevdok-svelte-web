@@ -1,14 +1,14 @@
 import { error } from '@sveltejs/kit'
-import { env } from '$env/dynamic/private'
-import { getMsalToken } from '$lib/msal-token'
+import { FEIDENAVN_SUFFIX, FINTFOLK_API_SCOPE, FINTFOLK_API_URL, MOCK_API, NODE_ENV } from '$app/env/private'
+import { getMsalToken } from '#lib/msal-token'
 import axios from 'axios'
-import { sleep } from '$lib/helpers/sleep'
+import { sleep } from '#lib/helpers/sleep'
 
 const mockStudents = [
   {
-    feidenavn: `ele0102@${env.FEIDENAVN_SUFFIX}`,
+    feidenavn: `ele0102@${FEIDENAVN_SUFFIX}`,
     elevnummer: '12345678',
-    upn: `ele0102@skole.${env.FEIDENAVN_SUFFIX}`,
+    upn: `ele0102@skole.${FEIDENAVN_SUFFIX}`,
     navn: 'Elev Elevesen',
     fornavn: 'Elev',
     etternavn: 'Elevesen',
@@ -36,7 +36,7 @@ const mockStudents = [
     },
     kontaktlarere: [
       {
-        feidenavn: `sauron@${env.FEIDENAVN_SUFFIX}`,
+        feidenavn: `sauron@${FEIDENAVN_SUFFIX}`,
         ansattnummer: '1111111',
         navn: 'Sauron Hanson',
         fornavn: 'Sauron',
@@ -140,7 +140,7 @@ const mockStudents = [
             },
             undervisningsforhold: [
               {
-                feidenavn: `sauron@${env.FEIDENAVN_SUFFIX}`,
+                feidenavn: `sauron@${FEIDENAVN_SUFFIX}`,
                 ansattnummer: '1111111',
                 navn: 'Sauron Hanson',
                 fornavn: 'Sauron',
@@ -204,7 +204,7 @@ const mockStudents = [
             },
             undervisningsforhold: [
               {
-                feidenavn: `nasgul@${env.FEIDENAVN_SUFFIX}`,
+                feidenavn: `nasgul@${FEIDENAVN_SUFFIX}`,
                 ansattnummer: '1234566',
                 navn: 'Nasgul Gulesen',
                 fornavn: 'Nasgul',
@@ -291,7 +291,7 @@ const mockStudents = [
             },
             undervisningsforhold: [
               {
-                feidenavn: `sauron@${env.FEIDENAVN_SUFFIX}`,
+                feidenavn: `sauron@${FEIDENAVN_SUFFIX}`,
                 ansattnummer: '11111111',
                 navn: 'Sauron Hanson',
                 fornavn: 'Sauron',
@@ -305,9 +305,9 @@ const mockStudents = [
     ]
   },
   {
-    feidenavn: `sar0398@${env.FEIDENAVN_SUFFIX}`,
+    feidenavn: `sar0398@${FEIDENAVN_SUFFIX}`,
     elevnummer: '1234569',
-    upn: `sar0398@skole.${env.FEIDENAVN_SUFFIX}`,
+    upn: `sar0398@skole.${FEIDENAVN_SUFFIX}`,
     navn: 'Sarumann Sauronsen',
     fornavn: 'Sarumann',
     etternavn: 'Sauronsen',
@@ -335,7 +335,7 @@ const mockStudents = [
     },
     kontaktlarere: [
       {
-        feidenavn: `sauron@${env.FEIDENAVN_SUFFIX}`,
+        feidenavn: `sauron@${FEIDENAVN_SUFFIX}`,
         ansattnummer: '1111111',
         navn: 'Sauron Hanson',
         fornavn: 'Sauron',
@@ -439,7 +439,7 @@ const mockStudents = [
             },
             undervisningsforhold: [
               {
-                feidenavn: `sauron@${env.FEIDENAVN_SUFFIX}`,
+                feidenavn: `sauron@${FEIDENAVN_SUFFIX}`,
                 ansattnummer: '1111111',
                 navn: 'Sauron Hanson',
                 fornavn: 'Sauron',
@@ -503,7 +503,7 @@ const mockStudents = [
             },
             undervisningsforhold: [
               {
-                feidenavn: `nasgul@${env.FEIDENAVN_SUFFIX}`,
+                feidenavn: `nasgul@${FEIDENAVN_SUFFIX}`,
                 ansattnummer: '1234566',
                 navn: 'Nasgul Gulesen',
                 fornavn: 'Nasgul',
@@ -565,7 +565,7 @@ const mockStudents = [
             },
             undervisningsforhold: [
               {
-                feidenavn: `larer.laresen@${env.FEIDENAVN_SUFFIX}`,
+                feidenavn: `larer.laresen@${FEIDENAVN_SUFFIX}`,
                 ansattnummer: '12345678',
                 navn: 'Lærer Læresen',
                 fornavn: 'Lærer',
@@ -658,7 +658,7 @@ const mockStudents = [
             },
             undervisningsforhold: [
               {
-                feidenavn: `sauron@${env.FEIDENAVN_SUFFIX}`,
+                feidenavn: `sauron@${FEIDENAVN_SUFFIX}`,
                 ansattnummer: '11111111',
                 navn: 'Sauron Hanson',
                 fornavn: 'Sauron',
@@ -679,15 +679,15 @@ const mockStudents = [
  */
 export const fintStudent = async (feidenavn) => {
   if (!feidenavn) throw error(400, 'Missing required parameter "feidenavn"')
-  if (env.MOCK_API === 'true' && env.NODE_ENV !== 'production') {
+  if (MOCK_API === 'true' && NODE_ENV !== 'production') {
     await sleep(1000)
     const mockStudent = mockStudents.find(student => student.feidenavn === feidenavn)
     if (!mockStudent) throw error(404, `Could not find student with feidenavn ${feidenavn}`)
     return mockStudent
   }
-  const accessToken = await getMsalToken({ scope: env.FINTFOLK_API_SCOPE })
+  const accessToken = await getMsalToken({ scope: FINTFOLK_API_SCOPE })
   try {
-    const { data } = await axios.get(`${env.FINTFOLK_API_URL}/student/feidenavn/${feidenavn}`, { headers: { Authorization: `Bearer ${accessToken}` } })
+    const { data } = await axios.get(`${FINTFOLK_API_URL}/student/feidenavn/${feidenavn}`, { headers: { Authorization: `Bearer ${accessToken}` } })
     return data
   } catch (error) {
     if (error.response?.status === 404) {

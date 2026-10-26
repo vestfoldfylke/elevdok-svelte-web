@@ -1,14 +1,14 @@
 <script>
-  import Document from "$lib/components/Document.svelte";
+  import Document from "#lib/components/Document.svelte";
   import { goto } from "$app/navigation";
-  import { page } from "$app/stores";
-  import LoadingSpinner from "$lib/components/LoadingSpinner.svelte";
-  import Pagination from "$lib/components/Pagination.svelte";
+  import { page } from "$app/state";
+  import LoadingSpinner from "#lib/components/LoadingSpinner.svelte";
+  import Pagination from "#lib/components/Pagination.svelte";
 
   /** @type {import('./$types').PageData} */
   export let data
 
-  let student = data.students.find(stud => stud.feidenavnPrefix === $page.params.feidenavnPrefix)
+  let student = data.students.find(stud => stud.feidenavnPrefix === page.params.feidenavnPrefix)
 
   let showArchiveWarning = true
   let documentsPerPage = 10

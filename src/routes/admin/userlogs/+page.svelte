@@ -1,8 +1,7 @@
 <script>
-  import { invalidateAll } from '$app/navigation';
-  import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
-  import { prettyPrintDate } from '$lib/helpers/pretty-date';
-    import { sleep } from '$lib/helpers/sleep';
+  import LoadingSpinner from '#lib/components/LoadingSpinner.svelte';
+  import { prettyPrintDate } from '#lib/helpers/pretty-date';
+    import { sleep } from '#lib/helpers/sleep';
   import axios from 'axios';
   import { onMount } from 'svelte';
 

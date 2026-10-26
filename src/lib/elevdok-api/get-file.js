@@ -1,14 +1,14 @@
 import { logger } from '@vtfk/logger'
 import { getUserData } from './get-user-data'
-import { hasFileAccessForStudent } from '$lib/permissions'
-import { getAzfArchiveDocuments, getAzfArchiveFile } from '$lib/call-archive/azf-archive'
-import { mockFile } from '$lib/call-archive/mock-data'
+import { hasFileAccessForStudent } from '#lib/permissions'
+import { getAzfArchiveDocuments, getAzfArchiveFile } from '#lib/call-archive/azf-archive'
+import { mockFile } from '#lib/call-archive/mock-data'
 import { createUserLogEntry } from './user-logs'
-import { env } from '$env/dynamic/private'
+import { DEFAULT_ROLE, LEDER_ROLE, MOCK_API, VTFK_ARCHIVE_ENABLED } from '$app/env/private'
 
 /**
  *
- * @param {import("$lib/authentication").User} user
+ * @param {import("#lib/authentication").User} user
  * @param {string} studentFeidenavn
  * @param {string} sourceId
  * @param {string} fileId
@@ -33,7 +33,7 @@ export const getFile = async (user, studentFeidenavn, sourceId, fileId) => {
   }
 
   // Check if regular teacher or administrator impersonating teacher or leder
-  const canViewDocuments = user.activeRole === env.DEFAULT_ROLE || user.activeRole === env.LEDER_ROLE || (user.hasAdminRole && user.impersonating?.type === 'larer') || (user.hasAdminRole && user.impersonating?.type === 'leder')
+  const canViewDocuments = user.activeRole === DEFAULT_ROLE || user.activeRole === LEDER_ROLE || (user.hasAdminRole && user.impersonating?.type === 'larer') || (user.hasAdminRole && user.impersonating?.type === 'leder')
   if (!canViewDocuments) {
     logger('warn', [loggerPrefix, 'Not allowed to view documents with current role'])
     throw new Error('Not allowed to view documents with current role')
@@ -69,7 +69,7 @@ export const getFile = async (user, studentFeidenavn, sourceId, fileId) => {
   }
   logger('info', [loggerPrefix, `Fetching file from source ${sourceId}`])
 
-  if (env.MOCK_API === 'true') {
+  if (MOCK_API === 'true') {
     logger('info', [loggerPrefix, 'MOCK_API is true', 'Returning mock file'])
     const { base64 } = mockFile
     result.base64 = base64
@@ -98,7 +98,7 @@ export const getFile = async (user, studentFeidenavn, sourceId, fileId) => {
       logger('error', [loggerPrefix, `Failed when fetching file (${fileId}) from mainArchive`, error.response?.data || error.stack || error.toString()])
       throw new Error('No access to student, or student is not registered')
     }
-  } else if (env.VTFK_ARCHIVE_ENABLED === 'true' && sourceId === 'vtfk') {
+  } else if (VTFK_ARCHIVE_ENABLED === 'true' && sourceId === 'vtfk') {
     // implement
   }
   logger('info', [loggerPrefix, 'Got base64file - creating logEntry'])

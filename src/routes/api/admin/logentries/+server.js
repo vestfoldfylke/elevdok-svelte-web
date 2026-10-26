@@ -1,6 +1,5 @@
-import { getAuthenticatedUser } from '$lib/authentication'
-import { getUserLogs } from '$lib/elevdok-api/user-logs'
-import { json } from '@sveltejs/kit'
+import { getAuthenticatedUser } from '#lib/authentication'
+import { getUserLogs } from '#lib/elevdok-api/user-logs'
 
 export const GET = async ({ params, request, url }) => {
   try {
@@ -17,8 +16,8 @@ export const GET = async ({ params, request, url }) => {
 
     const logEntries = await getUserLogs(user, filter)
 
-    return json(logEntries)
+    return Response.json(logEntries)
   } catch (error) {
-    return json({ message: 'Failed when getting log entries', error: error.response?.data || error.stack || error.toString() }, { status: 400 })
+    return Response.json({ message: 'Failed when getting log entries', error: error.response?.data || error.stack || error.toString() }, { status: 400 })
   }
 }

@@ -1,6 +1,5 @@
-import { getAuthenticatedUser } from '$lib/authentication'
-import { logUserSearch } from '$lib/elevdok-api/user-logs'
-import { json } from '@sveltejs/kit'
+import { getAuthenticatedUser } from '#lib/authentication'
+import { logUserSearch } from '#lib/elevdok-api/user-logs'
 import { logger } from '@vtfk/logger'
 
 export const GET = async ({ params, request, url }) => {
@@ -9,9 +8,9 @@ export const GET = async ({ params, request, url }) => {
     const searchName = url.searchParams.get('search_name')
 
     const users = await logUserSearch(user, searchName)
-    return json(users)
+    return Response.json(users)
   } catch (error) {
     logger('error', ['Failed when getting log users', error.response?.data || error.stack || error.toString()])
-    return json({ message: 'Feilet ved henting av brukere', error: error.response?.data || error.stack || error.toString() }, { status: 400 })
+    return Response.json({ message: 'Feilet ved henting av brukere', error: error.response?.data || error.stack || error.toString() }, { status: 400 })
   }
 }

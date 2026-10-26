@@ -1,13 +1,13 @@
 import { error } from '@sveltejs/kit'
-import { env } from '$env/dynamic/private'
-import { getMsalToken } from '$lib/msal-token'
+import { FEIDENAVN_SUFFIX, FINTFOLK_API_SCOPE, FINTFOLK_API_URL, MOCK_API, NODE_ENV } from '$app/env/private'
+import { getMsalToken } from '#lib/msal-token'
 import axios from 'axios'
-import { sleep } from '$lib/helpers/sleep'
+import { sleep } from '#lib/helpers/sleep'
 
 const mockTeacher = {
-  feidenavn: `larer.laresen@${env.FEIDENAVN_SUFFIX}`,
+  feidenavn: `larer.laresen@${FEIDENAVN_SUFFIX}`,
   ansattnummer: '12345678',
-  upn: `larer.laresen@${env.FEIDENAVN_SUFFIX}`,
+  upn: `larer.laresen@${FEIDENAVN_SUFFIX}`,
   navn: 'Lærer Læresen',
   fornavn: 'Lærer',
   etternavn: 'Læresen',
@@ -15,9 +15,9 @@ const mockTeacher = {
   fodselsdato: '1978-01-26T00:00:00Z',
   alder: 45,
   kjonn: '1',
-  larerEpostadresse: `larer.laresen@${env.FEIDENAVN_SUFFIX}`,
+  larerEpostadresse: `larer.laresen@${FEIDENAVN_SUFFIX}`,
   larerMobiltelefonnummer: null,
-  kontaktEpostadresse: `larer.laresen@${env.FEIDENAVN_SUFFIX}`,
+  kontaktEpostadresse: `larer.laresen@${FEIDENAVN_SUFFIX}`,
   kontaktMobiltelefonnummer: null,
   privatEpostadresse: null,
   privatMobiltelefonnummer: '12345678',
@@ -104,7 +104,7 @@ const mockTeacher = {
               navn: 'Elev Elevesen',
               fornavn: 'Elev',
               etternavn: 'Elevesen',
-              feidenavn: `ele0102@${env.FEIDENAVN_SUFFIX}`,
+              feidenavn: `ele0102@${FEIDENAVN_SUFFIX}`,
               elevnummer: '1234567',
               kontaktlarer: true,
               fodselsnummer: '12345678910'
@@ -113,7 +113,7 @@ const mockTeacher = {
               navn: 'Frodo Baggins',
               fornavn: 'Frodo',
               etternavn: 'Baggins',
-              feidenavn: `fro12345@${env.FEIDENAVN_SUFFIX}`,
+              feidenavn: `fro12345@${FEIDENAVN_SUFFIX}`,
               elevnummer: '1234568',
               kontaktlarer: false,
               fodselsnummer: '12345678911'
@@ -211,7 +211,7 @@ const mockTeacher = {
               navn: 'Elev Elevesen',
               fornavn: 'Elev',
               etternavn: 'Elevesen',
-              feidenavn: `ele0102@${env.FEIDENAVN_SUFFIX}`,
+              feidenavn: `ele0102@${FEIDENAVN_SUFFIX}`,
               elevnummer: '1234567',
               kontaktlarer: true,
               fodselsnummer: '12345678910'
@@ -220,7 +220,7 @@ const mockTeacher = {
               navn: 'Frodo Baggins',
               fornavn: 'Frodo',
               etternavn: 'Baggins',
-              feidenavn: `fro12345@${env.FEIDENAVN_SUFFIX}`,
+              feidenavn: `fro12345@${FEIDENAVN_SUFFIX}`,
               elevnummer: '1234568',
               kontaktlarer: false,
               fodselsnummer: '12345678911'
@@ -313,7 +313,7 @@ const mockTeacher = {
               navn: 'Sarumann Sauronsen',
               fornavn: 'Sarumann',
               etternavn: 'Sauronsen',
-              feidenavn: `sar0398@${env.FEIDENAVN_SUFFIX}`,
+              feidenavn: `sar0398@${FEIDENAVN_SUFFIX}`,
               elevnummer: '1234569',
               kontaktlarer: false,
               fodselsnummer: '12345678912'
@@ -322,7 +322,7 @@ const mockTeacher = {
               navn: 'Frodo Baggins',
               fornavn: 'Frodo',
               etternavn: 'Baggins',
-              feidenavn: `fro12345@${env.FEIDENAVN_SUFFIX}`,
+              feidenavn: `fro12345@${FEIDENAVN_SUFFIX}`,
               elevnummer: '1234568',
               kontaktlarer: false,
               fodselsnummer: '12345678911'
@@ -331,7 +331,7 @@ const mockTeacher = {
               navn: 'Elev Elevesen',
               fornavn: 'Elev',
               etternavn: 'Elevesen',
-              feidenavn: `ele0102@${env.FEIDENAVN_SUFFIX}`,
+              feidenavn: `ele0102@${FEIDENAVN_SUFFIX}`,
               elevnummer: '1234567',
               kontaktlarer: false,
               fodselsnummer: '12345678910'
@@ -389,7 +389,7 @@ const mockTeacher = {
               navn: 'Gollum Smeagol',
               fornavn: 'Gollum',
               etternavn: 'Smeagol',
-              feidenavn: `gol1234@${env.FEIDENAVN_SUFFIX}`,
+              feidenavn: `gol1234@${FEIDENAVN_SUFFIX}`,
               elevnummer: '1234570',
               kontaktlarer: false,
               fodselsnummer: '12345678913'
@@ -482,7 +482,7 @@ const mockTeacher = {
               navn: 'Sarumann Sauronsen',
               fornavn: 'Sarumann',
               etternavn: 'Sauronsen',
-              feidenavn: `sar0398@${env.FEIDENAVN_SUFFIX}`,
+              feidenavn: `sar0398@${FEIDENAVN_SUFFIX}`,
               elevnummer: '1234569',
               kontaktlarer: false,
               fodselsnummer: '12345678912'
@@ -491,7 +491,7 @@ const mockTeacher = {
               navn: 'Frodo Baggins',
               fornavn: 'Frodo',
               etternavn: 'Baggins',
-              feidenavn: `fro12345@${env.FEIDENAVN_SUFFIX}`,
+              feidenavn: `fro12345@${FEIDENAVN_SUFFIX}`,
               elevnummer: '1234568',
               kontaktlarer: false,
               fodselsnummer: '12345678911'
@@ -500,7 +500,7 @@ const mockTeacher = {
               navn: 'Elev Elevesen',
               fornavn: 'Elev',
               etternavn: 'Elevesen',
-              feidenavn: `ele0102@${env.FEIDENAVN_SUFFIX}`,
+              feidenavn: `ele0102@${FEIDENAVN_SUFFIX}`,
               elevnummer: '1234567',
               kontaktlarer: false,
               fodselsnummer: '12345678910'
@@ -558,7 +558,7 @@ const mockTeacher = {
               navn: 'Gollum Smeagol',
               fornavn: 'Gollum',
               etternavn: 'Smeagol',
-              feidenavn: `gol1234@${env.FEIDENAVN_SUFFIX}`,
+              feidenavn: `gol1234@${FEIDENAVN_SUFFIX}`,
               elevnummer: '1234570',
               kontaktlarer: false,
               fodselsnummer: '12345678913'
@@ -605,13 +605,13 @@ for (let i = 0; i < 2000; i++) {
 export const fintTeacher = async (userPrincipalName) => {
   const identifier = userPrincipalName
   if (!identifier) throw error(400, 'Missing required parameter "userPrincipalName"')
-  if (env.MOCK_API === 'true' && env.NODE_ENV !== 'production') {
+  if (MOCK_API === 'true' && NODE_ENV !== 'production') {
     await sleep(1000)
     return mockTeacher
   }
-  const accessToken = await getMsalToken({ scope: env.FINTFOLK_API_SCOPE })
+  const accessToken = await getMsalToken({ scope: FINTFOLK_API_SCOPE })
   try {
-    const { data } = await axios.get(`${env.FINTFOLK_API_URL}/teacher/upn/${identifier}?includeStudentSsn=true`, { headers: { Authorization: `Bearer ${accessToken}` } })
+    const { data } = await axios.get(`${FINTFOLK_API_URL}/teacher/upn/${identifier}?includeStudentSsn=true`, { headers: { Authorization: `Bearer ${accessToken}` } })
     return data
   } catch (error) {
     if (error.response?.status === 404) {

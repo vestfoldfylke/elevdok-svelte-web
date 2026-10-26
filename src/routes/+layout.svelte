@@ -1,13 +1,11 @@
 <script>
   import '../app.css' // Add global css (and make it hot reload in dev)
   import '../style.css' // Add custom css (and make it hot reload in dev)
-  import logo from '$lib/assets/logo.svg'
-  import julehund from '$lib/assets/julehund.png'
-  import logoDarkmode from '$lib/assets/logo-darkmode.svg'
-  import { page } from '$app/stores'
-  import { navigating } from '$app/stores'
-  import { clickOutside } from '$lib/helpers/click-outside'
-  import { goto } from '$app/navigation';
+  import logo from '#lib/assets/logo.svg'
+  import julehund from '#lib/assets/julehund.png'
+  import logoDarkmode from '#lib/assets/logo-darkmode.svg'
+  import { navigating, page } from '$app/state'
+  import { clickOutside } from '#lib/helpers/click-outside'
 
   /** @type {import('./$types').PageData} */
 	export let data
@@ -88,7 +86,7 @@
     </a>
     {#each sideMenuItems as menuItem}
       <a href={menuItem.href} class="menuLink inward-focus-within">
-        <div class="menuItem{isActiveRoute(menuItem.href, $page.url.pathname) ? ' active' : ''}">
+        <div class="menuItem{isActiveRoute(menuItem.href, page.url.pathname) ? ' active' : ''}">
           <span class="material-symbols-outlined">{menuItem.icon}</span>
           <div>{menuItem.title}</div>
         </div>
@@ -99,7 +97,7 @@
   <div class="menubarMobile">
     {#each sideMenuItems as menuItem}
       <a href={menuItem.href} class="menuLinkMobile inward-focus-within">
-        <div class="menuItemMobile{isActiveRoute(menuItem.href, $page.url.pathname) ? ' active' : ''}">
+        <div class="menuItemMobile{isActiveRoute(menuItem.href, page.url.pathname) ? ' active' : ''}">
           <span class="material-symbols-outlined">{menuItem.icon}</span>
           <div>{menuItem.title}</div>
         </div>
@@ -131,12 +129,12 @@
               <button type="submit" class="blank userMenuOption inward-focus-within">Bytt til rolle: {availableRole.roleName}</button>
             </form>
           {/each}
-          <button class="blank userMenuOption inward-focus-within" on:click={() => goto('/.auth/logout')}>Logg ut</button>
+          <button class="blank userMenuOption inward-focus-within" on:click={() => { window.location.href = '/.auth/logout' }}>Logg ut</button>
         </div>
       </div>
     </div>
     <div class="pathtracker">
-      {#each getPathLinks($page.url.pathname) as pathlink}
+      {#each getPathLinks(page.url.pathname) as pathlink}
         {#if pathlink.addSlashBefore}
           <span>/</span>
         {/if}
@@ -167,7 +165,7 @@
 
     <div class="contentContainer">
       <div class="content">
-        {#if $navigating}
+        {#if navigating.from !== navigating.to}
           <div class="loadingOverlay">
             <div class="spinner" style="width: 10rem">
               <svg viewBox="0 0 50 50" focusable="false" aria-label="Laster...">

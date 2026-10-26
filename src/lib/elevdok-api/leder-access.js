@@ -1,11 +1,11 @@
-import { env } from '$env/dynamic/private'
-import { getInternalCache } from '$lib/internal-cache'
-import { getAllLeaderUsers } from '$lib/microsoft-graph'
+import { FRONTEND_APP_ID, LEDER_ROLE } from '$app/env/private'
+import { getInternalCache } from '#lib/internal-cache'
+import { getAllLeaderUsers } from '#lib/microsoft-graph'
 import { logger } from '@vtfk/logger'
 
 /**
  *
- * @param {import("$lib/authentication").User} user
+ * @param {import("#lib/authentication").User} user
  */
 export const getAllLeaderAccess = async (user) => {
   const loggerPrefix = `getAllLeaderAccess - user: ${user.principalName}`
@@ -16,7 +16,7 @@ export const getAllLeaderAccess = async (user) => {
   logger('info', [loggerPrefix, 'Getting all leaders access'])
 
   // Internal caching in getAllLeaderUsers
-  const leaderUsers = await getAllLeaderUsers(env.FRONTEND_APP_ID)
+  const leaderUsers = await getAllLeaderUsers(FRONTEND_APP_ID)
 
   const schoolAccess = []
   for (const leaderUser of leaderUsers) {
@@ -33,14 +33,14 @@ export const getAllLeaderAccess = async (user) => {
 
 /**
  *
- * @param {import("$lib/authentication").User} user
+ * @param {import("#lib/authentication").User} user
  * @param {string} leaderId
- * @returns {import("$lib/microsoft-graph").LeaderUser[]}
+ * @returns {import("#lib/microsoft-graph").LeaderUser[]}
  */
 export const getLeaderAccess = async (user) => {
   const loggerPrefix = `getLeaderAccess - user: ${user.principalName}`
 
-  if (!user.activeRole === env.LEDER_ROLE && !(user.hasAdminRole && user.impersonating && user.impersonating?.type === 'leder')) {
+  if (!user.activeRole === LEDER_ROLE && !(user.hasAdminRole && user.impersonating && user.impersonating?.type === 'leder')) {
     logger('warn', [loggerPrefix, 'User is not leader and not impersonating leader, no access'])
     throw new Error('Du har ikke riktig rolle for å gjøre dette')
   }
@@ -58,7 +58,7 @@ export const getLeaderAccess = async (user) => {
   }
 
   // OBS, Internal caching in getAllLeaderUsers as well - reset cache if you need newest data
-  const leaderUsers = await getAllLeaderUsers(env.FRONTEND_APP_ID)
+  const leaderUsers = await getAllLeaderUsers(FRONTEND_APP_ID)
 
   const leaderAccess = leaderUsers.filter(leaderUser => leaderUser.principalId === leaderId || leaderUser.principalName === leaderId)
 

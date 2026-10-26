@@ -1,14 +1,13 @@
-import { getAuthenticatedUser } from '$lib/authentication'
-import { getAllLeaderAccess } from '$lib/elevdok-api/leder-access'
-import { json } from '@sveltejs/kit'
+import { getAuthenticatedUser } from '#lib/authentication'
+import { getAllLeaderAccess } from '#lib/elevdok-api/leder-access'
 
 export const GET = async ({ params, request, url }) => {
   try {
     const user = await getAuthenticatedUser(request.headers)
     const leaderAccess = await getAllLeaderAccess(user)
 
-    return json(leaderAccess)
+    return Response.json(leaderAccess)
   } catch (error) {
-    return json({ message: 'Failed when getting all leader access', error: error.response?.data || error.stack || error.toString() }, { status: 400 })
+    return Response.json({ message: 'Failed when getting all leader access', error: error.response?.data || error.stack || error.toString() }, { status: 400 })
   }
 }

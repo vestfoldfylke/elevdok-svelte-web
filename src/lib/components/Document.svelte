@@ -1,6 +1,6 @@
 <script>
-  import File from "$lib/components/File.svelte";
-  import { prettyPrintDate } from "$lib/helpers/pretty-date";
+  import File from "#lib/components/File.svelte";
+  import { prettyPrintDate } from "#lib/helpers/pretty-date";
 
   export let document
   export let currentIndex

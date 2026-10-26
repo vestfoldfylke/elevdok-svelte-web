@@ -1,6 +1,6 @@
-import { env } from '$env/dynamic/private'
-import { fintTeacher } from '$lib/fintfolk-api/teacher'
-import { fintSchool } from '$lib/fintfolk-api/school'
+import { DEFAULT_ROLE, IOP_FAGLARER_ACCESS_ENABLED, LEDER_ROLE } from '$app/env/private'
+import { fintTeacher } from '#lib/fintfolk-api/teacher'
+import { fintSchool } from '#lib/fintfolk-api/school'
 import { logger } from '@vtfk/logger'
 import { getLeaderAccess } from './leder-access'
 import vtfkSchoolsInfo from 'vtfk-schools-info'
@@ -152,7 +152,7 @@ const getIOPSchools = (teacherStudent) => {
 
 /**
  * @typedef UserData
- * @property {import('$lib/system-info').SystemInfo} systemInfo
+ * @property {import("#lib/system-info").SystemInfo} systemInfo
  * @property {PersonData} personData
  * @property {TeacherStudent[]} students
  * @property {LarerKlasse[]} classes
@@ -162,7 +162,7 @@ const getIOPSchools = (teacherStudent) => {
 
 /**
  *
- * @param {import('$lib/authentication').User} user
+ * @param {import("#lib/authentication").User} user
  * @param {boolean} maskSsn defaults to true
  * @returns {UserData} users data
  *
@@ -178,7 +178,7 @@ export const getUserData = async (user, maskSsn = true) => {
   }
 
   // If regular teacher or administrator impersonating teacher
-  if (user.activeRole === env.DEFAULT_ROLE || (user.hasAdminRole && user.impersonating?.type === 'larer')) {
+  if (user.activeRole === DEFAULT_ROLE || (user.hasAdminRole && user.impersonating?.type === 'larer')) {
     loggerPrefix += ' - role: Teacher'
     logger('info', [loggerPrefix, 'Fetching teacher data from FINT'])
     if (user.impersonating?.type === 'larer') loggerPrefix += ` - impersonating: ${user.impersonating.target}`
@@ -267,7 +267,7 @@ export const getUserData = async (user, maskSsn = true) => {
       if (maskSsn) stud.fodselsnummer = `${stud.fodselsnummer.substring(0, 6)}*****`
       delete stud.kontaktlarer
       // IOP special access
-      if (env.IOP_FAGLARER_ACCESS_ENABLED === 'true') {
+      if (IOP_FAGLARER_ACCESS_ENABLED === 'true') {
         const iopSchools = getIOPSchools(stud)
         stud.skoler = stud.skoler.map(school => {
           return {
@@ -289,7 +289,7 @@ export const getUserData = async (user, maskSsn = true) => {
 
   // TODO - finn ut av leder rådgiver
   // If leder / rådgiver or administrator impersonating teacher
-  if (user.activeRole === env.LEDER_ROLE || (user.hasAdminRole && user.impersonating?.type === 'leder')) {
+  if (user.activeRole === LEDER_ROLE || (user.hasAdminRole && user.impersonating?.type === 'leder')) {
     loggerPrefix += ' - role: Leder'
     if (user.impersonating?.type === 'leder') loggerPrefix += ` - impersonating: ${user.impersonating.target}`
     logger('info', [loggerPrefix, 'Checking school access'])

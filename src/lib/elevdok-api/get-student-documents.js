@@ -1,14 +1,14 @@
 import { logger } from '@vtfk/logger'
 import { getUserData } from './get-user-data'
-import { getMockDocuments } from '$lib/call-archive/mock-data'
-import { getAzfArchiveDocuments } from '$lib/call-archive/azf-archive'
-import { hasFileAccessForStudent } from '$lib/permissions'
+import { getMockDocuments } from '#lib/call-archive/mock-data'
+import { getAzfArchiveDocuments } from '#lib/call-archive/azf-archive'
+import { hasFileAccessForStudent } from '#lib/permissions'
 import { createUserLogEntry } from './user-logs'
-import { env } from '$env/dynamic/private'
+import { DEFAULT_ROLE, LEDER_ROLE, MOCK_API } from '$app/env/private'
 
 /**
  *
- * @param {import("$lib/authentication").User} user
+ * @param {import("#lib/authentication").User} user
  * @param {string} studentFeidenavn
  * @returns
  */
@@ -23,7 +23,7 @@ export const getStudentDocuments = async (user, studentFeidenavn) => {
   }
 
   // Check if regular teacher or administrator impersonating teacher or leder
-  const canViewDocuments = user.activeRole === env.DEFAULT_ROLE || user.activeRole === env.LEDER_ROLE || (user.hasAdminRole && user.impersonating?.type === 'larer') || (user.hasAdminRole && user.impersonating?.type === 'leder')
+  const canViewDocuments = user.activeRole === DEFAULT_ROLE || user.activeRole === LEDER_ROLE || (user.hasAdminRole && user.impersonating?.type === 'larer') || (user.hasAdminRole && user.impersonating?.type === 'leder')
   if (!canViewDocuments) {
     logger('warn', [loggerPrefix, 'Not allowed to view documents with current role'])
     throw new Error('Not allowed to view documents with current role')
@@ -47,7 +47,7 @@ export const getStudentDocuments = async (user, studentFeidenavn) => {
     errors: []
   }
 
-  if (env.MOCK_API === 'true') {
+  if (MOCK_API === 'true') {
     logger('info', [loggerPrefix, 'MOCK_API is true', 'Returning mock documents'])
     const documents = getMockDocuments(teacherStudent, loggerPrefix, 300)
     result.documents.push(...documents)

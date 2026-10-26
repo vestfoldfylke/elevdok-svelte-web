@@ -1,7 +1,7 @@
 <script>
-	import { clickOutside } from '$lib/helpers/click-outside'
+	import { clickOutside } from '#lib/helpers/click-outside'
 	import { goto } from '$app/navigation'
-  import Pagination from '$lib/components/Pagination.svelte';
+  import Pagination from '#lib/components/Pagination.svelte';
 
 	/** @type {import('./$types').PageData} */
 	export let data

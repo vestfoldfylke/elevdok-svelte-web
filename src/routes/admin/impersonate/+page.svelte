@@ -1,6 +1,6 @@
 <script>
-  import { invalidateAll } from '$app/navigation';
-  import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
+  import { refreshAll } from '$app/navigation';
+  import LoadingSpinner from '#lib/components/LoadingSpinner.svelte';
   import axios from 'axios';
 
   /** @type {import('./$types').PageData} */
@@ -16,7 +16,7 @@
     try {
       if (!impersonationTarget) throw new Error('Du må skrive et gyldig brukernavn / epost')
       const { data } = await axios.post('/api/admin/setimpersonation', { target: impersonationTarget, type })
-      await invalidateAll()
+      await refreshAll()
     } catch (error) {
       errorMessage = error.response?.data || error.toString()
     }
@@ -28,7 +28,7 @@
     isLoading = true
     try {
       const { data } = await axios.delete('/api/admin/deleteimpersonation')
-      await invalidateAll()
+      await refreshAll()
     } catch (error) {
       errorMessage = error.response?.data || error.toString()
     }

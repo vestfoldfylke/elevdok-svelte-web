@@ -1,8 +1,8 @@
 import { error } from '@sveltejs/kit'
-import { env } from '$env/dynamic/private'
-import { getMsalToken } from '$lib/msal-token'
+import { FEIDENAVN_SUFFIX, FINTFOLK_API_SCOPE, FINTFOLK_API_URL, MOCK_API, NODE_ENV } from '$app/env/private'
+import { getMsalToken } from '#lib/msal-token'
 import axios from 'axios'
-import { sleep } from '$lib/helpers/sleep'
+import { sleep } from '#lib/helpers/sleep'
 
 const mockSchool = {
   skolenummer: '12345',
@@ -37,7 +37,7 @@ const mockSchool = {
       navn: 'Elev Elevesen',
       fornavn: 'Elev',
       etternavn: 'Elevesen',
-      feidenavn: `ele0102@${env.FEIDENAVN_SUFFIX}`,
+      feidenavn: `ele0102@${FEIDENAVN_SUFFIX}`,
       elevnummer: '1234567',
       elevforholdId: '9145581',
       fodselsnummer: '12345678910'
@@ -46,7 +46,7 @@ const mockSchool = {
       navn: 'Frodo Baggins',
       fornavn: 'Frodo',
       etternavn: 'Baggins',
-      feidenavn: `fro12345@${env.FEIDENAVN_SUFFIX}`,
+      feidenavn: `fro12345@${FEIDENAVN_SUFFIX}`,
       elevnummer: '1234568',
       elevforholdId: '9030845',
       fodselsnummer: '12345678911'
@@ -90,7 +90,7 @@ const mockSchool = {
           navn: 'Elev Elevesen',
           fornavn: 'Elev',
           etternavn: 'Elevesen',
-          feidenavn: `ele0102@${env.FEIDENAVN_SUFFIX}`,
+          feidenavn: `ele0102@${FEIDENAVN_SUFFIX}`,
           elevnummer: '1234567',
           elevforholdId: '9145581',
           fodselsnummer: '12345678910'
@@ -99,7 +99,7 @@ const mockSchool = {
           navn: 'Frodo Baggins',
           fornavn: 'Frodo',
           etternavn: 'Baggins',
-          feidenavn: `fro12345@${env.FEIDENAVN_SUFFIX}`,
+          feidenavn: `fro12345@${FEIDENAVN_SUFFIX}`,
           elevnummer: '1234568',
           elevforholdId: '9030845',
           fodselsnummer: '12345678911'
@@ -116,13 +116,13 @@ const mockSchool = {
 export const fintSchool = async (schoolNumber) => {
   const identifier = schoolNumber
   if (!identifier) throw error(400, 'Missing required parameter "schoolNumber"')
-  if (env.MOCK_API === 'true' && env.NODE_ENV !== 'production') {
+  if (MOCK_API === 'true' && NODE_ENV !== 'production') {
     await sleep(1000)
     return mockSchool
   }
-  const accessToken = await getMsalToken({ scope: env.FINTFOLK_API_SCOPE })
+  const accessToken = await getMsalToken({ scope: FINTFOLK_API_SCOPE })
   try {
-    const { data } = await axios.get(`${env.FINTFOLK_API_URL}/school/skolenummer/${identifier}?includeStudentSsn=true`, { headers: { Authorization: `Bearer ${accessToken}` } })
+    const { data } = await axios.get(`${FINTFOLK_API_URL}/school/skolenummer/${identifier}?includeStudentSsn=true`, { headers: { Authorization: `Bearer ${accessToken}` } })
     return data
   } catch (error) {
     if (error.response?.status === 404) {

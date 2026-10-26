@@ -1,4 +1,4 @@
-import { env } from '$env/dynamic/private'
+import { ADMIN_ROLE, DEFAULT_ROLE, FEIDENAVN_SUFFIX, LEDER_ROLE, MOCK_AUTH, MOCK_AUTH_ADMIN_ROLE, MOCK_AUTH_LARER_ROLE, MOCK_AUTH_LEDER_ROLE, NODE_ENV } from '$app/env/private'
 import { error } from '@sveltejs/kit'
 import { logger } from '@vtfk/logger'
 import { getActiveRole } from './elevdok-api/roles'
@@ -35,9 +35,9 @@ import { getAdminImpersonation } from './elevdok-api/admin-impersonation'
  * @returns {User} current user
  */
 export const getAuthenticatedUser = async (headers) => {
-  if (env.MOCK_AUTH === 'true' && env.NODE_ENV !== 'production') {
+  if (MOCK_AUTH === 'true' && NODE_ENV !== 'production') {
     logger('warn', ['env.MOCK_AUTH is true, injecting MS auth headers, enjoy your local testing - if this in prod, pray and delete everything'])
-    headers.set('x-ms-client-principal-name', `demo.spokelse@${env.FEIDENAVN_SUFFIX}`)
+    headers.set('x-ms-client-principal-name', `demo.spokelse@${FEIDENAVN_SUFFIX}`)
     headers.set('x-ms-client-principal-id', '12345-4378493-fjdiofjd')
 
     // Create mock claims with necessary values
@@ -50,7 +50,7 @@ export const getAuthenticatedUser = async (headers) => {
         },
         {
           typ: 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress',
-          val: `demo.spokelse@${env.FEIDENAVN_SUFFIX}`
+          val: `demo.spokelse@${FEIDENAVN_SUFFIX}`
         },
         {
           typ: 'name',
@@ -62,28 +62,28 @@ export const getAuthenticatedUser = async (headers) => {
         },
         {
           typ: 'preferred_username',
-          val: `demo.spokelse@${env.FEIDENAVN_SUFFIX}`
+          val: `demo.spokelse@${FEIDENAVN_SUFFIX}`
         }
       ],
       name_typ: 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress',
       role_typ: 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role'
     }
-    if (env.MOCK_AUTH_LARER_ROLE === 'true') {
+    if (MOCK_AUTH_LARER_ROLE === 'true') {
       mockClaims.claims.push({
         typ: 'roles',
-        val: env.DEFAULT_ROLE
+        val: DEFAULT_ROLE
       })
     }
-    if (env.MOCK_AUTH_LEDER_ROLE === 'true') {
+    if (MOCK_AUTH_LEDER_ROLE === 'true') {
       mockClaims.claims.push({
         typ: 'roles',
-        val: env.LEDER_ROLE
+        val: LEDER_ROLE
       })
     }
-    if (env.MOCK_AUTH_ADMIN_ROLE === 'true') {
+    if (MOCK_AUTH_ADMIN_ROLE === 'true') {
       mockClaims.claims.push({
         typ: 'roles',
-        val: env.ADMIN_ROLE
+        val: ADMIN_ROLE
       })
     }
 
@@ -114,8 +114,8 @@ export const getAuthenticatedUser = async (headers) => {
     logger('info', ['User has more than one role, checking for active role'])
     const activeDbRole = await getActiveRole(principalId)
     if (!activeDbRole) {
-      if (roles.includes(env.LEDER_ROLE)) {
-        activeRole = env.LEDER_ROLE // Default to leder if user have several, and none selected in db
+      if (roles.includes(LEDER_ROLE)) {
+        activeRole = LEDER_ROLE // Default to leder if user have several, and none selected in db
       } else {
         activeRole = roles[0] // Else just set first role as active
       }
@@ -137,9 +137,9 @@ export const getAuthenticatedUser = async (headers) => {
   // Add displayNames to roles
   const repackedRoles = roles.map(role => {
     let roleName = ''
-    if (role === env.DEFAULT_ROLE) roleName = 'Lærer'
-    if (role === env.LEDER_ROLE) roleName = 'Leder / Rådgiver'
-    if (role === env.ADMIN_ROLE) roleName = 'Administrator'
+    if (role === DEFAULT_ROLE) roleName = 'Lærer'
+    if (role === LEDER_ROLE) roleName = 'Leder / Rådgiver'
+    if (role === ADMIN_ROLE) roleName = 'Administrator'
     if (!roleName) throw new Error(`HEIHEI, her mangler det displayName for rollen med verdi ${role}`)
     return {
       value: role,
@@ -150,7 +150,7 @@ export const getAuthenticatedUser = async (headers) => {
   let impersonating = null
 
   // Check if has admin role (for easier checks later on)
-  const hasAdminRole = repackedRoles.some(role => role.value === env.ADMIN_ROLE)
+  const hasAdminRole = repackedRoles.some(role => role.value === ADMIN_ROLE)
 
   // Check if hasAdmin and is impersonating
   if (hasAdminRole) {

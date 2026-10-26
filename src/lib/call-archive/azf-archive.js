@@ -1,8 +1,8 @@
-import { env } from '$env/dynamic/private'
-import { getMsalToken } from '$lib/msal-token'
+import { AZF_ARCHIVE_SCOPE, AZF_ARCHIVE_URL, MAIN_SOURCE_NAME } from '$app/env/private'
+import { getMsalToken } from '#lib/msal-token'
 import axios from 'axios'
 import { logger } from '@vtfk/logger'
-import { getInternalCache } from '$lib/internal-cache'
+import { getInternalCache } from '#lib/internal-cache'
 
 export const repackP360Document = (document, feidenavn, source, sourceName) => {
   if (!document || !feidenavn || !source || !sourceName) throw new Error('Missing required parameter "document" "feidenavn", "source", or "sourceName')
@@ -60,7 +60,7 @@ export const getAzfArchiveDocuments = async (ssn, feidenavn, loggerPrefix) => {
     return result
   }
 
-  const accessToken = await getMsalToken({ scope: env.AZF_ARCHIVE_SCOPE })
+  const accessToken = await getMsalToken({ scope: AZF_ARCHIVE_SCOPE })
   const caseNumbers = []
 
   try {
@@ -73,7 +73,7 @@ export const getAzfArchiveDocuments = async (ssn, feidenavn, loggerPrefix) => {
         ContactReferenceNumber: ssn
       }
     }
-    const { data } = await axios.post(`${env.AZF_ARCHIVE_URL}/Archive`, elevmappePayload, { headers: { Authorization: `Bearer ${accessToken}` } })
+    const { data } = await axios.post(`${AZF_ARCHIVE_URL}/Archive`, elevmappePayload, { headers: { Authorization: `Bearer ${accessToken}` } })
 
     const allowedCaseStatuses = ['Under behandling', 'Avsluttet']
     const allowedAccessGroups = ['VFK Robot', 'TFK Robot']
@@ -109,7 +109,7 @@ export const getAzfArchiveDocuments = async (ssn, feidenavn, loggerPrefix) => {
         }
       }
       logger('info', [loggerPrefix, `Fetching documents from CaseNumber ${caseNumber}`])
-      const { data } = await axios.post(`${env.AZF_ARCHIVE_URL}/Archive`, documentsPayload, { headers: { Authorization: `Bearer ${accessToken}` } })
+      const { data } = await axios.post(`${AZF_ARCHIVE_URL}/Archive`, documentsPayload, { headers: { Authorization: `Bearer ${accessToken}` } })
       logger('info', [loggerPrefix, `Filtering ${data.length} documents to where StatusCode is one of`, allowedDocumentStatuses])
       const caseDocuments = data.filter(doc => allowedDocumentStatuses.includes(doc.StatusCode))
       logger('info', [loggerPrefix, `Adding ${caseDocuments.length} documents to result`])
@@ -121,7 +121,7 @@ export const getAzfArchiveDocuments = async (ssn, feidenavn, loggerPrefix) => {
     }
   }
   logger('info', [loggerPrefix, `Found ${result.documents.length} documents. Repacking result, caching and returning.`])
-  result.documents = result.documents.map(doc => repackP360Document(doc, feidenavn, 'mainArchive', env.MAIN_SOURCE_NAME))
+  result.documents = result.documents.map(doc => repackP360Document(doc, feidenavn, 'mainArchive', MAIN_SOURCE_NAME))
 
   // Cache the result for 10 minutes
   internalCache.set(cacheKey, result, 600)
@@ -132,7 +132,7 @@ export const getAzfArchiveDocuments = async (ssn, feidenavn, loggerPrefix) => {
 export const getAzfArchiveFile = async (fileId, loggerPrefix) => {
   if (!fileId || !loggerPrefix) throw new Error('Missing required parameter "fileId" or "loggerPrefix"')
 
-  const accessToken = await getMsalToken({ scope: env.AZF_ARCHIVE_SCOPE })
+  const accessToken = await getMsalToken({ scope: AZF_ARCHIVE_SCOPE })
 
   const filePayload = {
     service: 'FileService',
@@ -142,7 +142,7 @@ export const getAzfArchiveFile = async (fileId, loggerPrefix) => {
       IncludeFileData: true
     }
   }
-  const { data } = await axios.post(`${env.AZF_ARCHIVE_URL}/Archive`, filePayload, { headers: { Authorization: `Bearer ${accessToken}` } })
+  const { data } = await axios.post(`${AZF_ARCHIVE_URL}/Archive`, filePayload, { headers: { Authorization: `Bearer ${accessToken}` } })
   return {
     base64: data.Base64Data,
     metadata: {

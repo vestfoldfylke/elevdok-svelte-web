@@ -1,4 +1,4 @@
-import { env } from '$env/dynamic/private'
+import { APPREG_CLIENT_ID, APPREG_CLIENT_SECRET, APPREG_TENANT_ID } from '$app/env/private'
 import { ConfidentialClientApplication } from '@azure/msal-node'
 import { logger } from '@vtfk/logger'
 import NodeCache from 'node-cache'
@@ -25,9 +25,9 @@ export const getMsalToken = async (config) => {
 
   const confidentialClientApplication = new ConfidentialClientApplication({
     auth: {
-      clientId: env.APPREG_CLIENT_ID,
-      authority: `https://login.microsoftonline.com/${env.APPREG_TENANT_ID}/`,
-      clientSecret: env.APPREG_CLIENT_SECRET
+      clientId: APPREG_CLIENT_ID,
+      authority: `https://login.microsoftonline.com/${APPREG_TENANT_ID}/`,
+      clientSecret: APPREG_CLIENT_SECRET
     }
   })
 

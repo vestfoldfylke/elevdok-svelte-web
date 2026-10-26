@@ -1,7 +1,7 @@
-import { env } from '$env/dynamic/private'
-import { getAuthenticatedUser } from '$lib/authentication'
-import { getUserData } from '$lib/elevdok-api/get-user-data'
-import { getSystemInfo } from '$lib/system-info'
+import { MAINTENANCE_MODE } from '$app/env/private'
+import { getAuthenticatedUser } from '#lib/authentication'
+import { getUserData } from '#lib/elevdok-api/get-user-data'
+import { getSystemInfo } from '#lib/system-info'
 import { error } from '@sveltejs/kit'
 import { logger } from '@vtfk/logger'
 
@@ -11,7 +11,7 @@ export async function load ({ request }) {
     const user = await getAuthenticatedUser(request.headers)
 
     // If maintenance no need to return data
-    if (env.MAINTENANCE_MODE === 'true') {
+    if (MAINTENANCE_MODE === 'true') {
       return {
         user,
         maintenanceMode: true

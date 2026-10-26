@@ -1,4 +1,4 @@
-import { env } from '$env/dynamic/private'
+import { DEFAULT_ROLE, FEIDENAVN_SUFFIX, LEDER_ROLE, MOCK_API, MOCK_AUTH, MOCK_AUTH_LARER_ROLE, MOCK_AUTH_LEDER_ROLE, NODE_ENV } from '$app/env/private'
 import { logger } from '@vtfk/logger'
 import { getMsalToken } from './msal-token'
 import axios from 'axios'
@@ -24,8 +24,8 @@ import { getInternalCache } from './internal-cache'
    * @property {AppRole[]} appRoles
    */
 
-const graphScope = env.GRAPH_API_SCOPE || 'https://graph.microsoft.com/.default'
-const graphUrl = env.GRAPH_API_URL || 'https://graph.microsoft.com/v1.0'
+const graphScope ='https://graph.microsoft.com/.default'
+const graphUrl = 'https://graph.microsoft.com/v1.0'
 
 /**
  *
@@ -123,11 +123,11 @@ const getAppRoleAssignments = async (appId) => {
 export const getApplicationUsers = async (appId) => {
   const loggerPrefix = `getApplicationUsers - ${appId}`
 
-  if (env.MOCK_API === 'true') {
+  if (MOCK_API === 'true') {
     logger('info', [loggerPrefix, 'MOCK_API is enabled, returning mock'])
     const mockUsers = [
       {
-        appRoleValue: env.LEDER_ROLE,
+        appRoleValue: LEDER_ROLE,
         appRoleId: 'mockleder',
         id: 'mockId1',
         principalDisplayName: 'Mock Leder 1',
@@ -135,7 +135,7 @@ export const getApplicationUsers = async (appId) => {
         principalType: 'User'
       },
       {
-        appRoleValue: env.LEDER_ROLE,
+        appRoleValue: LEDER_ROLE,
         appRoleId: 'mockleder',
         id: 'mockId2',
         principalDisplayName: 'Mock Leder 2',
@@ -143,7 +143,7 @@ export const getApplicationUsers = async (appId) => {
         principalType: 'User'
       },
       {
-        appRoleValue: env.LEDER_ROLE,
+        appRoleValue: LEDER_ROLE,
         appRoleId: 'mockleder',
         id: 'mockId3',
         principalDisplayName: 'Mock Leder 3',
@@ -151,7 +151,7 @@ export const getApplicationUsers = async (appId) => {
         principalType: 'User'
       },
       {
-        appRoleValue: env.DEFAULT_ROLE,
+        appRoleValue: DEFAULT_ROLE,
         appRoleId: 'mocklarer',
         id: 'mockId4',
         principalDisplayName: 'Mock Lærer 1',
@@ -160,10 +160,10 @@ export const getApplicationUsers = async (appId) => {
       }
     ]
     // Legg til MOCK auth sin bruker med de rollene den har satt i env
-    if (env.MOCK_AUTH) {
-      if (env.MOCK_AUTH_LARER_ROLE) {
+    if (MOCK_AUTH) {
+      if (MOCK_AUTH_LARER_ROLE) {
         mockUsers.push({
-          appRoleValue: env.DEFAULT_ROLE,
+          appRoleValue: DEFAULT_ROLE,
           appRoleId: 'mocklarer',
           id: 'mockId6',
           principalDisplayName: 'Demo Spøkelse',
@@ -171,9 +171,9 @@ export const getApplicationUsers = async (appId) => {
           principalType: 'User'
         })
       }
-      if (env.MOCK_AUTH_LEDER_ROLE) {
+      if (MOCK_AUTH_LEDER_ROLE) {
         mockUsers.push({
-          appRoleValue: env.LEDER_ROLE,
+          appRoleValue: LEDER_ROLE,
           appRoleId: 'mockleder',
           id: 'mockId7',
           principalDisplayName: 'Demo Spøkelse',
@@ -221,10 +221,10 @@ export const getApplicationUsers = async (appId) => {
   const users = userAssignments.map(userAssignment => { return { ...userAssignment, appRoleValue: relevantAppRoles.find(role => role.id === userAssignment.appRoleId).value } })
 
   // Legg til MOCK auth sin bruker med de rollene den har satt i env om vi har MOCK_AUTH lik true
-  if (env.MOCK_AUTH && env.NODE_ENV !== 'production') {
-    if (env.MOCK_AUTH_LARER_ROLE) {
+  if (MOCK_AUTH && NODE_ENV !== 'production') {
+    if (MOCK_AUTH_LARER_ROLE) {
       users.push({
-        appRoleValue: env.DEFAULT_ROLE,
+        appRoleValue: DEFAULT_ROLE,
         appRoleId: 'mocklarer',
         id: 'mockId6',
         principalDisplayName: 'Demo Spøkelse',
@@ -232,9 +232,9 @@ export const getApplicationUsers = async (appId) => {
         principalType: 'User'
       })
     }
-    if (env.MOCK_AUTH_LEDER_ROLE) {
+    if (MOCK_AUTH_LEDER_ROLE) {
       users.push({
-        appRoleValue: env.LEDER_ROLE,
+        appRoleValue: LEDER_ROLE,
         appRoleId: 'mockleder',
         id: 'mockId7',
         principalDisplayName: 'Demo Spøkelse',
@@ -280,40 +280,40 @@ export const getAllLeaderUsers = async (appId) => {
     return cachedData
   }
 
-  if (env.MOCK_API === 'true') {
+  if (MOCK_API === 'true') {
     logger('info', [loggerPrefix, 'MOCK_API is enabled, returning mock'])
     const mockUsers = [
       {
-        appRoleValue: env.LEDER_ROLE,
+        appRoleValue: LEDER_ROLE,
         appRoleId: 'mockleder',
         id: 'mockId1',
         principalDisplayName: 'Mock Leder 1',
         principalId: 'mockPrincipalId1',
-        principalName: `mockPrincipal1@${env.FEIDENAVN_SUFFIX}`,
+        principalName: `mockPrincipal1@${FEIDENAVN_SUFFIX}`,
         principalType: 'User',
         schoolNumber: '12345',
         schoolName: 'Mock Skole 1',
         schoolShortName: 'MS1'
       },
       {
-        appRoleValue: env.LEDER_ROLE,
+        appRoleValue: LEDER_ROLE,
         appRoleId: 'mockleder',
         id: 'mockId2',
         principalDisplayName: 'Mock Leder 2',
         principalId: 'mockPrincipalId2',
-        principalName: `mockPrincipal2@${env.FEIDENAVN_SUFFIX}`,
+        principalName: `mockPrincipal2@${FEIDENAVN_SUFFIX}`,
         principalType: 'User',
         schoolNumber: '23456',
         schoolName: 'Mock Skole 2',
         schoolShortName: 'MS2'
       },
       {
-        appRoleValue: env.LEDER_ROLE,
+        appRoleValue: LEDER_ROLE,
         appRoleId: 'mockleder',
         id: 'mockId3',
         principalDisplayName: 'Mock Leder 3',
         principalId: 'mockPrincipalId3',
-        principalName: `mockPrincipal3@${env.FEIDENAVN_SUFFIX}`,
+        principalName: `mockPrincipal3@${FEIDENAVN_SUFFIX}`,
         principalType: 'User',
         schoolNumber: '34567',
         schoolName: 'Mock Skole 3',
@@ -321,15 +321,15 @@ export const getAllLeaderUsers = async (appId) => {
       }
     ]
     // Legg til MOCK auth sin bruker med de rollene den har satt i env
-    if (env.MOCK_AUTH) {
-      if (env.MOCK_AUTH_LEDER_ROLE) {
+    if (MOCK_AUTH) {
+      if (MOCK_AUTH_LEDER_ROLE) {
         mockUsers.push({
-          appRoleValue: env.LEDER_ROLE,
+          appRoleValue: LEDER_ROLE,
           appRoleId: 'mockleder',
           id: 'mockId7',
           principalDisplayName: 'Demo Spøkelse',
           principalId: '12345-4378493-fjdiofjd',
-          principalName: `demo.spokelse@${env.FEIDENAVN_SUFFIX}`,
+          principalName: `demo.spokelse@${FEIDENAVN_SUFFIX}`,
           principalType: 'User',
           schoolNumber: '12345',
           schoolName: 'Mordor vidergående skole',
@@ -351,7 +351,7 @@ export const getAllLeaderUsers = async (appId) => {
   logger('info', [loggerPrefix, 'Getting all app role assignments for app', appId])
   const allAppRoleAssignments = await getAppRoleAssignments(appId)
 
-  const leaderAppRole = relevantAppRoles.find(role => role.value === env.LEDER_ROLE)
+  const leaderAppRole = relevantAppRoles.find(role => role.value === LEDER_ROLE)
 
   const leaderGroupAssignments = allAppRoleAssignments.filter(appRoleAssignment => appRoleAssignment.principalType === 'Group' && appRoleAssignment.appRoleId === leaderAppRole.id)
   logger('info', [loggerPrefix, `Got ${leaderGroupAssignments.length} leader group appRoleAssignments, total number of app role assignments (including groups): ${allAppRoleAssignments.length}`])
@@ -397,16 +397,16 @@ export const getAllLeaderUsers = async (appId) => {
   logger('info', [loggerPrefix, `Got a total of ${leaderUsers.length} leaderUsers after fetching all group members, setting in cache, and returning`])
 
   // Legg til MOCK auth sin bruker med de rollene den har satt i env om vi har MOCK_AUTH lik true
-  if (env.MOCK_AUTH && env.NODE_ENV !== 'production') {
-    if (env.MOCK_AUTH_LEDER_ROLE) {
+  if (MOCK_AUTH && NODE_ENV !== 'production') {
+    if (MOCK_AUTH_LEDER_ROLE) {
       leaderUsers.push({
-        appRoleValue: env.LEDER_ROLE,
+        appRoleValue: LEDER_ROLE,
         appRoleId: 'mockleder',
         id: 'mockId7',
         principalDisplayName: 'Demo Spøkelse',
         principalId: '12345-4378493-fjdiofjd',
         principalType: 'User',
-        principalName: `demo.spokelse@${env.FEIDENAVN_SUFFIX}`,
+        principalName: `demo.spokelse@${FEIDENAVN_SUFFIX}`,
         schoolNumber: '12345',
         schoolName: 'Mordor vidergående skole',
         schoolShortName: 'MRD'

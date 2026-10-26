@@ -1,6 +1,6 @@
-import { env } from '$env/dynamic/private'
-import { getInternalCache } from '$lib/internal-cache'
-import { closeMongoClient, getMongoClient } from '$lib/mongo-client'
+import { FEIDENAVN_SUFFIX, MOCK_API, MONGODB_DB_NAME, MONGODB_USER_IMPERSONATION_COLLECTION } from '$app/env/private'
+import { getInternalCache } from '#lib/internal-cache'
+import { closeMongoClient, getMongoClient } from '#lib/mongo-client'
 import { logger } from '@vtfk/logger'
 
 const isGuid = (value) => {
@@ -9,7 +9,7 @@ const isGuid = (value) => {
 
 /**
  *
- * @param {import("$lib/authentication").User} user
+ * @param {import("#lib/authentication").User} user
  * @returns
  */
 export const getAdminImpersonation = (user) => {
@@ -21,7 +21,7 @@ export const getAdminImpersonation = (user) => {
 
 /**
  *
- * @param {import("$lib/authentication").User} user
+ * @param {import("#lib/authentication").User} user
  * @param {string} target
  * @param {"larer" | "leder"} type
  * @returns
@@ -29,15 +29,15 @@ export const getAdminImpersonation = (user) => {
 export const setAdminImpersonation = async (user, target, type) => {
   if (!user.hasAdminRole) throw new Error('You do not have permission to do this')
   if (typeof target !== 'string') throw new Error('target må værra string')
-  if (!target.endsWith(`@${env.FEIDENAVN_SUFFIX}`) && !isGuid(target)) throw new Error(`Target må ende på @${env.FEIDENAVN_SUFFIX} eller værra en guid`)
+  if (!target.endsWith(`@${FEIDENAVN_SUFFIX}`) && !isGuid(target)) throw new Error(`Target må ende på @${FEIDENAVN_SUFFIX} eller værra en guid`)
   if (!['larer', 'leder'].includes(type)) throw new Error('type må værra "larer" eller "leder"')
   const internalCache = getInternalCache()
   internalCache.set(`${user.principalId}-impersonation`, { target, type })
   logger('warn', [`Admin user ${user.principalName} is impersonating user ${target} (type: ${type})`, `${user.principalName} probably need to do this, but logging for extra safety.`, 'Saving impersonation-logEntry to db as well'])
-  if (env.MOCK_API === 'true') return
+  if (MOCK_API === 'true') return
   try {
     const mongoClient = await getMongoClient()
-    const collection = mongoClient.db(env.MONGODB_DB_NAME).collection(env.MONGODB_USER_IMPERSONATION_COLLECTION)
+    const collection = mongoClient.db(MONGODB_DB_NAME).collection(MONGODB_USER_IMPERSONATION_COLLECTION)
     const logEntry = {
       timestamp: new Date().toISOString(),
       user: {
@@ -60,7 +60,7 @@ export const setAdminImpersonation = async (user, target, type) => {
 
 /**
  *
- * @param {import("$lib/authentication").User} user
+ * @param {import("#lib/authentication").User} user
  */
 export const deleteAdminImpersonation = (user) => {
   if (!user.hasAdminRole) throw new Error('You do not have permission to do this')
