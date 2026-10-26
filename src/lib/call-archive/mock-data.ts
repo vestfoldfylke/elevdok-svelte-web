@@ -1,4 +1,5 @@
 import { repackP360Document } from "./azf-archive.js"
+import type { ArchiveDocument } from "./types.js"
 
 const randomOfficialTitles = ["Kompetansebevis", "Vitnemål", "Lærekontrakt", "IOP", "Dokumentasjon på bestått fagprøve"]
 const categories = [
@@ -23,12 +24,16 @@ const statusCodes = ["J", "F", "E", "A"]
 const documentArchives = ["Elevdokument", "Sensitivt elevdokument"]
 const fileFormats = ["PDF", "pdf", "xlsx", "DOCX"]
 
-const randomValue = (list) => {
+const randomValue = <T>(list: T[]): T => {
   const randomNumber = Math.floor(Math.random() * list.length)
-  return list[randomNumber]
+  const value = list[randomNumber]
+  if (value === undefined) {
+    throw new Error("randomValue: the list is empty, there is nothing to pick from")
+  }
+  return value
 }
 
-export const getMockDocuments = (teacherStudent, numberOfDocuments = 10) => {
+export const getMockDocuments = (teacherStudent: { feidenavn: string }, numberOfDocuments = 10): ArchiveDocument[] => {
   const documents = []
   for (const number of Array.from(Array(numberOfDocuments).keys())) {
     const document = {

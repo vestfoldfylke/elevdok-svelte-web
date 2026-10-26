@@ -655,11 +655,7 @@ const mockStudents = [
   }
 ]
 
-/**
- *
- * @param {Object} user
- */
-export const fintStudent = async (feidenavn) => {
+export const fintStudent = async (feidenavn: string): Promise<unknown> => {
   if (!feidenavn) {
     throw error(400, 'Missing required parameter "feidenavn"')
   }
@@ -676,7 +672,7 @@ export const fintStudent = async (feidenavn) => {
     const { data } = await axios.get(`${FINTFOLK_API_URL}/student/feidenavn/${feidenavn}`, { headers: { Authorization: `Bearer ${accessToken}` } })
     return data
   } catch (error) {
-    if (error.response?.status === 404) {
+    if (axios.isAxiosError(error) && error.response?.status === 404) {
       return null
     }
     throw error

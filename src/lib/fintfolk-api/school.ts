@@ -3,6 +3,7 @@ import axios from "axios"
 import { sleep } from "#lib/helpers/sleep.js"
 import { getMsalToken } from "#lib/msal-token.js"
 import { FEIDENAVN_SUFFIX, FINTFOLK_API_SCOPE, FINTFOLK_API_URL, MOCK_API, NODE_ENV } from "$app/env/private"
+import type { FintSchool } from "./types.js"
 
 const mockSchool = {
   skolenummer: "12345",
@@ -108,11 +109,7 @@ const mockSchool = {
   ]
 }
 
-/**
- *
- * @param {Object} user
- */
-export const fintSchool = async (schoolNumber) => {
+export const fintSchool = async (schoolNumber: string): Promise<FintSchool | null> => {
   const identifier = schoolNumber
   if (!identifier) {
     throw error(400, 'Missing required parameter "schoolNumber"')
@@ -126,7 +123,7 @@ export const fintSchool = async (schoolNumber) => {
     const { data } = await axios.get(`${FINTFOLK_API_URL}/school/skolenummer/${identifier}?includeStudentSsn=true`, { headers: { Authorization: `Bearer ${accessToken}` } })
     return data
   } catch (error) {
-    if (error.response?.status === 404) {
+    if (axios.isAxiosError(error) && error.response?.status === 404) {
       return null
     }
     throw error

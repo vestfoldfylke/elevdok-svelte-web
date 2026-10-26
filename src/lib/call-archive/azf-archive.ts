@@ -1,10 +1,12 @@
 import { logger } from "@vtfk/logger"
 import axios from "axios"
+import { getErrorDetails } from "#lib/helpers/error-details.js"
 import { getInternalCache } from "#lib/internal-cache.js"
 import { getMsalToken } from "#lib/msal-token.js"
 import { AZF_ARCHIVE_SCOPE, AZF_ARCHIVE_URL, MAIN_SOURCE_NAME } from "$app/env/private"
+import type { ArchiveDocument, ArchiveDocumentsResult, P360Case, P360Document, P360FileWithData } from "./types.js"
 
-export const repackP360Document = (document, feidenavn, source, sourceName) => {
+export const repackP360Document = (document: P360Document, feidenavn: string, source: string, sourceName: string): ArchiveDocument => {
   if (!document || !feidenavn || !source || !sourceName) {
     throw new Error('Missing required parameter "document" "feidenavn", "source", or "sourceName')
   }
@@ -36,7 +38,7 @@ export const repackP360Document = (document, feidenavn, source, sourceName) => {
     files: document.Files.map((file) => {
       return {
         id: file.Recno,
-        title: file.Title.endsWith(file.Format.toLowerCase) ? file.Title : `${file.Title}.${file.Format.toLowerCase()}`,
+        title: file.Title.endsWith(file.Format.toLowerCase()) ? file.Title : `${file.Title}.${file.Format.toLowerCase()}`,
         relation: file.RelationTypeDescription,
         format: file.Format,
         isAvailable: file.Format.toLowerCase() === "pdf"
@@ -47,12 +49,12 @@ export const repackP360Document = (document, feidenavn, source, sourceName) => {
   return repacked
 }
 
-export const getAzfArchiveDocuments = async (ssn, feidenavn, loggerPrefix) => {
+export const getAzfArchiveDocuments = async (ssn: string, feidenavn: string, loggerPrefix: string): Promise<ArchiveDocumentsResult> => {
   if (!ssn || !feidenavn || !loggerPrefix) {
     throw new Error('Missing required parameter "ssn" or "loggerPrefix"')
   }
   // Hent først saksnr for elevmappe(r), deretter dokumentene i elevmappe(ne)
-  const result = {
+  const result: ArchiveDocumentsResult = {
     documents: [],
     errors: []
   }
@@ -60,16 +62,16 @@ export const getAzfArchiveDocuments = async (ssn, feidenavn, loggerPrefix) => {
   // Check cache for response and return if found
   const internalCache = getInternalCache()
   const cacheKey = `azf-archive-documents-${feidenavn}`
-  if (internalCache.has(cacheKey)) {
+  const cachedResult = internalCache.get<ArchiveDocumentsResult>(cacheKey)
+  if (cachedResult) {
     logger("info", [loggerPrefix, "Found documents in cache quick returning"])
-    const cachedResult = internalCache.get(cacheKey)
     result.documents = cachedResult.documents
     result.errors = cachedResult.errors
     return result
   }
 
   const accessToken = await getMsalToken({ scope: AZF_ARCHIVE_SCOPE })
-  const caseNumbers = []
+  const caseNumbers: string[] = []
 
   try {
     const elevmappePayload = {
@@ -85,8 +87,8 @@ export const getAzfArchiveDocuments = async (ssn, feidenavn, loggerPrefix) => {
 
     const allowedCaseStatuses = ["Under behandling", "Avsluttet"]
     const allowedAccessGroups = ["VFK Robot", "TFK Robot"]
-    logger("info", [loggerPrefix, `Filtering ${data.length} cases to where Status is one of`, allowedCaseStatuses])
-    const cases = data.filter((archiveCase) => {
+    logger("info", [loggerPrefix, `Filtering ${data.length} cases to where Status is one of`, JSON.stringify(allowedCaseStatuses)])
+    const cases: P360Case[] = data.filter((archiveCase: P360Case) => {
       const allowedStatus = allowedCaseStatuses.includes(archiveCase.Status)
       const allowedAccessGroup = allowedAccessGroups.includes(archiveCase.AccessGroup)
       return allowedStatus && allowedAccessGroup
@@ -101,16 +103,17 @@ export const getAzfArchiveDocuments = async (ssn, feidenavn, loggerPrefix) => {
       return result
     }
     if (cases.length === 1) {
-      logger("info", [loggerPrefix, `Found elevmappe. CaseNumber: ${cases[0].CaseNumber}`])
+      logger("info", [loggerPrefix, `Found elevmappe. CaseNumber: ${cases[0]?.CaseNumber}`])
     }
     for (const archiveCase of cases) {
       caseNumbers.push(archiveCase.CaseNumber)
     }
   } catch (error) {
-    logger("info", [loggerPrefix, "Failed when fetching elevmappe", error.response?.data || error.stack || error.toString()])
-    result.errors.push(`Feilet ved henting av elevmappe: ${error.toString()}`)
+    logger("info", [loggerPrefix, "Failed when fetching elevmappe", getErrorDetails(error)])
+    result.errors.push(`Feilet ved henting av elevmappe: ${String(error)}`)
   }
   const allowedDocumentStatuses = ["J", "F", "E", "A"]
+  const archiveDocuments: P360Document[] = []
   for (const caseNumber of caseNumbers) {
     try {
       const documentsPayload = {
@@ -122,18 +125,18 @@ export const getAzfArchiveDocuments = async (ssn, feidenavn, loggerPrefix) => {
       }
       logger("info", [loggerPrefix, `Fetching documents from CaseNumber ${caseNumber}`])
       const { data } = await axios.post(`${AZF_ARCHIVE_URL}/Archive`, documentsPayload, { headers: { Authorization: `Bearer ${accessToken}` } })
-      logger("info", [loggerPrefix, `Filtering ${data.length} documents to where StatusCode is one of`, allowedDocumentStatuses])
-      const caseDocuments = data.filter((doc) => allowedDocumentStatuses.includes(doc.StatusCode))
+      logger("info", [loggerPrefix, `Filtering ${data.length} documents to where StatusCode is one of`, JSON.stringify(allowedDocumentStatuses)])
+      const caseDocuments: P360Document[] = data.filter((doc: P360Document) => allowedDocumentStatuses.includes(doc.StatusCode))
       logger("info", [loggerPrefix, `Adding ${caseDocuments.length} documents to result`])
 
-      result.documents.push(...caseDocuments)
+      archiveDocuments.push(...caseDocuments)
     } catch (error) {
-      logger("info", [loggerPrefix, `Failed when documents for Case: ${caseNumber}`, error.response?.data || error.stack || error.toString()])
-      result.errors.push(`Feilet ved henting dokumenter for sak ${caseNumber}. Feilmld: ${error.toString()}`)
+      logger("info", [loggerPrefix, `Failed when documents for Case: ${caseNumber}`, getErrorDetails(error)])
+      result.errors.push(`Feilet ved henting dokumenter for sak ${caseNumber}. Feilmld: ${String(error)}`)
     }
   }
-  logger("info", [loggerPrefix, `Found ${result.documents.length} documents. Repacking result, caching and returning.`])
-  result.documents = result.documents.map((doc) => repackP360Document(doc, feidenavn, "mainArchive", MAIN_SOURCE_NAME))
+  logger("info", [loggerPrefix, `Found ${archiveDocuments.length} documents. Repacking result, caching and returning.`])
+  result.documents = archiveDocuments.map((doc) => repackP360Document(doc, feidenavn, "mainArchive", MAIN_SOURCE_NAME))
 
   // Cache the result for 10 minutes
   internalCache.set(cacheKey, result, 600)
@@ -141,7 +144,15 @@ export const getAzfArchiveDocuments = async (ssn, feidenavn, loggerPrefix) => {
   return result
 }
 
-export const getAzfArchiveFile = async (fileId, loggerPrefix) => {
+type ArchiveFileWithData = {
+  base64: string
+  metadata: {
+    title: string
+    documentNumber: string
+  }
+}
+
+export const getAzfArchiveFile = async (fileId: string, loggerPrefix: string): Promise<ArchiveFileWithData> => {
   if (!fileId || !loggerPrefix) {
     throw new Error('Missing required parameter "fileId" or "loggerPrefix"')
   }
@@ -157,11 +168,12 @@ export const getAzfArchiveFile = async (fileId, loggerPrefix) => {
     }
   }
   const { data } = await axios.post(`${AZF_ARCHIVE_URL}/Archive`, filePayload, { headers: { Authorization: `Bearer ${accessToken}` } })
+  const file: P360FileWithData = data
   return {
-    base64: data.Base64Data,
+    base64: file.Base64Data,
     metadata: {
-      title: data.Title,
-      documentNumber: data.DocumentNumber
+      title: file.Title,
+      documentNumber: file.DocumentNumber
     }
   }
 }

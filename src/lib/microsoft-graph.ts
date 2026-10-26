@@ -5,58 +5,60 @@ import { DEFAULT_ROLE, FEIDENAVN_SUFFIX, LEDER_ROLE, MOCK_API, MOCK_AUTH, MOCK_A
 import { getInternalCache } from "./internal-cache.js"
 import { getMsalToken } from "./msal-token.js"
 
-/**
- * @typedef {Object} AppRole
- * @property {string} id
- * @property {string[]} allowedMemberTypes
- * @property {string} description
- * @property {string} displayName
- * @property {boolean} isEnabled
- * @property {string} value
- * @property {string} origin
- *
- */
+// Only the fields this app reads from Microsoft Graph
 
-/**
- * @typedef {Object} Application
- * @property {string} appId
- * @property {string} displayName
- * @property {AppRole[]} appRoles
- */
+type AppRole = {
+  id: string
+  allowedMemberTypes: string[]
+  isEnabled: boolean
+  value: string
+}
+
+type Application = {
+  appRoles: AppRole[]
+}
+
+type GroupMember = {
+  id: string
+  displayName: string
+  userPrincipalName: string
+}
+
+type AppRoleAssignment = {
+  id: string
+  appRoleId: string
+  principalDisplayName: string
+  principalId: string
+  principalType: string
+}
+
+type ApplicationUser = AppRoleAssignment & {
+  appRoleValue: string
+}
+
+export type LeaderUser = ApplicationUser & {
+  /** upn */
+  principalName: string
+  schoolNumber: string
+  schoolName: string
+  schoolShortName: string | null
+}
 
 const graphScope = "https://graph.microsoft.com/.default"
 const graphUrl = "https://graph.microsoft.com/v1.0"
 
-/**
- *
- * @param {string} appId
- * @returns {Promise<Application>}
- */
-const getApplicationRoles = async (appId) => {
+const getApplicationRoles = async (appId: string): Promise<Application> => {
   const accessToken = await getMsalToken({ scope: graphScope })
   const applicationUrl = `${graphUrl}/applications(appId='${appId}')?$select=appId,displayName,appRoles`
   const { data } = await axios.get(applicationUrl, { headers: { Authorization: `Bearer ${accessToken}` } })
   return data
 }
 
-/**
- * @typedef {Object} GroupMember
- * @property {string} id
- * @property {string} displayName
- * @property {string} userPrincipalName
- *
- */
-
-/**
- *
- * @param {string} groupId
- * @returns {Promise<GroupMember[]>}
- */
-const getGroupMembers = async (groupId) => {
+const getGroupMembers = async (groupId: string): Promise<GroupMember[]> => {
   // OBS OBS trenger groupMember.read.all
   const accessToken = await getMsalToken({ scope: graphScope })
   let groupMembersUrl = `${graphUrl}/groups/${groupId}/members?$select=id,displayName,userPrincipalName&$top=999&$count=true`
-  const members = []
+  const members: GroupMember[] = []
   let finished = false
   while (!finished) {
     const { data } = await axios.get(groupMembersUrl, { headers: { Authorization: `Bearer ${accessToken}`, ConsistencyLevel: "eventual" } })
@@ -71,26 +73,10 @@ const getGroupMembers = async (groupId) => {
   return members
 }
 
-/**
- * @typedef {Object} AppRoleAssignment
- * @property {string} id
- * @property {string} appRoleId
- * @property {string} principalDisplayName
- * @property {string} principalId
- * @property {string} principalType
- *
- */
-
-/**
- *
- * @param {string} appId
- * @returns {Promise<AppRoleAssignment[]>}
- */
-const getAppRoleAssignments = async (appId) => {
+const getAppRoleAssignments = async (appId: string): Promise<AppRoleAssignment[]> => {
   const accessToken = await getMsalToken({ scope: graphScope })
 
-  /** @type {AppRoleAssignment[]} */
-  const appRoleAssignments = []
+  const appRoleAssignments: AppRoleAssignment[] = []
 
   let finished = false
   let appRoleAssignedToUrl = `${graphUrl}/servicePrincipals(appId='${appId}')/appRoleAssignedTo?$select=id,appRoleId,principalDisplayName,principalId,principalType&$top=999&$count=true`
@@ -106,21 +92,7 @@ const getAppRoleAssignments = async (appId) => {
   return appRoleAssignments
 }
 
-/**
- * @typedef {Object} ApplicationUserProps
- * @property {string} appRoleValue
- */
-
-/**
- * @typedef {AppRoleAssignment & ApplicationUserProps} ApplicationUser
- */
-
-/**
- *
- * @param {string} appId
- * @returns {Promise<ApplicationUser[]>}
- */
-export const getApplicationUsers = async (appId) => {
+export const getApplicationUsers = async (appId: string): Promise<ApplicationUser[]> => {
   const loggerPrefix = `getApplicationUsers - ${appId}`
 
   if (MOCK_API === "true") {
@@ -219,7 +191,11 @@ export const getApplicationUsers = async (appId) => {
 
   logger("info", [loggerPrefix, `Got ${userAssignments.length} userAssignments after adding group members, adding role names and returning`])
   const users = userAssignments.map((userAssignment) => {
-    return { ...userAssignment, appRoleValue: relevantAppRoles.find((role) => role.id === userAssignment.appRoleId).value }
+    const appRole = relevantAppRoles.find((role) => role.id === userAssignment.appRoleId)
+    if (!appRole) {
+      throw new Error(`App role ${userAssignment.appRoleId} for ${userAssignment.principalDisplayName} is not among the enabled user app roles of app ${appId}`)
+    }
+    return { ...userAssignment, appRoleValue: appRole.value }
   })
 
   // Legg til MOCK auth sin bruker med de rollene den har satt i env om vi har MOCK_AUTH lik true
@@ -249,24 +225,7 @@ export const getApplicationUsers = async (appId) => {
   return users
 }
 
-/**
- * @typedef {Object} LeaderUserProps
- * @property {string} appRoleValue
- * @property {string} principalName upn
- * @property {string} schoolNumber
- * @property {string} schoolName
- */
-
-/**
- * @typedef {AppRoleAssignment & LeaderUserProps} LeaderUser
- */
-
-/**
- *
- * @param {string} appId
- * @returns {Promise<LeaderUser[]>}
- */
-export const getAllLeaderUsers = async (appId) => {
+export const getAllLeaderUsers = async (appId: string): Promise<LeaderUser[]> => {
   /*
   Ledere kommer fra egne tilgangsgrupper per skole, der gruppen er satt til å få leder-rolle i enterprise-appen. Ny skole => ny gruppe med leder-rolle.
   Skolen hentes fra gruppas navn, og vi kan slenge på skolenummer og navn på skolen fra vtfk-schools info. Merk at gruppas navn må matche et eller annet i vtfk-schools - tipper kortnavn
@@ -276,7 +235,7 @@ export const getAllLeaderUsers = async (appId) => {
 
   const cacheKey = "all-leader-users"
   const internalCache = getInternalCache()
-  const cachedData = internalCache.get(cacheKey)
+  const cachedData = internalCache.get<LeaderUser[]>(cacheKey)
   if (cachedData) {
     logger("info", [loggerPrefix, "Found leader users in cache - quick returning"])
     return cachedData
@@ -284,7 +243,7 @@ export const getAllLeaderUsers = async (appId) => {
 
   if (MOCK_API === "true") {
     logger("info", [loggerPrefix, "MOCK_API is enabled, returning mock"])
-    const mockUsers = [
+    const mockUsers: LeaderUser[] = [
       {
         appRoleValue: LEDER_ROLE,
         appRoleId: "mockleder",
@@ -354,13 +313,16 @@ export const getAllLeaderUsers = async (appId) => {
   const allAppRoleAssignments = await getAppRoleAssignments(appId)
 
   const leaderAppRole = relevantAppRoles.find((role) => role.value === LEDER_ROLE)
+  if (!leaderAppRole) {
+    throw new Error(`App ${appId} has no enabled user app role with value LEDER_ROLE (${LEDER_ROLE}). Check the app roles of the app registration and the LEDER_ROLE setting.`)
+  }
 
   const leaderGroupAssignments = allAppRoleAssignments.filter((appRoleAssignment) => appRoleAssignment.principalType === "Group" && appRoleAssignment.appRoleId === leaderAppRole.id)
   logger("info", [loggerPrefix, `Got ${leaderGroupAssignments.length} leader group appRoleAssignments, total number of app role assignments (including groups): ${allAppRoleAssignments.length}`])
 
   logger("info", [loggerPrefix, `Getting school data (vtfk-schools-info) for all ${leaderGroupAssignments.length} groups`])
 
-  const leaderUsers = []
+  const leaderUsers: LeaderUser[] = []
 
   for (const groupAssignment of leaderGroupAssignments) {
     const allSchools = vtfkSchoolsInfo().map((school) => {
@@ -368,7 +330,7 @@ export const getAllLeaderUsers = async (appId) => {
     })
 
     const groupNameParts = groupAssignment.principalDisplayName.split("-")
-    const groupSchoolShortName = groupNameParts[groupNameParts.length - 1].trim()
+    const groupSchoolShortName = groupNameParts.at(-1)?.trim()
 
     const school = allSchools.find((school) => school.shortName === groupSchoolShortName)
     if (!school) {
@@ -384,7 +346,7 @@ export const getAllLeaderUsers = async (appId) => {
       if (!leaderUsers.some((user) => user.principalId === groupMember.id && user.schoolNumber === school.schoolNumber)) {
         leaderUsers.push({
           appRoleId: groupAssignment.appRoleId,
-          appRoleValue: relevantAppRoles.find((role) => role.id === groupAssignment.appRoleId).value,
+          appRoleValue: leaderAppRole.value,
           id: groupAssignment.id,
           principalDisplayName: groupMember.displayName,
           principalId: groupMember.id,
