@@ -1,16 +1,21 @@
-<script>
+<script lang="ts">
   import axios from "axios"
+  import type { Impersonation } from "#lib/authentication.js"
   import LoadingSpinner from "#lib/components/LoadingSpinner.svelte"
   import { refreshAll } from "$app/navigation"
+  import type { PageData } from "./$types"
 
-  /** @type {import('./$types').PageData} */
-  export let data
+  type Props = {
+    data: PageData
+  }
 
-  let impersonationTarget
-  let errorMessage = ""
-  let isLoading = false
+  let { data }: Props = $props()
 
-  const setImpersonation = async (type) => {
+  let impersonationTarget: string | undefined = $state()
+  let errorMessage: unknown = $state("")
+  let isLoading = $state(false)
+
+  const setImpersonation = async (type: Impersonation["type"]) => {
     errorMessage = ""
     isLoading = true
     try {
@@ -20,7 +25,7 @@
       const { data } = await axios.post("/api/admin/setimpersonation", { target: impersonationTarget, type })
       await refreshAll()
     } catch (error) {
-      errorMessage = error.response?.data || error.toString()
+      errorMessage = (axios.isAxiosError(error) && error.response?.data) || String(error)
     }
     isLoading = false
   }
@@ -32,7 +37,7 @@
       const { data } = await axios.delete("/api/admin/deleteimpersonation")
       await refreshAll()
     } catch (error) {
-      errorMessage = error.response?.data || error.toString()
+      errorMessage = (axios.isAxiosError(error) && error.response?.data) || String(error)
     }
     isLoading = false
   }
@@ -48,7 +53,7 @@
   {:else}
     {#if data.user.impersonating}
       Du er logget inn som <strong>{data.user.impersonating.target}</strong> med rollen <strong>{data.user.impersonating.type}</strong>
-      <button class="filled" on:click={deleteImpersonation}><span class="material-symbols-outlined">cancel</span>Fjern innloggingen som {data.user.impersonating.target}</button>
+      <button class="filled" onclick={deleteImpersonation}><span class="material-symbols-outlined">cancel</span>Fjern innloggingen som {data.user.impersonating.target}</button>
       <br>  
     {/if}
 
@@ -58,8 +63,8 @@
     </div>
     <br>
     <div class="actionButtons">
-      <button on:click={() => setImpersonation('larer')}>Logg in som lærer</button>
-      <button on:click={() => setImpersonation('leder')}>Logg in som leder / rådgiver</button>
+      <button onclick={() => setImpersonation('larer')}>Logg in som lærer</button>
+      <button onclick={() => setImpersonation('leder')}>Logg in som leder / rådgiver</button>
     </div>
     {#if errorMessage}
       <div class="error">

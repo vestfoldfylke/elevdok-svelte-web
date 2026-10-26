@@ -1,18 +1,20 @@
-<script>
+<script lang="ts">
   import axios from "axios"
+  import type { StudentDocument } from "#lib/elevdok-api/get-student-documents.js"
   import LoadingSpinner from "./LoadingSpinner.svelte"
   import PDFViewer from "./PDFViewer.svelte"
 
-  export let file
-  export let document
+  type Props = {
+    file: StudentDocument["files"][number]
+    document: StudentDocument
+  }
 
-  const studentFeidenavnPrefix = document.feidenavn.substring(0, document.feidenavn.indexOf("@"))
-  const pdfUrl = `/api/students/${studentFeidenavnPrefix}/source/${document.source}/file/${file.id}`
+  let { file, document }: Props = $props()
 
-  let displayFile = false
-  let fileLoading = false
-  let errorMessage = ""
-  let base64Data
+  let displayFile = $state(false)
+  let fileLoading = $state(false)
+  let errorMessage = $state("")
+  let base64Data: string | undefined = $state()
 
   const getFileData = async () => {
     errorMessage = ""
@@ -39,7 +41,7 @@
     {:else if (!file.isAvailable)}
       <span class="material-symbols-outlined">block</span><button class="link" disabled>{file.title}</button><span>Kun tilgjengelig i arkiv</span>
     {:else}
-      <span class="material-symbols-outlined">picture_as_pdf</span><button class="link" on:click={() => {getFileData()}}>{file.title}</button>
+      <span class="material-symbols-outlined">picture_as_pdf</span><button class="link" onclick={() => {getFileData()}}>{file.title}</button>
     {/if}
   {/if}
 </div>

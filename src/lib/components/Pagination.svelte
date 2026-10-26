@@ -1,25 +1,35 @@
-<script>
-  export let elementsPerPage = 10
-  export let numberOfElements = 10
-  export let currentPage = 0
-  export let maxPageNumbers = 11
-  export let elementName = "rader"
-
-  export let gotoPage = (pageNumber) => {
-    currentPage = pageNumber
-  }
-  export let previousPage = () => {
-    currentPage--
-  }
-  export let nextPage = () => {
-    currentPage++
+<script lang="ts">
+  type Props = {
+    elementsPerPage?: number
+    numberOfElements?: number
+    currentPage?: number
+    maxPageNumbers?: number
+    elementName?: string
+    gotoPage?: (pageNumber: number) => void
+    previousPage?: () => void
+    nextPage?: () => void
   }
 
-  let numberOfPages = Math.ceil(numberOfElements / elementsPerPage)
+  let {
+    elementsPerPage = 10,
+    numberOfElements = 10,
+    currentPage = $bindable(0),
+    maxPageNumbers = 11,
+    elementName = "rader",
+    gotoPage = (pageNumber: number) => {
+      currentPage = pageNumber
+    },
+    previousPage = () => {
+      currentPage--
+    },
+    nextPage = () => {
+      currentPage++
+    }
+  }: Props = $props()
 
-  $: numberOfPages = Math.ceil(numberOfElements / elementsPerPage)
+  const numberOfPages = $derived(Math.ceil(numberOfElements / elementsPerPage))
 
-  const getPaginationArray = (currentPage, numberOfPages) => {
+  const getPaginationArray = (currentPage: number, numberOfPages: number): (number | "...")[] => {
     const allPages = Array.from(Array(numberOfPages).keys())
     if (numberOfPages <= maxPageNumbers) {
       return allPages
@@ -43,7 +53,7 @@
     {#if currentPage === 0}
       <button disabled title="forrige side" class="link pageArrow"><span class="material-symbols-outlined">chevron_left</span></button>
     {:else}
-        <button title="forrige side" class="link pageArrow" on:click={previousPage}><span class="material-symbols-outlined">chevron_left</span></button>
+        <button title="forrige side" class="link pageArrow" onclick={previousPage}><span class="material-symbols-outlined">chevron_left</span></button>
     {/if}
     {#each getPaginationArray(currentPage, numberOfPages) as pageNumber}
       {#if pageNumber === '...'}
@@ -51,13 +61,13 @@
       {:else if currentPage === pageNumber}
           <button disabled class="link currentPage">{pageNumber+1}</button>
       {:else}
-          <button class="link{currentPage === pageNumber ? ' currentPage' : ''}" on:click={() => {gotoPage(pageNumber)}}>{pageNumber+1}</button> <!--må muligens sende inn funksjon her og-->
+          <button class="link{currentPage === pageNumber ? ' currentPage' : ''}" onclick={() => {gotoPage(pageNumber)}}>{pageNumber+1}</button> <!--må muligens sende inn funksjon her og-->
       {/if}
     {/each}
     {#if currentPage === numberOfPages-1}
       <button disabled title="neste side" class="link pageArrow"><span class="material-symbols-outlined">chevron_right</span></button>
     {:else}
-      <button title="neste side" class="link pageArrow" on:click={nextPage}><span class="material-symbols-outlined">chevron_right</span></button>
+      <button title="neste side" class="link pageArrow" onclick={nextPage}><span class="material-symbols-outlined">chevron_right</span></button>
     {/if}
   </div>
   {#if currentPage === numberOfPages-1} <!--last page-->

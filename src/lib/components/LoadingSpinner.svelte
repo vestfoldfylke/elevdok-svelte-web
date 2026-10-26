@@ -1,5 +1,9 @@
-<script>
-  export let width = "10"
+<script lang="ts">
+  type Props = {
+    width?: string
+  }
+
+  let { width = "10" }: Props = $props()
 </script>
 
 <div class="spinner" style="width: {width}rem">

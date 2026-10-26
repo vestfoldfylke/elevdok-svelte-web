@@ -1,20 +1,31 @@
-<script>
-  export let base64Data
-  export let showPdf = false
-  export let title = "Tittel her"
-  export let closePdf = () => {
-    showPdf = false
+<script lang="ts">
+  type Props = {
+    base64Data: string | undefined
+    showPdf?: boolean
+    title?: string
+    closePdf?: () => void
   }
 
-  let previewModal
+  let {
+    base64Data,
+    showPdf = $bindable(false),
+    title = "Tittel her",
+    closePdf = () => {
+      showPdf = false
+    }
+  }: Props = $props()
 
-  const b64toBlob = async (base64, type = "application/octet-stream") => {
+  let previewModal: HTMLDialogElement | undefined = $state()
+
+  const b64toBlob = async (base64: string | undefined, type = "application/octet-stream"): Promise<Blob> => {
     return (await fetch(`data:${type};base64,${base64}`)).blob()
   }
 
-  $: if (showPdf) {
-    previewModal.showModal()
-  }
+  $effect(() => {
+    if (showPdf) {
+      previewModal?.showModal()
+    }
+  })
 </script>
 
 <dialog bind:this={previewModal}>
@@ -24,7 +35,7 @@
         <h2>{title}</h2>
         <div style="color: var(--error-color);">Ikke last ned, skriv ut, eller ta skjermbilde av dokumentet.</div>
       </div>
-      <button on:click={closePdf} title="Lukk modal"><span class="material-symbols-outlined">close</span>Lukk</button>
+      <button onclick={closePdf} title="Lukk modal"><span class="material-symbols-outlined">close</span>Lukk</button>
     </div>
     <div class="rawData">
       {#if showPdf}

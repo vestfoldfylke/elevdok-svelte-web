@@ -1,17 +1,22 @@
-<script>
+<script lang="ts">
   import axios from "axios"
   import { onMount } from "svelte"
   import LoadingSpinner from "#lib/components/LoadingSpinner.svelte"
+  import type { SchoolAccess } from "#lib/elevdok-api/leder-access.js"
   import { prettyPrintDate } from "#lib/helpers/pretty-date.js"
+  import type { PageData } from "./$types"
 
-  /** @type {import('./$types').PageData} */
-  export let data
+  type Props = {
+    data: PageData
+  }
 
-  let errorMessage = ""
+  let { data }: Props = $props()
+
+  let errorMessage: unknown = $state("")
   let searchValue
-  let loading
+  let loading = $state(false)
 
-  let schoolAccess = []
+  let schoolAccess: SchoolAccess[] = $state([])
 
   const getLeaderAccess = async () => {
     errorMessage = ""
@@ -20,8 +25,8 @@
       const { data } = await axios.get(`/api/admin/getleaderaccess`)
       schoolAccess = data
     } catch (error) {
-      console.log(error.response?.data)
-      errorMessage = error.response?.data || error.toString()
+      console.log(axios.isAxiosError(error) ? error.response?.data : error)
+      errorMessage = (axios.isAxiosError(error) && error.response?.data) || String(error)
     }
     loading = false
   }

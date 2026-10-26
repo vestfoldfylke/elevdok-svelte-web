@@ -1,75 +1,85 @@
-<script>
+<script lang="ts">
   import axios from "axios"
   import { onMount } from "svelte"
   import LoadingSpinner from "#lib/components/LoadingSpinner.svelte"
+  import type { LogEntry, LogStudent, LogUser } from "#lib/elevdok-api/user-logs.js"
   import { prettyPrintDate } from "#lib/helpers/pretty-date.js"
   import { sleep } from "#lib/helpers/sleep.js"
+  import type { PageData } from "./$types"
 
-  /** @type {import('./$types').PageData} */
-  export let data
+  type Props = {
+    data: PageData
+  }
 
-  let errorMessage = ""
+  /** A log entry as returned by the API, with the MongoDB id serialized */
+  type LogElement = LogEntry & {
+    _id: string
+  }
+
+  let { data }: Props = $props()
+
+  let errorMessage: unknown = $state("")
   let searchValue
-  let loading
+  let loading = $state(false)
 
-  let initialStudentSearch = false
-  let studentSearchName = ""
-  let selectedStudent = null
-  let students = []
-  let studentErrorMessage = ""
+  let initialStudentSearch = $state(false)
+  let studentSearchName = $state("")
+  let selectedStudent: LogStudent | null = $state(null)
+  let students: LogStudent[] | null = $state([])
+  let studentErrorMessage: unknown = $state("")
 
-  let initialUserSearch = false
-  let userSearchName = ""
-  let selectedUser = null
-  let users = []
-  let userErrorMessage = ""
+  let initialUserSearch = $state(false)
+  let userSearchName = $state("")
+  let selectedUser: LogUser | null = $state(null)
+  let users: LogUser[] | null = $state([])
+  let userErrorMessage: unknown = $state("")
 
-  let documentNumber = ""
-  let selectedDocumentNumber = null
-  let documentNumberErrorMessage = ""
+  let documentNumber = $state("")
+  let selectedDocumentNumber: string | null = $state(null)
+  let documentNumberErrorMessage = $state("")
 
-  let logElements = []
+  let logElements: LogElement[] = $state([])
 
-  const getLogStudents = async (event) => {
+  const getLogStudents = async (event: Event) => {
     event.preventDefault()
     students = null
     try {
       const { data } = await axios.get(studentSearchName ? `/api/admin/logstudents?search_name=${studentSearchName}` : "/api/admin/logstudents")
       students = data
     } catch (error) {
-      studentErrorMessage = error.response?.data || error.toString()
+      studentErrorMessage = (axios.isAxiosError(error) && error.response?.data) || String(error)
       students = []
     }
     initialStudentSearch = true
   }
 
-  const getLogUsers = async (event) => {
+  const getLogUsers = async (event: Event) => {
     event.preventDefault()
     users = null
     try {
       const { data } = await axios.get(userSearchName ? `/api/admin/logusers?search_name=${userSearchName}` : "/api/admin/logusers")
       users = data
     } catch (error) {
-      userErrorMessage = error.response?.data || error.toString()
+      userErrorMessage = (axios.isAxiosError(error) && error.response?.data) || String(error)
       users = []
     }
     initialUserSearch = true
   }
 
-  const setDocumentNumber = async (event) => {
+  const setDocumentNumber = async (event: Event) => {
     event.preventDefault()
     try {
       const documentNumberParts = documentNumber.split("/")
       if (documentNumberParts.length !== 2) {
         throw new Error("Dokumentnummeret må være på formatet 24/12345-3")
       }
-      const secondParts = documentNumberParts[1].split("-")
+      const secondParts = (documentNumberParts[1] ?? "").split("-")
       if (secondParts.length !== 2) {
         throw new Error("Dokumentnummeret må være på formatet 24/12345-2")
       }
       selectedDocumentNumber = documentNumber.trim()
     } catch (error) {
-      documentNumberErrorMessage = error.toString()
+      documentNumberErrorMessage = String(error)
     }
   }
 
@@ -94,7 +104,7 @@
       const { data } = await axios.get(url)
       logElements = data
     } catch (error) {
-      errorMessage = error.response?.data || error.toString()
+      errorMessage = (axios.isAxiosError(error) && error.response?.data) || String(error)
       logElements = []
     }
     loading = false
@@ -118,7 +128,7 @@
     <form>
       <div class="button-input">
         <input bind:value={studentSearchName} id="studentSearch" type="text" placeholder="Søk etter elevens navn" />
-        <button on:click={getLogStudents}><span class="material-symbols-outlined">search</span> Søk</button>
+        <button onclick={getLogStudents}><span class="material-symbols-outlined">search</span> Søk</button>
       </div>
     </form>
     {#if studentErrorMessage}
@@ -136,7 +146,7 @@
       {:else}
         <div class="searchResult">
           {#each students as student}
-            <button class="link" on:click={() => selectedStudent = student}><span class="material-symbols-outlined">person</span>{student.name} ({student.feidenavn})</button>
+            <button class="link" onclick={() => selectedStudent = student}><span class="material-symbols-outlined">person</span>{student.name} ({student.feidenavn})</button>
           {/each}
         </div>
       {/if}
@@ -146,7 +156,7 @@
   {:else}
     <div><strong>Valgt elev</strong></div>
     <div class="searchResult">
-      <button class="link" on:click={() => selectedStudent = null}><span class="material-symbols-outlined">close</span>{selectedStudent.name} ({selectedStudent.feidenavn})</button>
+      <button class="link" onclick={() => selectedStudent = null}><span class="material-symbols-outlined">close</span>{selectedStudent.name} ({selectedStudent.feidenavn})</button>
     </div>
   {/if}
   
@@ -156,7 +166,7 @@
     <form>
       <div class="button-input">
         <input bind:value={userSearchName} id="userSearch" type="text" placeholder="Søk etter ansattes navn" />
-        <button on:click={getLogUsers}><span class="material-symbols-outlined">search</span> Søk</button>
+        <button onclick={getLogUsers}><span class="material-symbols-outlined">search</span> Søk</button>
       </div>
     </form>
     <!-- Hvis jeg bruker en await - og bare bytter en variabel awaiten er avhengig av, så slipper jeg alle state variablene?-->
@@ -175,7 +185,7 @@
       {:else}
         <div class="searchResult">
           {#each users as user}
-            <button class="link" on:click={() => selectedUser = user}><span class="material-symbols-outlined">person</span>{user.name} ({user.principalName})</button>
+            <button class="link" onclick={() => selectedUser = user}><span class="material-symbols-outlined">person</span>{user.name} ({user.principalName})</button>
           {/each}
         </div>
       {/if}
@@ -185,7 +195,7 @@
   {:else}
     <div><strong>Valgt ansatt</strong></div>
     <div class="searchResult">
-      <button class="link" on:click={() => selectedUser = null}><span class="material-symbols-outlined">close</span>{selectedUser.name} ({selectedUser.principalName})</button>
+      <button class="link" onclick={() => selectedUser = null}><span class="material-symbols-outlined">close</span>{selectedUser.name} ({selectedUser.principalName})</button>
     </div>
   {/if}
 
@@ -195,7 +205,7 @@
     <form>
       <div class="button-input">
         <input bind:value={documentNumber} id="documentNumber" type="text" placeholder="eks. 24/12345-2" />
-        <button on:click={setDocumentNumber}><span class="material-symbols-outlined">add_circle</span> Legg til i filter</button>
+        <button onclick={setDocumentNumber}><span class="material-symbols-outlined">add_circle</span> Legg til i filter</button>
       </div>
     </form>
     {#if documentNumberErrorMessage}
@@ -206,11 +216,11 @@
   {:else}
     <div><strong>Valgt dokumentnummer</strong></div>
     <div class="searchResult">
-      <button class="link" on:click={() => selectedDocumentNumber = null}><span class="material-symbols-outlined">close</span>{selectedDocumentNumber}</button>
+      <button class="link" onclick={() => selectedDocumentNumber = null}><span class="material-symbols-outlined">close</span>{selectedDocumentNumber}</button>
     </div>
   {/if}
   <br>
-  <button class="filled" on:click={() => getLogElements()}>Søk i logger med valgt filter</button>
+  <button class="filled" onclick={() => getLogElements()}>Søk i logger med valgt filter</button>
   <br />
   <div><strong>Logger</strong></div>
   {#if loading}

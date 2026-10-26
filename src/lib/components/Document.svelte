@@ -1,15 +1,20 @@
-<script>
+<script lang="ts">
   import File from "#lib/components/File.svelte"
+  import type { StudentDocument } from "#lib/elevdok-api/get-student-documents.js"
   import { prettyPrintDate } from "#lib/helpers/pretty-date.js"
 
-  export let document
-  export let currentIndex
-  export let open = false
+  type Props = {
+    document: StudentDocument
+    currentIndex: number
+    open?: boolean
+  }
 
-  const isEven = currentIndex % 2 === 0
+  let { document, currentIndex, open = $bindable(false) }: Props = $props()
+
+  const isEven = $derived(currentIndex % 2 === 0)
 </script>
 
-<button class="documentBoxButton{isEven ? ' even' : ''}{open ? ' open' : ''}" on:click={() => {open = !open}}>
+<button class="documentBoxButton{isEven ? ' even' : ''}{open ? ' open' : ''}" onclick={() => {open = !open}}>
   <div class=documentRow>
     <div class="upperTitle">{document.sourceName} {document.documentNumber}</div>
     <div class="title">{document.title}</div>

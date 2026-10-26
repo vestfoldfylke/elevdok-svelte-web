@@ -21,13 +21,13 @@ type UserLogData = {
   file?: LogFile
 }
 
-type LogStudent = {
+export type LogStudent = {
   name: string
   feidenavn: string
   elevnummer: string
 }
 
-type LogUser = {
+export type LogUser = {
   name: string
   principalId: string
   principalName: string

@@ -1,9 +1,13 @@
-<script>
+<script lang="ts">
   import { clickOutside } from "#lib/helpers/click-outside.js"
   import { goto } from "$app/navigation"
+  import type { PageData } from "./$types"
 
-  /** @type {import('./$types').PageData} */
-  export let data
+  type Props = {
+    data: PageData
+  }
+
+  let { data }: Props = $props()
 </script>
 
 <h2>Hei, {data.user.name}</h2>
@@ -11,9 +15,9 @@
 <p>Her kan du se dokumenter som er arkivert i elevens elevmappe i Public 360 (fylkeskommunens sak/arkiv-system)</p>
 <!--<p>Vi jobber med å få på plass dokumenter fra VTFK-arkivet i tillegg.</p>-->
 <h3>Hvem har tilgang på hva?</h3>
-{#if data.systemInfo.FAGLARER_ACCESS_ENABLED}
+{#if data.systemInfo?.FAGLARER_ACCESS_ENABLED}
 	<p>Både kontaktlærere og faglærere har tilgang til å se elevers arkivdokumenter, og til å åpne filene i arkivdokumentet.</p>
-{:else if data.systemInfo.IOP_FAGLARER_ACCESS_ENABLED}
+{:else if data.systemInfo?.IOP_FAGLARER_ACCESS_ENABLED}
 	<p>Både kontaktlærere og faglærere har tilgang til å se elevers arkivdokumenter. Kun kontaktlærer og faglærer i IOP-fag har tilgang til å åpne filene i arkivdokumentet.</p>
 	<p>Faglærere må derfor henvende seg til sin nærmeste leder ved tjenstlig behov for å lese et dokument. Leder åpner dokumentet i "P360" og lar faglærer lese det.</p>
 {:else}

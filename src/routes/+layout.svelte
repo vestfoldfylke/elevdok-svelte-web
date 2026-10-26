@@ -1,19 +1,26 @@
-<script>
+<script lang="ts">
   import "../app.css" // Add global css (and make it hot reload in dev)
   import "../style.css" // Add custom css (and make it hot reload in dev)
+  import type { Snippet } from "svelte"
   import julehund from "#lib/assets/julehund.png"
   import logo from "#lib/assets/logo.svg"
   import logoDarkmode from "#lib/assets/logo-darkmode.svg"
+  import type { Role } from "#lib/authentication.js"
   import { clickOutside } from "#lib/helpers/click-outside.js"
   import { navigating, page } from "$app/state"
+  import type { LayoutData } from "./$types"
 
-  /** @type {import('./$types').PageData} */
-  export let data
+  type Props = {
+    data: LayoutData
+    children?: Snippet
+  }
 
-  let showUsermenu = false
-  let showUndervisningsgruppeWarning = true
+  let { data, children }: Props = $props()
 
-  const isActiveRoute = (route, currentRoute) => {
+  let showUsermenu = $state(false)
+  let showUndervisningsgruppeWarning = $state(true)
+
+  const isActiveRoute = (route: string, currentRoute: string): boolean => {
     if (currentRoute === route) {
       return true
     }
@@ -23,7 +30,7 @@
     return false
   }
 
-  const getPathLinks = (path) => {
+  const getPathLinks = (path: string) => {
     const parts = path.split("/")
     const pathLinks = [
       {
@@ -47,7 +54,7 @@
     return pathLinks
   }
 
-  const sideMenuItems = [
+  const baseMenuItems = [
     {
       title: "Hjem",
       href: "/",
@@ -67,15 +74,15 @@
     */
   ]
 
-  if (data.user.hasAdminRole) {
-    sideMenuItems.push({
-      title: "Admin",
-      href: "/admin",
-      icon: "settings"
-    })
+  const adminMenuItem = {
+    title: "Admin",
+    href: "/admin",
+    icon: "settings"
   }
 
-  const getAvailableRoles = (roles, activeRole) => {
+  const sideMenuItems = $derived(data.user.hasAdminRole ? [...baseMenuItems, adminMenuItem] : baseMenuItems)
+
+  const getAvailableRoles = (roles: Role[], activeRole: string): Role[] => {
     return roles.filter((role) => role.value !== activeRole)
   }
 </script>
@@ -121,10 +128,10 @@
           <span>
             {data.user.name} {data.user.impersonating ? `( ${data.user.impersonating.target} )` : ''}
           </span>
-          <span style="font-size: var(--font-size-small);">{data.user.roles.find(role => role.value === data.user.activeRole).roleName} {data.user.impersonating ? `( ${data.user.impersonating.type} )` : ''}</span>
+          <span style="font-size: var(--font-size-small);">{data.user.roles.find(role => role.value === data.user.activeRole)?.roleName} {data.user.impersonating ? `( ${data.user.impersonating.type} )` : ''}</span>
         </div>
         <!-- Note the position: relative style -->
-        <button class="action{showUsermenu ? ' cheatActive' : ''}" on:click={() => {showUsermenu = !showUsermenu}} use:clickOutside on:click_outside={() => {showUsermenu = false}}>
+        <button class="action{showUsermenu ? ' cheatActive' : ''}" onclick={() => {showUsermenu = !showUsermenu}} use:clickOutside onclick_outside={() => {showUsermenu = false}}>
           <span class="material-symbols-outlined">more_vert</span>
         </button>
         <div class="userMenu{!showUsermenu ? ' hidden' : ''}">
@@ -134,7 +141,7 @@
               <button type="submit" class="blank userMenuOption inward-focus-within">Bytt til rolle: {availableRole.roleName}</button>
             </form>
           {/each}
-          <button class="blank userMenuOption inward-focus-within" on:click={() => { window.location.href = '/.auth/logout' }}>Logg ut</button>
+          <button class="blank userMenuOption inward-focus-within" onclick={() => { window.location.href = '/.auth/logout' }}>Logg ut</button>
         </div>
       </div>
     </div>
@@ -154,7 +161,7 @@
       <div class="warning-box">
         <div style="display:flex;justify-content:space-between;">
           <h4>Advarsel</h4>
-          <button class="link" on:click={() => {showUndervisningsgruppeWarning = false}}>Lukk</button>
+          <button class="link" onclick={() => {showUndervisningsgruppeWarning = false}}>Lukk</button>
         </div>
         <div>
           Du har undervisningsforhold som ikke er knyttet til stilling som lærer, og har derfor ikke tilgang til elever i disse undervisningsforhold(ene):
@@ -185,7 +192,7 @@
           <h3>ElevDok har julestengt grunnet bytte av HR-system.</h3>
           <img style="max-width:90vw;" src={julehund} alt="Julehund" />
         {:else}
-          <slot></slot>
+          {@render children?.()}
         {/if}
       </div>
     </div>

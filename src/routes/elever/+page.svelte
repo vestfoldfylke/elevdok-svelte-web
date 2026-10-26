@@ -1,16 +1,19 @@
-<script>
+<script lang="ts">
   import Pagination from "#lib/components/Pagination.svelte"
+  import type { TeacherStudent } from "#lib/elevdok-api/get-user-data.js"
   import { clickOutside } from "#lib/helpers/click-outside.js"
   import { goto } from "$app/navigation"
+  import type { PageData } from "./$types"
 
-  /** @type {import('./$types').PageData} */
-  export let data
+  type Props = {
+    data: PageData
+  }
+
+  let { data }: Props = $props()
 
   let studentsPerPage = 10
-  let currentPage = 0 // zero-indexed
-  let students = data.students
-  let originalStudents = JSON.parse(JSON.stringify(data.students))
-  let searchValue
+  let currentPage = $state(0) // zero-indexed
+  let searchValue = $state("")
 
   const nextPage = () => {
     currentPage++
@@ -18,28 +21,27 @@
   const previousPage = () => {
     currentPage--
   }
-  const gotoPage = (pageNumber) => {
+  const gotoPage = (pageNumber: number) => {
     currentPage = pageNumber
   }
 
-  const search = (searchValue) => {
-    const filterFunc = (student) => {
-      const sv = searchValue.toLowerCase()
-      return (
-        student.navn.toLowerCase().startsWith(sv) ||
-        student.etternavn.toLowerCase().startsWith(sv) ||
-        student.skoler.some((school) => school.klasser.some((group) => group.navn.toLowerCase().includes(sv)))
-      )
-    }
-    students = originalStudents.filter(filterFunc)
-    currentPage = 0
+  const matchesSearch = (student: TeacherStudent, searchValue: string): boolean => {
+    const sv = searchValue.toLowerCase()
+    return (
+      student.navn.toLowerCase().startsWith(sv) ||
+      student.etternavn.toLowerCase().startsWith(sv) ||
+      student.skoler.some((school) => school.klasser.some((group) => group.navn.toLowerCase().includes(sv)))
+    )
   }
+
+  const originalStudents = $derived(data.students ?? [])
+  const students = $derived(originalStudents.filter((student) => matchesSearch(student, searchValue)))
 </script>
 
 <h2>Dine elever</h2>
 <div class="icon-input" style="width: 16rem;">
 	<span class="material-symbols-outlined">search</span>
-	<input type="text" bind:value={searchValue} on:input={() => { search(searchValue) }} placeholder="Søk etter elev eller klasse" />
+	<input type="text" bind:value={searchValue} oninput={() => { currentPage = 0 }} placeholder="Søk etter elev eller klasse" />
 </div>
 <div class="studentList">
 	{#if originalStudents.length === 0}

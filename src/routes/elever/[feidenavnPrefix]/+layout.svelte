@@ -1,9 +1,16 @@
-<script>
+<script lang="ts">
+  import type { Snippet } from "svelte"
   import { page } from "$app/state"
-  /** @type {import('./$types').PageData} */
-  export let data
+  import type { LayoutData } from "./$types"
 
-  let student = data.students.find((stud) => stud.feidenavnPrefix === page.params.feidenavnPrefix)
+  type Props = {
+    data: LayoutData
+    children?: Snippet
+  }
+
+  let { data, children }: Props = $props()
+
+  const student = $derived((data.students ?? []).find((stud) => stud.feidenavnPrefix === page.params.feidenavnPrefix))
 </script>
 
 {#if !student}
@@ -31,7 +38,7 @@
       </div>
     </div>
   </div>
-  <slot></slot>
+  {@render children?.()}
 {/if}
 
 <style>
