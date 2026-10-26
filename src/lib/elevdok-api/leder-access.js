@@ -40,7 +40,7 @@ export const getAllLeaderAccess = async (user) => {
 export const getLeaderAccess = async (user) => {
   const loggerPrefix = `getLeaderAccess - user: ${user.principalName}`
 
-  if (!user.activeRole === LEDER_ROLE && !(user.hasAdminRole && user.impersonating && user.impersonating?.type === "leder")) {
+  if (user.activeRole !== LEDER_ROLE && !(user.hasAdminRole && user.impersonating && user.impersonating?.type === "leder")) {
     logger("warn", [loggerPrefix, "User is not leader and not impersonating leader, no access"])
     throw new Error("Du har ikke riktig rolle for å gjøre dette")
   }
