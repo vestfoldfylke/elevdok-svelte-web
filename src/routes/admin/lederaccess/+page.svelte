@@ -1,7 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte"
   import LoadingSpinner from "#lib/components/LoadingSpinner.svelte"
-  import { prettyPrintDate } from "#lib/helpers/pretty-date.js"
   import { requestApi } from "#lib/request-api.js"
   import type { SchoolAccess } from "#lib/server/elevdok-api/leder-access.js"
 

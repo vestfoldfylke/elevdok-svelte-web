@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { clickOutside } from "#lib/helpers/click-outside.js"
-  import { goto } from "$app/navigation"
   import type { PageData } from "./$types"
 
   type Props = {
