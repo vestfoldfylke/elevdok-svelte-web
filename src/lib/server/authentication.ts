@@ -109,8 +109,8 @@ export const getAuthenticatedUser = async (headers: Headers): Promise<User> => {
   }
 
   const decodedClaims: ClientPrincipal | null = JSON.parse(Buffer.from(encodedClaims, "base64").toString())
-  if (!decodedClaims) {
-    throw new Error("x-ms-client-principal decoded to null: App Service authentication sent an empty principal. Check the authentication settings on the Web App.")
+  if (!Array.isArray(decodedClaims?.claims)) {
+    throw new Error("x-ms-client-principal has no claims array: App Service authentication sent an empty or unexpected principal. Check the authentication settings on the Web App.")
   }
   const roles = decodedClaims.claims.filter((claim) => claim.typ === "roles").map((claim) => claim.val)
   const name = decodedClaims.claims.find((claim) => claim.typ === "name")?.val

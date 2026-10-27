@@ -596,5 +596,5 @@ export const fintTeacher = async (userPrincipalName: string): Promise<FintTeache
     await sleep(1000)
     return mockTeacher
   }
-  return fetchFint<FintTeacher>(`/teacher/upn/${identifier}?includeStudentSsn=true`)
+  return fetchFint<FintTeacher>(`/teacher/upn/${encodeURIComponent(identifier)}?includeStudentSsn=true`)
 }

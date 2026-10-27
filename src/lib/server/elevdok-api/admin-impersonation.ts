@@ -30,14 +30,8 @@ export const getAdminImpersonation = (user: Pick<User, "principalId" | "hasAdmin
 
 export const setAdminImpersonation = async (user: User, target: string, type: Impersonation["type"]): Promise<InsertOneResult<ImpersonationLogEntry> | undefined> => {
   requireAdminRole(user)
-  if (typeof target !== "string") {
-    throw error(400, "Brukeren du vil logge inn som må være tekst.")
-  }
   if (!target.endsWith(`@${FEIDENAVN_SUFFIX}`) && !isGuid(target)) {
     throw error(400, `Brukeren du vil logge inn som må ende på @${FEIDENAVN_SUFFIX} eller være en guid.`)
-  }
-  if (!["larer", "leder"].includes(type)) {
-    throw error(400, 'Rollen du vil logge inn med må være "larer" eller "leder".')
   }
   const internalCache = getInternalCache()
   internalCache.set(`${user.principalId}-impersonation`, { target, type })

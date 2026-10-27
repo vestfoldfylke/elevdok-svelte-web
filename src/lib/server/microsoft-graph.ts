@@ -59,6 +59,10 @@ const fetchAllGraphPages = async <T>(firstPageUrl: string): Promise<T[]> => {
     const page: GraphPage<T> = await fetchJsonWithMsalToken<GraphPage<T>>(pageUrl, { scope: graphScope, headers: { ConsistencyLevel: "eventual" } })
     items.push(...page.value)
     pageUrl = page["@odata.nextLink"]
+    // The next page is fetched with our Graph token, so it must never point anywhere else
+    if (pageUrl && !pageUrl.startsWith(`${graphUrl}/`)) {
+      throw new Error(`Graph returned an @odata.nextLink outside ${graphUrl} (${pageUrl}). Refusing to send the Graph token there.`)
+    }
   }
   return items
 }

@@ -116,5 +116,5 @@ export const fintSchool = async (schoolNumber: string): Promise<FintSchool | nul
     await sleep(1000)
     return mockSchool
   }
-  return fetchFint<FintSchool>(`/school/skolenummer/${identifier}?includeStudentSsn=true`)
+  return fetchFint<FintSchool>(`/school/skolenummer/${encodeURIComponent(identifier)}?includeStudentSsn=true`)
 }
