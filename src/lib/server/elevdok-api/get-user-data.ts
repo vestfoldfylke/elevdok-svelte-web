@@ -1,10 +1,11 @@
 import { logger } from "@vestfoldfylke/loglady"
 import vtfkSchoolsInfo from "vtfk-schools-info"
 import type { User } from "#lib/server/authentication.js"
+import { getEffectiveRole } from "#lib/server/effective-role.js"
 import { fintSchool } from "#lib/server/fintfolk-api/school.js"
 import { fintTeacher } from "#lib/server/fintfolk-api/teacher.js"
 import type { FintElev, FintFag, FintSkole } from "#lib/server/fintfolk-api/types.js"
-import { DEFAULT_ROLE, IOP_FAGLARER_ACCESS_ENABLED, LEDER_ROLE } from "$app/env/private"
+import { IOP_FAGLARER_ACCESS_ENABLED } from "$app/env/private"
 import { getLeaderAccess } from "./leder-access.js"
 import { buildStudentList, type StudentMembership } from "./student-list.js"
 
@@ -102,15 +103,6 @@ export type PersonData = {
   lastName: string
 }
 
-export type LarerKlasse = {
-  navn: string
-  type: string
-  systemId: string
-  fag: string[]
-  /** school full name */
-  skole: string
-}
-
 export type InvalidUndervisningsforhold = {
   beskrivelse: string
   systemId: string
@@ -119,7 +111,6 @@ export type InvalidUndervisningsforhold = {
 export type UserData = {
   personData: PersonData | null
   students: TeacherStudent[]
-  classes: LarerKlasse[]
   invalidUndervisningsforhold: InvalidUndervisningsforhold[]
 }
 
@@ -133,12 +124,12 @@ export const getUserData = async (user: User, maskSsn = true): Promise<UserData>
   const userData: UserData = {
     personData: null,
     invalidUndervisningsforhold: [],
-    students: [],
-    classes: []
+    students: []
   }
 
-  // If regular teacher or administrator impersonating teacher
-  if (user.activeRole === DEFAULT_ROLE || (user.hasAdminRole && user.impersonating?.type === "larer")) {
+  const effectiveRole = getEffectiveRole(user)
+
+  if (effectiveRole === "larer") {
     const teacherUpn = user.hasAdminRole && user.impersonating?.type === "larer" ? user.impersonating.target : user.principalName
     logger.info("Getting teacher {TeacherUpn} from FINT", teacherUpn)
     const teacher = await fintTeacher(teacherUpn)
@@ -202,9 +193,7 @@ export const getUserData = async (user: User, maskSsn = true): Promise<UserData>
     userData.students = students
   }
 
-  // TODO - finn ut av leder rådgiver
-  // If leder / rådgiver or administrator impersonating teacher
-  if (user.activeRole === LEDER_ROLE || (user.hasAdminRole && user.impersonating?.type === "leder")) {
+  if (effectiveRole === "leder") {
     const leaderId = user.hasAdminRole && user.impersonating?.type === "leder" ? user.impersonating.target : user.principalId
 
     logger.info("Getting school access for leader {LeaderId}", leaderId)

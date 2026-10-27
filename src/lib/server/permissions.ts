@@ -1,5 +1,6 @@
 import { logger } from "@vestfoldfylke/loglady"
-import { FAGLARER_ACCESS_ENABLED, IOP_FAGLARER_ACCESS_ENABLED, LEDER_ROLE } from "$app/env/private"
+import { getEffectiveRole } from "#lib/server/effective-role.js"
+import { FAGLARER_ACCESS_ENABLED, IOP_FAGLARER_ACCESS_ENABLED } from "$app/env/private"
 import type { User } from "./authentication.js"
 import type { TeacherStudent } from "./elevdok-api/get-user-data.js"
 
@@ -9,7 +10,7 @@ export type FileAccess = {
 }
 
 export const hasFileAccessForStudent = (user: User, teacherStudent: TeacherStudent): FileAccess => {
-  if (user.activeRole === LEDER_ROLE || (user.hasAdminRole && user.impersonating?.type === "leder")) {
+  if (getEffectiveRole(user) === "leder") {
     logger.info("File access to {StudentFeidenavn}: leader", teacherStudent.feidenavn)
     return { access: true, type: "leader" }
   }

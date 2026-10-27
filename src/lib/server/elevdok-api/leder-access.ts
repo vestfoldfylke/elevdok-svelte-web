@@ -1,10 +1,11 @@
 import { error } from "@sveltejs/kit"
 import { logger } from "@vestfoldfylke/loglady"
 import type { User } from "#lib/server/authentication.js"
+import { getEffectiveRole } from "#lib/server/effective-role.js"
 import { requireAdminRole } from "#lib/server/guards/require-admin-role.js"
 import { getInternalCache } from "#lib/server/internal-cache.js"
 import { getAllLeaderUsers, type LeaderUser } from "#lib/server/microsoft-graph.js"
-import { FRONTEND_APP_ID, LEDER_ROLE } from "$app/env/private"
+import { FRONTEND_APP_ID } from "$app/env/private"
 
 export type SchoolAccess = {
   schoolNumber: string
@@ -37,8 +38,8 @@ export const getAllLeaderAccess = async (user: User): Promise<SchoolAccess[]> =>
 }
 
 export const getLeaderAccess = async (user: User): Promise<LeaderUser[]> => {
-  if (user.activeRole !== LEDER_ROLE && !(user.hasAdminRole && user.impersonating?.type === "leder")) {
-    logger.warn("User is not leader and not impersonating leader, no access")
+  if (getEffectiveRole(user) !== "leder") {
+    logger.warn("User is not leader and not impersonating a leader, no access")
     throw error(403, "Du må være leder / rådgiver for å se dette. Bytt rolle i brukermenyen om du har flere roller.")
   }
 

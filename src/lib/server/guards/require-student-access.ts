@@ -1,14 +1,12 @@
 import { error } from "@sveltejs/kit"
 import { logger } from "@vestfoldfylke/loglady"
 import type { User } from "#lib/server/authentication.js"
+import { getEffectiveRole } from "#lib/server/effective-role.js"
 import { getUserData, type TeacherStudent } from "#lib/server/elevdok-api/get-user-data.js"
-import { DEFAULT_ROLE, LEDER_ROLE } from "$app/env/private"
 
 /** Returns the student, with unmasked ssn, when the user's role can view documents and the student is one of the user's students */
 export const requireStudentAccess = async (user: User, studentFeidenavn: string): Promise<TeacherStudent> => {
-  const isImpersonating = user.hasAdminRole && user.impersonating !== null
-  const canViewDocuments = user.activeRole === DEFAULT_ROLE || user.activeRole === LEDER_ROLE || isImpersonating
-  if (!canViewDocuments) {
+  if (getEffectiveRole(user) === null) {
     logger.warn("Active role {ActiveRole} can not view documents", user.activeRole)
     throw error(403, "Rollen din gir ikke tilgang til elevdokumenter. Bytt rolle i brukermenyen om du har flere roller.")
   }
