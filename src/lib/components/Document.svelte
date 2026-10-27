@@ -1,7 +1,7 @@
 <script lang="ts">
   import File from "#lib/components/File.svelte"
-  import type { StudentDocument } from "#lib/elevdok-api/get-student-documents.js"
   import { prettyPrintDate } from "#lib/helpers/pretty-date.js"
+  import type { StudentDocument } from "#lib/server/elevdok-api/get-student-documents.js"
 
   type Props = {
     document: StudentDocument

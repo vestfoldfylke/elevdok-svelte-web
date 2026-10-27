@@ -1,5 +1,5 @@
-import { getAuthenticatedUser } from "#lib/authentication.js"
-import { getUserData } from "#lib/elevdok-api/get-user-data.js"
+import { getAuthenticatedUser } from "#lib/server/authentication.js"
+import { getUserData } from "#lib/server/elevdok-api/get-user-data.js"
 import type { RequestHandler } from "./$types"
 
 export const GET: RequestHandler = async ({ request }) => {

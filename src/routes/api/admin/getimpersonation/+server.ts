@@ -1,6 +1,6 @@
-import { getAuthenticatedUser } from "#lib/authentication.js"
-import { getAdminImpersonation } from "#lib/elevdok-api/admin-impersonation.js"
-import { getErrorDetails } from "#lib/helpers/error-details.js"
+import { getAuthenticatedUser } from "#lib/server/authentication.js"
+import { getAdminImpersonation } from "#lib/server/elevdok-api/admin-impersonation.js"
+import { getErrorDetails } from "#lib/server/error-details.js"
 import type { RequestHandler } from "./$types"
 
 export const GET: RequestHandler = async ({ request }) => {

@@ -1,8 +1,8 @@
 import { logger } from "@vtfk/logger"
 import { ObjectId } from "mongodb"
-import type { Impersonation, User } from "#lib/authentication.js"
-import { getMockDb } from "#lib/mock-db.js"
-import { closeMongoClient, getMongoClient } from "#lib/mongo-client.js"
+import type { Impersonation, User } from "#lib/server/authentication.js"
+import { getMockDb } from "#lib/server/mock-db.js"
+import { closeMongoClient, getMongoClient } from "#lib/server/mongo-client.js"
 import { MOCK_API, MONGODB_DB_NAME, MONGODB_LOGS_COLLECTION } from "$app/env/private"
 import { getCurrentSchoolYear, type TeacherStudent } from "./get-user-data.js"
 

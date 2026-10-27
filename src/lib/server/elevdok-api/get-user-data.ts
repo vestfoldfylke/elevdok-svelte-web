@@ -1,9 +1,9 @@
 import { logger } from "@vtfk/logger"
 import vtfkSchoolsInfo from "vtfk-schools-info"
-import type { User } from "#lib/authentication.js"
-import { fintSchool } from "#lib/fintfolk-api/school.js"
-import { fintTeacher } from "#lib/fintfolk-api/teacher.js"
-import type { FintElev, FintFag, FintGruppeElev, FintSkole } from "#lib/fintfolk-api/types.js"
+import type { User } from "#lib/server/authentication.js"
+import { fintSchool } from "#lib/server/fintfolk-api/school.js"
+import { fintTeacher } from "#lib/server/fintfolk-api/teacher.js"
+import type { FintElev, FintFag, FintGruppeElev, FintSkole } from "#lib/server/fintfolk-api/types.js"
 import { DEFAULT_ROLE, IOP_FAGLARER_ACCESS_ENABLED, LEDER_ROLE } from "$app/env/private"
 import { getLeaderAccess } from "./leder-access.js"
 

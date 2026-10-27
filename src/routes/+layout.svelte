@@ -5,8 +5,8 @@
   import julehund from "#lib/assets/julehund.png"
   import logo from "#lib/assets/logo.svg"
   import logoDarkmode from "#lib/assets/logo-darkmode.svg"
-  import type { Role } from "#lib/authentication.js"
   import { clickOutside } from "#lib/helpers/click-outside.js"
+  import type { Role } from "#lib/server/authentication.js"
   import { navigating, page } from "$app/state"
   import type { LayoutData } from "./$types"
 

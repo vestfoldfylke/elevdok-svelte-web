@@ -2,8 +2,8 @@
   import axios from "axios"
   import { onMount } from "svelte"
   import LoadingSpinner from "#lib/components/LoadingSpinner.svelte"
-  import type { SchoolAccess } from "#lib/elevdok-api/leder-access.js"
   import { prettyPrintDate } from "#lib/helpers/pretty-date.js"
+  import type { SchoolAccess } from "#lib/server/elevdok-api/leder-access.js"
   import type { PageData } from "./$types"
 
   type Props = {

@@ -1,7 +1,7 @@
 import { logger } from "@vtfk/logger"
-import { getAuthenticatedUser } from "#lib/authentication.js"
-import { logUserSearch } from "#lib/elevdok-api/user-logs.js"
-import { getErrorDetails } from "#lib/helpers/error-details.js"
+import { getAuthenticatedUser } from "#lib/server/authentication.js"
+import { logUserSearch } from "#lib/server/elevdok-api/user-logs.js"
+import { getErrorDetails } from "#lib/server/error-details.js"
 import type { RequestHandler } from "./$types"
 
 export const GET: RequestHandler = async ({ request, url }) => {

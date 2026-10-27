@@ -2,7 +2,7 @@
   import Document from "#lib/components/Document.svelte"
   import LoadingSpinner from "#lib/components/LoadingSpinner.svelte"
   import Pagination from "#lib/components/Pagination.svelte"
-  import type { StudentDocument } from "#lib/elevdok-api/get-student-documents.js"
+  import type { StudentDocument } from "#lib/server/elevdok-api/get-student-documents.js"
   import { goto } from "$app/navigation"
   import { page } from "$app/state"
   import type { PageData } from "./$types"

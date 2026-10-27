@@ -1,8 +1,8 @@
 import { logger } from "@vtfk/logger"
 import axios from "axios"
-import { getErrorDetails } from "#lib/helpers/error-details.js"
-import { getInternalCache } from "#lib/internal-cache.js"
-import { getMsalToken } from "#lib/msal-token.js"
+import { getErrorDetails } from "#lib/server/error-details.js"
+import { getInternalCache } from "#lib/server/internal-cache.js"
+import { getMsalToken } from "#lib/server/msal-token.js"
 import { AZF_ARCHIVE_SCOPE, AZF_ARCHIVE_URL, MAIN_SOURCE_NAME } from "$app/env/private"
 import type { ArchiveDocument, ArchiveDocumentsResult, P360Case, P360Document, P360FileWithData } from "./types.js"
 

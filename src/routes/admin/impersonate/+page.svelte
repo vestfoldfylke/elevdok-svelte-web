@@ -1,7 +1,7 @@
 <script lang="ts">
   import axios from "axios"
-  import type { Impersonation } from "#lib/authentication.js"
   import LoadingSpinner from "#lib/components/LoadingSpinner.svelte"
+  import type { Impersonation } from "#lib/server/authentication.js"
   import { refreshAll } from "$app/navigation"
   import type { PageData } from "./$types"
 

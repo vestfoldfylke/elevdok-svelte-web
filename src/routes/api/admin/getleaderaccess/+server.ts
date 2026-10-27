@@ -1,6 +1,6 @@
-import { getAuthenticatedUser } from "#lib/authentication.js"
-import { getAllLeaderAccess } from "#lib/elevdok-api/leder-access.js"
-import { getErrorDetails } from "#lib/helpers/error-details.js"
+import { getAuthenticatedUser } from "#lib/server/authentication.js"
+import { getAllLeaderAccess } from "#lib/server/elevdok-api/leder-access.js"
+import { getErrorDetails } from "#lib/server/error-details.js"
 import type { RequestHandler } from "./$types"
 
 export const GET: RequestHandler = async ({ request }) => {

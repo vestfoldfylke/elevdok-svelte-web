@@ -1,7 +1,7 @@
 import { logger } from "@vtfk/logger"
-import type { User } from "#lib/authentication.js"
-import { getInternalCache } from "#lib/internal-cache.js"
-import { getAllLeaderUsers, type LeaderUser } from "#lib/microsoft-graph.js"
+import type { User } from "#lib/server/authentication.js"
+import { getInternalCache } from "#lib/server/internal-cache.js"
+import { getAllLeaderUsers, type LeaderUser } from "#lib/server/microsoft-graph.js"
 import { FRONTEND_APP_ID, LEDER_ROLE } from "$app/env/private"
 
 export type SchoolAccess = {

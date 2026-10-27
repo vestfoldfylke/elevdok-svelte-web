@@ -1,7 +1,7 @@
 <script lang="ts">
   import Pagination from "#lib/components/Pagination.svelte"
-  import type { TeacherStudent } from "#lib/elevdok-api/get-user-data.js"
   import { clickOutside } from "#lib/helpers/click-outside.js"
+  import type { TeacherStudent } from "#lib/server/elevdok-api/get-user-data.js"
   import { goto } from "$app/navigation"
   import type { PageData } from "./$types"
 

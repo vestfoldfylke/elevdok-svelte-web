@@ -1,7 +1,7 @@
 import { logger } from "@vtfk/logger"
-import type { User } from "#lib/authentication.js"
-import { getMockDb } from "#lib/mock-db.js"
-import { closeMongoClient, getMongoClient } from "#lib/mongo-client.js"
+import type { User } from "#lib/server/authentication.js"
+import { getMockDb } from "#lib/server/mock-db.js"
+import { closeMongoClient, getMongoClient } from "#lib/server/mongo-client.js"
 import { MOCK_API, MONGODB_DB_NAME, MONGODB_USER_SETTINGS_COLLECTION } from "$app/env/private"
 
 type UserSettings = {

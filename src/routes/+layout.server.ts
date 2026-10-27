@@ -1,9 +1,9 @@
 import { error } from "@sveltejs/kit"
 import { logger } from "@vtfk/logger"
-import { getAuthenticatedUser } from "#lib/authentication.js"
-import { getUserData } from "#lib/elevdok-api/get-user-data.js"
-import { getErrorDetails } from "#lib/helpers/error-details.js"
-import { getSystemInfo } from "#lib/system-info.js"
+import { getAuthenticatedUser } from "#lib/server/authentication.js"
+import { getUserData } from "#lib/server/elevdok-api/get-user-data.js"
+import { getErrorDetails } from "#lib/server/error-details.js"
+import { getSystemInfo } from "#lib/server/system-info.js"
 import { MAINTENANCE_MODE } from "$app/env/private"
 import type { LayoutServerLoad } from "./$types"
 

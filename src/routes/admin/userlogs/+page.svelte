@@ -2,9 +2,9 @@
   import axios from "axios"
   import { onMount } from "svelte"
   import LoadingSpinner from "#lib/components/LoadingSpinner.svelte"
-  import type { LogEntry, LogStudent, LogUser } from "#lib/elevdok-api/user-logs.js"
   import { prettyPrintDate } from "#lib/helpers/pretty-date.js"
   import { sleep } from "#lib/helpers/sleep.js"
+  import type { LogEntry, LogStudent, LogUser } from "#lib/server/elevdok-api/user-logs.js"
   import type { PageData } from "./$types"
 
   type Props = {

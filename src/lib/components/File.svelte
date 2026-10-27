@@ -1,6 +1,6 @@
 <script lang="ts">
   import axios from "axios"
-  import type { StudentDocument } from "#lib/elevdok-api/get-student-documents.js"
+  import type { StudentDocument } from "#lib/server/elevdok-api/get-student-documents.js"
   import LoadingSpinner from "./LoadingSpinner.svelte"
   import PDFViewer from "./PDFViewer.svelte"
 

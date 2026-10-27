@@ -1,8 +1,8 @@
 import { error, redirect } from "@sveltejs/kit"
 import { logger } from "@vtfk/logger"
-import { getAuthenticatedUser } from "#lib/authentication.js"
-import { setActiveRole } from "#lib/elevdok-api/roles.js"
-import { getErrorDetails } from "#lib/helpers/error-details.js"
+import { getAuthenticatedUser } from "#lib/server/authentication.js"
+import { setActiveRole } from "#lib/server/elevdok-api/roles.js"
+import { getErrorDetails } from "#lib/server/error-details.js"
 import type { Actions } from "./$types"
 
 export const actions: Actions = {

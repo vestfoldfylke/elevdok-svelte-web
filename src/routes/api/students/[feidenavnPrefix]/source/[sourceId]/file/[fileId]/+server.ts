@@ -1,6 +1,6 @@
-import { getAuthenticatedUser } from "#lib/authentication.js"
-import { getFile } from "#lib/elevdok-api/get-file.js"
-import { getErrorDetails } from "#lib/helpers/error-details.js"
+import { getAuthenticatedUser } from "#lib/server/authentication.js"
+import { getFile } from "#lib/server/elevdok-api/get-file.js"
+import { getErrorDetails } from "#lib/server/error-details.js"
 import { FEIDENAVN_SUFFIX } from "$app/env/private"
 import type { RequestHandler } from "./$types"
 
