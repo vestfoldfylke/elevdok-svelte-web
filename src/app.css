@@ -301,18 +301,6 @@ input:disabled:hover,
   background-color: var(--primary-background-color);
 }
 
-.icon-input:hover input,
-.button-input:hover input,
-.label-input:hover input {
-  background-color: var(--primary-color-10);
-}
-
-.icon-input.disabled:hover input,
-.button-input.disabled:hover input,
-.label-input.disabled:hover input {
-  background-color: var(--primary-background-color);
-}
-
 input:focus-visible,
 .icon-input:focus-within,
 .button-input:focus-within,
@@ -355,6 +343,7 @@ input:focus-visible,
   flex-grow: 1;
 }
 
+/* biome-ignore lint/style/noDescendingSpecificity: the icon in an icon-input is never inside a button.link, so it does not compete with button.link span.material-symbols-outlined */
 .icon-input span {
   padding: 0rem 0.5rem;
   font-size: 1.5rem;
@@ -383,6 +372,18 @@ input:focus-visible,
   border-radius: 3rem;
 }
 
+.icon-input:hover input,
+.button-input:hover input,
+.label-input:hover input {
+  background-color: var(--primary-color-10);
+}
+
+.icon-input.disabled:hover input,
+.button-input.disabled:hover input,
+.label-input.disabled:hover input {
+  background-color: var(--primary-background-color);
+}
+
 .label-input {
   position: relative;
   margin-top: var(--spacing-large);
@@ -398,10 +399,6 @@ input:focus-visible,
 .label-input.required label::after {
   content: " *";
   color: var(--error-color);
-}
-
-.label-input:focus-within label {
-  font-weight: bold;
 }
 
 input[type="radio"],
@@ -461,6 +458,10 @@ select:hover {
 .label-select.required label::after {
   content: " *";
   color: red;
+}
+
+.label-input:focus-within label {
+  font-weight: bold;
 }
 
 .label-select:focus-within label {
