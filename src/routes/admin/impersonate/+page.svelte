@@ -1,6 +1,6 @@
 <script lang="ts">
-  import axios from "axios"
   import LoadingSpinner from "#lib/components/LoadingSpinner.svelte"
+  import { requestApi } from "#lib/request-api.js"
   import type { Impersonation } from "#lib/server/authentication.js"
   import { refreshAll } from "$app/navigation"
   import type { PageData } from "./$types"
@@ -12,20 +12,21 @@
   let { data }: Props = $props()
 
   let impersonationTarget: string | undefined = $state()
-  let errorMessage: unknown = $state("")
+  let errorMessage = $state("")
   let isLoading = $state(false)
 
   const setImpersonation = async (type: Impersonation["type"]) => {
+    if (!impersonationTarget) {
+      errorMessage = "Du må skrive et gyldig brukernavn / epost"
+      return
+    }
     errorMessage = ""
     isLoading = true
-    try {
-      if (!impersonationTarget) {
-        throw new Error("Du må skrive et gyldig brukernavn / epost")
-      }
-      const { data } = await axios.post("/api/admin/setimpersonation", { target: impersonationTarget, type })
+    const result = await requestApi("/api/admin/setimpersonation", { method: "POST", body: { target: impersonationTarget, type } })
+    if (result.ok) {
       await refreshAll()
-    } catch (error) {
-      errorMessage = (axios.isAxiosError(error) && error.response?.data) || String(error)
+    } else {
+      errorMessage = result.message
     }
     isLoading = false
   }
@@ -33,11 +34,11 @@
   const deleteImpersonation = async () => {
     errorMessage = ""
     isLoading = true
-    try {
-      const { data } = await axios.delete("/api/admin/deleteimpersonation")
+    const result = await requestApi("/api/admin/deleteimpersonation", { method: "DELETE" })
+    if (result.ok) {
       await refreshAll()
-    } catch (error) {
-      errorMessage = (axios.isAxiosError(error) && error.response?.data) || String(error)
+    } else {
+      errorMessage = result.message
     }
     isLoading = false
   }
@@ -69,7 +70,7 @@
     {#if errorMessage}
       <div class="error">
         <p>Det skjedde en feil :(</p>
-        <p>{JSON.stringify(errorMessage)}</p>
+        <p>{errorMessage}</p>
       </div>
     {/if}
   {/if}

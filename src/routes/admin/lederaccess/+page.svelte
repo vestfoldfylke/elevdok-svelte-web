@@ -1,8 +1,8 @@
 <script lang="ts">
-  import axios from "axios"
   import { onMount } from "svelte"
   import LoadingSpinner from "#lib/components/LoadingSpinner.svelte"
   import { prettyPrintDate } from "#lib/helpers/pretty-date.js"
+  import { requestApi } from "#lib/request-api.js"
   import type { SchoolAccess } from "#lib/server/elevdok-api/leder-access.js"
   import type { PageData } from "./$types"
 
@@ -12,7 +12,7 @@
 
   let { data }: Props = $props()
 
-  let errorMessage: unknown = $state("")
+  let errorMessage = $state("")
   let searchValue
   let loading = $state(false)
 
@@ -21,12 +21,11 @@
   const getLeaderAccess = async () => {
     errorMessage = ""
     loading = true
-    try {
-      const { data } = await axios.get(`/api/admin/getleaderaccess`)
-      schoolAccess = data
-    } catch (error) {
-      console.log(axios.isAxiosError(error) ? error.response?.data : error)
-      errorMessage = (axios.isAxiosError(error) && error.response?.data) || String(error)
+    const result = await requestApi<SchoolAccess[]>("/api/admin/getleaderaccess")
+    if (result.ok) {
+      schoolAccess = result.value
+    } else {
+      errorMessage = result.message
     }
     loading = false
   }
@@ -56,7 +55,7 @@
   {#if errorMessage}
     <div>
       <p>Det skjedde en feil</p>
-      <p>{JSON.stringify(errorMessage)}</p>
+      <p>{errorMessage}</p>
     </div>
   {/if}
 {:else}

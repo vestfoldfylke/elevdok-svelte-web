@@ -1,9 +1,8 @@
 import { logger } from "@vtfk/logger"
-import axios from "axios"
 import vtfkSchoolsInfo from "vtfk-schools-info"
 import { DEFAULT_ROLE, FEIDENAVN_SUFFIX, LEDER_ROLE, MOCK_API, MOCK_AUTH, MOCK_AUTH_LARER_ROLE, MOCK_AUTH_LEDER_ROLE, NODE_ENV } from "$app/env/private"
+import { fetchJsonWithMsalToken } from "./http/fetch-json-with-msal-token.js"
 import { getInternalCache } from "./internal-cache.js"
-import { getMsalToken } from "./msal-token.js"
 
 // Only the fields this app reads from Microsoft Graph
 
@@ -32,6 +31,11 @@ type AppRoleAssignment = {
   principalType: string
 }
 
+type GraphPage<T> = {
+  value: T[]
+  "@odata.nextLink"?: string
+}
+
 type ApplicationUser = AppRoleAssignment & {
   appRoleValue: string
 }
@@ -47,49 +51,31 @@ export type LeaderUser = ApplicationUser & {
 const graphScope = "https://graph.microsoft.com/.default"
 const graphUrl = "https://graph.microsoft.com/v1.0"
 
+const fetchAllGraphPages = async <T>(firstPageUrl: string): Promise<T[]> => {
+  const items: T[] = []
+  let pageUrl: string | undefined = firstPageUrl
+  while (pageUrl) {
+    // Graph requires ConsistencyLevel for $count queries
+    const page: GraphPage<T> = await fetchJsonWithMsalToken<GraphPage<T>>(pageUrl, { scope: graphScope, headers: { ConsistencyLevel: "eventual" } })
+    items.push(...page.value)
+    pageUrl = page["@odata.nextLink"]
+  }
+  return items
+}
+
 const getApplicationRoles = async (appId: string): Promise<Application> => {
-  const accessToken = await getMsalToken({ scope: graphScope })
-  const applicationUrl = `${graphUrl}/applications(appId='${appId}')?$select=appId,displayName,appRoles`
-  const { data } = await axios.get(applicationUrl, { headers: { Authorization: `Bearer ${accessToken}` } })
-  return data
+  return fetchJsonWithMsalToken<Application>(`${graphUrl}/applications(appId='${appId}')?$select=appId,displayName,appRoles`, { scope: graphScope })
 }
 
 const getGroupMembers = async (groupId: string): Promise<GroupMember[]> => {
   // OBS OBS trenger groupMember.read.all
-  const accessToken = await getMsalToken({ scope: graphScope })
-  let groupMembersUrl = `${graphUrl}/groups/${groupId}/members?$select=id,displayName,userPrincipalName&$top=999&$count=true`
-  const members: GroupMember[] = []
-  let finished = false
-  while (!finished) {
-    const { data } = await axios.get(groupMembersUrl, { headers: { Authorization: `Bearer ${accessToken}`, ConsistencyLevel: "eventual" } })
-    members.push(...data.value)
-    if (data["@odata.nextLink"]) {
-      groupMembersUrl = data["@odata.nextLink"]
-    } else {
-      finished = true
-    }
-  }
-
-  return members
+  return fetchAllGraphPages<GroupMember>(`${graphUrl}/groups/${groupId}/members?$select=id,displayName,userPrincipalName&$top=999&$count=true`)
 }
 
 const getAppRoleAssignments = async (appId: string): Promise<AppRoleAssignment[]> => {
-  const accessToken = await getMsalToken({ scope: graphScope })
-
-  const appRoleAssignments: AppRoleAssignment[] = []
-
-  let finished = false
-  let appRoleAssignedToUrl = `${graphUrl}/servicePrincipals(appId='${appId}')/appRoleAssignedTo?$select=id,appRoleId,principalDisplayName,principalId,principalType&$top=999&$count=true`
-  while (!finished) {
-    const { data } = await axios.get(appRoleAssignedToUrl, { headers: { Authorization: `Bearer ${accessToken}`, ConsistencyLevel: "eventual" } })
-    appRoleAssignments.push(...data.value)
-    if (data["@odata.nextLink"]) {
-      appRoleAssignedToUrl = data["@odata.nextLink"]
-    } else {
-      finished = true
-    }
-  }
-  return appRoleAssignments
+  return fetchAllGraphPages<AppRoleAssignment>(
+    `${graphUrl}/servicePrincipals(appId='${appId}')/appRoleAssignedTo?$select=id,appRoleId,principalDisplayName,principalId,principalType&$top=999&$count=true`
+  )
 }
 
 export const getApplicationUsers = async (appId: string): Promise<ApplicationUser[]> => {

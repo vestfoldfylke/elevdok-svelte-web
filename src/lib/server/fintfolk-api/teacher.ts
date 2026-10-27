@@ -1,8 +1,7 @@
 import { error } from "@sveltejs/kit"
-import axios from "axios"
 import { sleep } from "#lib/helpers/sleep.js"
-import { getMsalToken } from "#lib/server/msal-token.js"
-import { FEIDENAVN_SUFFIX, FINTFOLK_API_SCOPE, FINTFOLK_API_URL, MOCK_API, NODE_ENV } from "$app/env/private"
+import { FEIDENAVN_SUFFIX, MOCK_API, NODE_ENV } from "$app/env/private"
+import { fetchFint } from "./fetch-fint.js"
 import type { FintTeacher } from "./types.js"
 
 const mockTeacher = {
@@ -598,14 +597,5 @@ export const fintTeacher = async (userPrincipalName: string): Promise<FintTeache
     await sleep(1000)
     return mockTeacher
   }
-  const accessToken = await getMsalToken({ scope: FINTFOLK_API_SCOPE })
-  try {
-    const { data } = await axios.get(`${FINTFOLK_API_URL}/teacher/upn/${identifier}?includeStudentSsn=true`, { headers: { Authorization: `Bearer ${accessToken}` } })
-    return data
-  } catch (error) {
-    if (axios.isAxiosError(error) && error.response?.status === 404) {
-      return null
-    }
-    throw error
-  }
+  return fetchFint<FintTeacher>(`/teacher/upn/${identifier}?includeStudentSsn=true`)
 }

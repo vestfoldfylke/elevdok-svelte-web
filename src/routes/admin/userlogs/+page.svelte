@@ -1,9 +1,8 @@
 <script lang="ts">
-  import axios from "axios"
   import { onMount } from "svelte"
   import LoadingSpinner from "#lib/components/LoadingSpinner.svelte"
   import { prettyPrintDate } from "#lib/helpers/pretty-date.js"
-  import { sleep } from "#lib/helpers/sleep.js"
+  import { requestApi } from "#lib/request-api.js"
   import type { LogEntry, LogStudent, LogUser } from "#lib/server/elevdok-api/user-logs.js"
   import type { PageData } from "./$types"
 
@@ -18,7 +17,7 @@
 
   let { data }: Props = $props()
 
-  let errorMessage: unknown = $state("")
+  let errorMessage = $state("")
   let searchValue
   let loading = $state(false)
 
@@ -26,13 +25,13 @@
   let studentSearchName = $state("")
   let selectedStudent: LogStudent | null = $state(null)
   let students: LogStudent[] | null = $state([])
-  let studentErrorMessage: unknown = $state("")
+  let studentErrorMessage = $state("")
 
   let initialUserSearch = $state(false)
   let userSearchName = $state("")
   let selectedUser: LogUser | null = $state(null)
   let users: LogUser[] | null = $state([])
-  let userErrorMessage: unknown = $state("")
+  let userErrorMessage = $state("")
 
   let documentNumber = $state("")
   let selectedDocumentNumber: string | null = $state(null)
@@ -43,11 +42,11 @@
   const getLogStudents = async (event: Event) => {
     event.preventDefault()
     students = null
-    try {
-      const { data } = await axios.get(studentSearchName ? `/api/admin/logstudents?search_name=${studentSearchName}` : "/api/admin/logstudents")
-      students = data
-    } catch (error) {
-      studentErrorMessage = (axios.isAxiosError(error) && error.response?.data) || String(error)
+    const result = await requestApi<LogStudent[]>(studentSearchName ? `/api/admin/logstudents?search_name=${studentSearchName}` : "/api/admin/logstudents")
+    if (result.ok) {
+      students = result.value
+    } else {
+      studentErrorMessage = result.message
       students = []
     }
     initialStudentSearch = true
@@ -56,11 +55,11 @@
   const getLogUsers = async (event: Event) => {
     event.preventDefault()
     users = null
-    try {
-      const { data } = await axios.get(userSearchName ? `/api/admin/logusers?search_name=${userSearchName}` : "/api/admin/logusers")
-      users = data
-    } catch (error) {
-      userErrorMessage = (axios.isAxiosError(error) && error.response?.data) || String(error)
+    const result = await requestApi<LogUser[]>(userSearchName ? `/api/admin/logusers?search_name=${userSearchName}` : "/api/admin/logusers")
+    if (result.ok) {
+      users = result.value
+    } else {
+      userErrorMessage = result.message
       users = []
     }
     initialUserSearch = true
@@ -86,25 +85,25 @@
   const getLogElements = async () => {
     errorMessage = ""
     loading = true
-    try {
-      let url = "/api/admin/logentries"
-      let addedQuery = false
-      if (selectedStudent) {
-        url += `?student_number=${selectedStudent.elevnummer}`
-        addedQuery = true
-      }
-      if (selectedUser) {
-        url += `${addedQuery ? "&" : "?"}user_principal_id=${selectedUser.principalId}`
-        addedQuery = true
-      }
-      if (selectedDocumentNumber) {
-        url += `${addedQuery ? "&" : "?"}document_number=${selectedDocumentNumber}`
-        addedQuery = true
-      }
-      const { data } = await axios.get(url)
-      logElements = data
-    } catch (error) {
-      errorMessage = (axios.isAxiosError(error) && error.response?.data) || String(error)
+    let url = "/api/admin/logentries"
+    let addedQuery = false
+    if (selectedStudent) {
+      url += `?student_number=${selectedStudent.elevnummer}`
+      addedQuery = true
+    }
+    if (selectedUser) {
+      url += `${addedQuery ? "&" : "?"}user_principal_id=${selectedUser.principalId}`
+      addedQuery = true
+    }
+    if (selectedDocumentNumber) {
+      url += `${addedQuery ? "&" : "?"}document_number=${selectedDocumentNumber}`
+      addedQuery = true
+    }
+    const result = await requestApi<LogElement[]>(url)
+    if (result.ok) {
+      logElements = result.value
+    } else {
+      errorMessage = result.message
       logElements = []
     }
     loading = false
@@ -134,7 +133,7 @@
     {#if studentErrorMessage}
       <div class="error">
         <p>Det skjedde en feil 😩</p>
-        <p>{JSON.stringify(studentErrorMessage)}</p>
+        <p>{studentErrorMessage}</p>
       </div>
     {:else if !students}
       <LoadingSpinner />
@@ -173,7 +172,7 @@
     {#if userErrorMessage}
       <div class="error">
         <p>Det skjedde en feil 😩</p>
-        <p>{JSON.stringify(userErrorMessage)}</p>
+        <p>{userErrorMessage}</p>
       </div>
     {:else if !users}
       <LoadingSpinner />
@@ -247,7 +246,7 @@
   {#if errorMessage}
     <div class="error">
       <p>Det har skjedd en feil 😩</p>
-      <p>{JSON.stringify(errorMessage)}</p>
+      <p>{errorMessage}</p>
     </div>
   {/if}
 {:else}

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import axios from "axios"
+  import { requestApi } from "#lib/request-api.js"
   import type { StudentDocument } from "#lib/server/elevdok-api/get-student-documents.js"
   import LoadingSpinner from "./LoadingSpinner.svelte"
   import PDFViewer from "./PDFViewer.svelte"
@@ -19,16 +19,15 @@
   const getFileData = async () => {
     errorMessage = ""
     fileLoading = true
-    try {
-      const studentFeidenavnPrefix = document.feidenavn.substring(0, document.feidenavn.indexOf("@"))
-      const { data } = await axios.get(`/api/students/${studentFeidenavnPrefix}/source/${document.source}/file/${file.id}`)
-      base64Data = data
-      fileLoading = false
-      displayFile = true
-    } catch (error) {
-      fileLoading = false
-      errorMessage = `Det oppstod en feil ved henting av fil: ${error}`
+    const studentFeidenavnPrefix = document.feidenavn.substring(0, document.feidenavn.indexOf("@"))
+    const result = await requestApi<string>(`/api/students/${studentFeidenavnPrefix}/source/${document.source}/file/${file.id}`)
+    fileLoading = false
+    if (!result.ok) {
+      errorMessage = `Det oppstod en feil ved henting av fil: ${result.message}`
+      return
     }
+    base64Data = result.value
+    displayFile = true
   }
 </script>
 
