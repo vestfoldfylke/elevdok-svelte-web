@@ -33,6 +33,7 @@
 
   const getLogStudents = async (event: Event) => {
     event.preventDefault()
+    studentErrorMessage = ""
     students = null
     const result = await requestApi<LogStudent[]>(`/api/admin/logstudents?${new URLSearchParams({ search_name: studentSearchName })}`)
     if (result.ok) {
@@ -46,6 +47,7 @@
 
   const getLogUsers = async (event: Event) => {
     event.preventDefault()
+    userErrorMessage = ""
     users = null
     const result = await requestApi<LogUser[]>(`/api/admin/logusers?${new URLSearchParams({ search_name: userSearchName })}`)
     if (result.ok) {
@@ -59,6 +61,7 @@
 
   const applyDocumentNumberFilter = async (event: Event) => {
     event.preventDefault()
+    documentNumberErrorMessage = ""
     try {
       const documentNumberParts = documentNumber.split("/")
       if (documentNumberParts.length !== 2) {

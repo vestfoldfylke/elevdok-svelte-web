@@ -28,14 +28,15 @@
   })
 </script>
 
-<dialog bind:this={previewModal}>
+<!-- close fires both for Lukk (the form closes the dialog) and for Escape, so both end in the same state -->
+<dialog bind:this={previewModal} onclose={closePdf}>
   <form method="dialog">
     <div class="modalTitle">
       <div>
         <h2>{title}</h2>
         <div style="color: var(--error-color);">Ikke last ned, skriv ut, eller ta skjermbilde av dokumentet.</div>
       </div>
-      <button onclick={closePdf} title="Lukk modal"><span class="material-symbols-outlined">close</span>Lukk</button>
+      <button title="Lukk modal"><span class="material-symbols-outlined">close</span>Lukk</button>
     </div>
 
     <div class="rawData">

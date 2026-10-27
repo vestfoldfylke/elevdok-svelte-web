@@ -40,7 +40,10 @@
     </div>
   </div>
 
-  {@render children?.()}
+  <!-- A new page per student, so its page number, search and closed warnings do not carry over from the previous student -->
+  {#key student.feidenavnPrefix}
+    {@render children?.()}
+  {/key}
 {/if}
 
 <style>
