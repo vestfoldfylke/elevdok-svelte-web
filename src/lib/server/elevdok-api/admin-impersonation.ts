@@ -64,5 +64,12 @@ export const deleteAdminImpersonation = (user: User): void => {
   requireAdminRole(user)
 
   const internalCache = getInternalCache()
-  internalCache.delete(`${user.principalId}-impersonation`)
+  const cacheKey = `${user.principalId}-impersonation`
+  const impersonation = internalCache.get<Impersonation>(cacheKey)
+  if (!impersonation) {
+    return
+  }
+
+  internalCache.delete(cacheKey)
+  logger.info("Admin stopped impersonating {ImpersonationTarget} as {ImpersonationType}", impersonation.target, impersonation.type)
 }

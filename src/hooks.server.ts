@@ -4,15 +4,26 @@ import { assertNoMockFlagsInProduction } from "#lib/server/assert-no-mock-flags-
 import { getAuthenticatedUser } from "#lib/server/authentication.js"
 import { getLogContext, runInLogContext, updateLogContext } from "#lib/server/logging/log-context.js"
 import { closeMongoClient } from "#lib/server/mongo-client.js"
+import { FAGLARER_ACCESS_ENABLED, IOP_FAGLARER_ACCESS_ENABLED, MAINTENANCE_MODE, MOCK_API, MOCK_AUTH, NODE_ENV, VTFK_ARCHIVE_ENABLED } from "$app/env/private"
 
 // Log destinations like Betterstack and Teams send asynchronously, so flush before the server exits
 process.on("sveltekit:shutdown", async () => {
+  logger.info("Server is shutting down")
   await closeMongoClient()
   await logger.flush()
 })
 
 export const init: ServerInit = () => {
   assertNoMockFlagsInProduction()
+  logger.info("Server started with {@Settings}", {
+    NODE_ENV,
+    MOCK_AUTH,
+    MOCK_API,
+    FAGLARER_ACCESS_ENABLED,
+    IOP_FAGLARER_ACCESS_ENABLED,
+    MAINTENANCE_MODE,
+    VTFK_ARCHIVE_ENABLED
+  })
 }
 
 export const handle: Handle = async ({ event, resolve }) => {

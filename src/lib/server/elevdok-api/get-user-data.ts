@@ -141,6 +141,7 @@ export const getUserData = async (user: User, { shouldMaskSsn = true }: UserData
     logger.info("Getting teacher {TeacherUpn} from FINT", teacherUpn)
     const teacher = await fetchFintTeacher(teacherUpn)
     if (!teacher) {
+      logger.warn("Teacher {TeacherUpn} does not exist in FINT, so the teacher gets no students", teacherUpn)
       return userData
     }
 
