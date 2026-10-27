@@ -20,14 +20,11 @@ export const getFile = async (user: User, studentFeidenavn: string, sourceId: st
     throw new Error('Missing required parameter "fileId"')
   }
 
-  logger.info("Getting file {FileId} from source {SourceId} for student {StudentFeidenavn}", fileId, sourceId, studentFeidenavn)
-
   const teacherStudent = await requireStudentAccess(user, studentFeidenavn)
 
   // Sjekk også at bruker har tilgang til å faktisk åpne filen!! Basert på ENV-variabler
   const { hasAccess, type } = getFileAccessForStudent(user, teacherStudent)
   if (!hasAccess) {
-    logger.warn("No access to files for student {StudentFeidenavn}", studentFeidenavn)
     throw error(403, "Du har ikke tilgang til å se dokumentene til denne eleven.")
   }
 
@@ -37,7 +34,7 @@ export const getFile = async (user: User, studentFeidenavn: string, sourceId: st
   }
 
   if (MOCK_API === "true") {
-    logger.info("MOCK_API is true, returning mock file")
+    logger.debug("MOCK_API is true, returning mock file")
     const { base64 } = mockFile
     result.base64 = base64
     result.metadata = {
@@ -50,10 +47,9 @@ export const getFile = async (user: User, studentFeidenavn: string, sourceId: st
     const document = documents.find((archiveDocument) => Array.isArray(archiveDocument.files) && archiveDocument.files.some((file) => file.id.toString() === fileId.toString()))
 
     if (!document) {
-      logger.warn("File {FileId} is not in any {SourceId} document for student {StudentFeidenavn}", fileId, sourceId, studentFeidenavn)
       throw error(403, "Filen hører ikke til et dokument i elevmappen, så du har ikke tilgang til den.")
     }
-    logger.info("File {FileId} is in document {DocumentNumber}, fetching it", fileId, document.documentNumber)
+    logger.debug("File {FileId} is in document {DocumentNumber}, fetching it", fileId, document.documentNumber)
 
     const { base64, metadata } = await fetchAzfArchiveFile(fileId)
     result.base64 = base64
@@ -63,7 +59,6 @@ export const getFile = async (user: User, studentFeidenavn: string, sourceId: st
   }
 
   if (!result.base64 || !result.metadata) {
-    logger.warn("No file fetched: source {SourceId} is unknown or not implemented", sourceId)
     throw error(404, `Kan ikke hente filer fra kilden "${sourceId}": kilden er ukjent eller ikke støttet ennå.`)
   }
 

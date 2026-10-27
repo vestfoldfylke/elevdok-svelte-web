@@ -118,7 +118,7 @@ export const createUserLogEntry = async (logData: UserLogData): Promise<{ insert
     const randomId = new ObjectId().toString()
     const mockLogEntry: MockLogEntry = { ...logEntry, type: "logElement", _id: randomId }
     mockDb.set(randomId, mockLogEntry)
-    logger.info("MOCK_API is true: added log entry {LogEntryId} to mock db", randomId)
+    logger.debug("MOCK_API is true: added log entry {LogEntryId} to mock db", randomId)
     return { insertedId: randomId }
   }
 
@@ -131,7 +131,6 @@ export const createUserLogEntry = async (logData: UserLogData): Promise<{ insert
 
 export const searchLoggedStudents = async (user: User, searchName: string | null): Promise<LogStudent[]> => {
   requireAdminRole(user)
-  logger.info("Searching log students by name {SearchName}", searchName)
   if (!searchName) {
     searchName = ""
   }
@@ -153,7 +152,7 @@ export const searchLoggedStudents = async (user: User, searchName: string | null
       }
     }
 
-    logger.info("MOCK_API is true: found {StudentCount} students in mock db", students.length)
+    logger.debug("MOCK_API is true: found {StudentCount} students in mock db", students.length)
     return students
   }
 
@@ -169,13 +168,12 @@ export const searchLoggedStudents = async (user: User, searchName: string | null
     .limit(15)
     .toArray()
 
-  logger.info("Found {StudentCount} students", distinctStudents.length)
+  logger.info("Found {StudentCount} log students matching {SearchName}", distinctStudents.length, searchName)
   return distinctStudents.map((student) => student._id)
 }
 
 export const searchLoggedUsers = async (user: User, searchName: string | null): Promise<LogUser[]> => {
   requireAdminRole(user)
-  logger.info("Searching log users by name {SearchName}", searchName)
   if (!searchName) {
     searchName = ""
   }
@@ -197,7 +195,7 @@ export const searchLoggedUsers = async (user: User, searchName: string | null): 
       }
     }
 
-    logger.info("MOCK_API is true: found {UserCount} users in mock db", users.length)
+    logger.debug("MOCK_API is true: found {UserCount} users in mock db", users.length)
     return users.map((user) => {
       return { name: user.name, principalId: user.principalId, principalName: user.principalName }
     })
@@ -215,7 +213,7 @@ export const searchLoggedUsers = async (user: User, searchName: string | null): 
     .limit(15)
     .toArray()
 
-  logger.info("Found {UserCount} users", distinctUsers.length)
+  logger.info("Found {UserCount} log users matching {SearchName}", distinctUsers.length, searchName)
   return distinctUsers.map((user) => user._id)
 }
 
@@ -247,7 +245,7 @@ export const getUserLogs = async (user: User, filter: LogFilter): Promise<LogEnt
       userLogs = userLogs.filter((log) => log.file && log.file.documentNumber === documentNumber)
     }
 
-    logger.info("MOCK_API is true: found {LogEntryCount} log entries in mock db", userLogs.length)
+    logger.debug("MOCK_API is true: found {LogEntryCount} log entries in mock db", userLogs.length)
     return userLogs.sort((a, b) => {
       return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     })

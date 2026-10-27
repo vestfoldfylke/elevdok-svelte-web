@@ -208,9 +208,6 @@ export const getUserData = async (user: User, { shouldMaskSsn = true }: UserData
   }
 
   if (effectiveRole === "leder") {
-    const leaderPrincipalId = user.hasAdminRole && user.impersonating?.type === "leder" ? user.impersonating.target : user.principalId
-
-    logger.info("Getting school access for leader {LeaderPrincipalId}", leaderPrincipalId)
     // Sjekker først om vi har schoolaccess for brukeren i cachen
     const leaderAccess = await getLeaderAccess(user)
 

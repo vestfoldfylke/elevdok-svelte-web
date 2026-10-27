@@ -29,17 +29,14 @@ export const getActiveRole = async (principalId: string): Promise<string | null>
 }
 
 export const setActiveRole = async (user: User, requestedRole: string): Promise<void> => {
-  logger.info("Requested role change to {RequestedRole}", requestedRole)
   if (!user.roles.some((role) => role.value === requestedRole)) {
-    logger.warn("User does not have the role {RequestedRole}", requestedRole)
     throw error(403, `Du har ikke rollen "${requestedRole}", så du kan ikke bytte til den.`)
   }
 
-  logger.info("User has the role {RequestedRole}, changing active role", requestedRole)
   if (MOCK_API === "true") {
     const mockDb = getMockDb()
     mockDb.set("activeRole", requestedRole)
-    logger.info("MOCK_API is enabled: changed active role to {RequestedRole} in mock db", requestedRole)
+    logger.debug("MOCK_API is enabled: changed active role to {RequestedRole} in mock db", requestedRole)
     return
   }
 

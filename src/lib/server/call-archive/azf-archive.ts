@@ -64,7 +64,7 @@ export const getAzfArchiveDocuments = async (ssn: string, feidenavn: string): Pr
   const cacheKey = `azf-archive-documents-${feidenavn}`
   const cachedResult = internalCache.get<ArchiveDocumentsResult>(cacheKey)
   if (cachedResult) {
-    logger.info("Found archive documents for {StudentFeidenavn} in cache", feidenavn)
+    logger.debug("Found archive documents for {StudentFeidenavn} in cache", feidenavn)
     result.documents = cachedResult.documents
     result.errors = cachedResult.errors
     return result

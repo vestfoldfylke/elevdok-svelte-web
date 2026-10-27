@@ -7,7 +7,6 @@ let client: MongoClient | null = null
 /** One client for the lifetime of the process. The driver reconnects by itself, so the client must not be closed while the server runs. */
 export const getMongoClient = async (): Promise<MongoClient> => {
   if (!client) {
-    logger.info("MongoDB client does not exist - creating")
     client = new MongoClient(MONGODB_CONNECTION_STRING)
     await client.connect()
     logger.info("MongoDB client connected")

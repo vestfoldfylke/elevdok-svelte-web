@@ -23,7 +23,7 @@ export const getMsalToken = async (config: MsalTokenConfig): Promise<string> => 
     return cachedToken.substring(0, cachedToken.length - 2)
   }
 
-  logger.info("No token in cache for scope {Scope}, fetching a new one from Microsoft", config.scope)
+  logger.debug("No token in cache for scope {Scope}, fetching a new one from Microsoft", config.scope)
 
   const confidentialClientApplication = new ConfidentialClientApplication({
     auth: {

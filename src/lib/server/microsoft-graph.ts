@@ -96,12 +96,12 @@ export const getAllLeaderUsers = async (appId: string): Promise<LeaderUser[]> =>
   const internalCache = getInternalCache()
   const cachedData = internalCache.get<LeaderUser[]>(cacheKey)
   if (cachedData) {
-    logger.info("Found leader users in cache")
+    logger.debug("Found leader users in cache")
     return cachedData
   }
 
   if (MOCK_API === "true") {
-    logger.info("MOCK_API is true, returning mock users")
+    logger.debug("MOCK_API is true, returning mock users")
     const mockUsers: LeaderUser[] = [
       {
         appRoleValue: LEDER_ROLE,

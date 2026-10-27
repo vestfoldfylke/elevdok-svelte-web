@@ -22,8 +22,6 @@ export const getStudentDocuments = async (user: User, studentFeidenavn: string):
     throw new Error('Missing required parameter "studentFeidenavn"')
   }
 
-  logger.info("Getting documents for student {StudentFeidenavn}", studentFeidenavn)
-
   const teacherStudent = await requireStudentAccess(user, studentFeidenavn)
 
   const result: ArchiveDocumentsResult = {
@@ -32,7 +30,7 @@ export const getStudentDocuments = async (user: User, studentFeidenavn: string):
   }
 
   if (MOCK_API === "true") {
-    logger.info("MOCK_API is true, returning mock documents")
+    logger.debug("MOCK_API is true, returning mock documents")
     const documents = getMockDocuments(teacherStudent, 300)
     result.documents.push(...documents)
     result.errors.push("Bare en mocke-feil for å se hvordan det ser ut")

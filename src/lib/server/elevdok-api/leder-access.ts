@@ -19,7 +19,6 @@ export type SchoolAccess = {
 
 export const getSchoolAccessForAllLeaders = async (user: User): Promise<SchoolAccess[]> => {
   requireAdminRole(user)
-  logger.info("Getting all leaders access")
 
   // Internal caching in getAllLeaderUsers
   const leaderUsers = await getAllLeaderUsers(FRONTEND_APP_ID)
@@ -40,19 +39,17 @@ export const getSchoolAccessForAllLeaders = async (user: User): Promise<SchoolAc
 
 export const getLeaderAccess = async (user: User): Promise<LeaderUser[]> => {
   if (getEffectiveRole(user) !== "leder") {
-    logger.warn("User is not leader and not impersonating a leader, no access")
     throw error(403, "Du må være leder / rådgiver for å se dette. Bytt rolle i brukermenyen om du har flere roller.")
   }
 
   const leaderPrincipalName = user.hasAdminRole && user.impersonating?.type === "leder" ? user.impersonating.target : user.principalName
-  logger.info("Getting leader access for leader {LeaderPrincipalName}", leaderPrincipalName)
 
   // Først sjekk om det er et entry i internalCache for denne lederen
   const cacheKey = `leder-access-${leaderPrincipalName}`
   const internalCache = getInternalCache()
   const cachedLeaderAccess = internalCache.get<LeaderUser[]>(cacheKey)
   if (cachedLeaderAccess) {
-    logger.info(
+    logger.debug(
       "Found leader access in cache, to {SchoolCount} schools: {@SchoolNames}",
       cachedLeaderAccess.length,
       cachedLeaderAccess.map((entry) => entry.schoolName)
@@ -66,7 +63,8 @@ export const getLeaderAccess = async (user: User): Promise<LeaderUser[]> => {
   internalCache.set(cacheKey, leaderAccess)
 
   logger.info(
-    "Got leader access to {SchoolCount} schools: {@SchoolNames}",
+    "Leader {LeaderPrincipalName} has access to {SchoolCount} schools: {@SchoolNames}",
+    leaderPrincipalName,
     leaderAccess.length,
     leaderAccess.map((entry) => entry.schoolName)
   )
