@@ -21,6 +21,7 @@ export const getStudentDocuments = async (user: User, studentFeidenavn: string):
   if (!studentFeidenavn) {
     throw new Error('Missing required parameter "studentFeidenavn"')
   }
+
   logger.info("Getting documents for student {StudentFeidenavn}", studentFeidenavn)
 
   const teacherStudent = await requireStudentAccess(user, studentFeidenavn)
@@ -44,6 +45,7 @@ export const getStudentDocuments = async (user: User, studentFeidenavn: string):
     } catch (error) {
       logger.errorException(error, "Failed when fetching documents for student {StudentFeidenavn} from main archive", studentFeidenavn)
     }
+
     // VTFK
     // To be implemented
   }

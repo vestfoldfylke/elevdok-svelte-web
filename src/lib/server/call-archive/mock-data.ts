@@ -30,11 +30,13 @@ const randomValue = <T>(list: T[]): T => {
   if (value === undefined) {
     throw new Error("randomValue: the list is empty, there is nothing to pick from")
   }
+
   return value
 }
 
 export const getMockDocuments = (teacherStudent: { feidenavn: string }, numberOfDocuments = 10): ArchiveDocument[] => {
   const documents = []
+
   for (const number of Array.from(Array(numberOfDocuments).keys())) {
     const document = {
       Recno: 123456 + number,

@@ -112,9 +112,11 @@ export const fintSchool = async (schoolNumber: string): Promise<FintSchool | nul
   if (!identifier) {
     throw new Error('Missing required parameter "schoolNumber"')
   }
+
   if (MOCK_API === "true") {
     await sleep(1000)
     return mockSchool
   }
+
   return fetchFint<FintSchool>(`/school/skolenummer/${encodeURIComponent(identifier)}?includeStudentSsn=true`)
 }

@@ -8,8 +8,10 @@ export const readJsonBody = async (request: Request): Promise<Record<string, unk
   } catch {
     throw error(400, "Forespørselen må ha en gyldig JSON-body.")
   }
+
   if (typeof body !== "object" || body === null || Array.isArray(body)) {
     throw error(400, "Forespørselen må ha et JSON-objekt som body.")
   }
+
   return body as Record<string, unknown>
 }

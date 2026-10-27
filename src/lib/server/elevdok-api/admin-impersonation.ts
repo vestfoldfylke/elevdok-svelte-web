@@ -23,6 +23,7 @@ const isGuid = (value: string) => {
 
 export const getAdminImpersonation = (user: Pick<User, "principalId" | "hasAdminRole">): Impersonation | null => {
   requireAdminRole(user)
+
   const internalCache = getInternalCache()
   const impersonation = internalCache.get<Impersonation>(`${user.principalId}-impersonation`)
   return impersonation || null
@@ -33,15 +34,19 @@ export const setAdminImpersonation = async (user: User, target: string, type: Im
   if (!target.endsWith(`@${FEIDENAVN_SUFFIX}`) && !isGuid(target)) {
     throw error(400, `Brukeren du vil logge inn som må ende på @${FEIDENAVN_SUFFIX} eller være en guid.`)
   }
+
   const internalCache = getInternalCache()
   internalCache.set(`${user.principalId}-impersonation`, { target, type })
   // warn, not info: impersonation is legitimate, but should be easy to spot
   logger.warn("Admin is impersonating {ImpersonationTarget} as {ImpersonationType}, saving an impersonation log entry", target, type)
+
   if (MOCK_API === "true") {
     return
   }
+
   const mongoClient = await getMongoClient()
   const collection = mongoClient.db(MONGODB_DB_NAME).collection<ImpersonationLogEntry>(MONGODB_USER_IMPERSONATION_COLLECTION)
+
   const logEntry: ImpersonationLogEntry = {
     timestamp: new Date().toISOString(),
     user: {
@@ -57,6 +62,7 @@ export const setAdminImpersonation = async (user: User, target: string, type: Im
 
 export const deleteAdminImpersonation = (user: User): void => {
   requireAdminRole(user)
+
   const internalCache = getInternalCache()
   internalCache.delete(`${user.principalId}-impersonation`)
 }

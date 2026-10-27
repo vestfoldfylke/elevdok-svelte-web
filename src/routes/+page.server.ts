@@ -8,6 +8,7 @@ export const actions: Actions = {
     if (!requestedRole || typeof requestedRole !== "string") {
       throw error(400, 'Mangler rollen du vil bytte til ("active_role").')
     }
+
     await setActiveRole(event.locals.user, requestedRole)
     throw redirect(303, "/")
   }

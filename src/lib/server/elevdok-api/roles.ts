@@ -18,6 +18,7 @@ export const getActiveRole = async (principalId: string): Promise<string | null>
     const activeRole = mockDb.get<string>("activeRole")
     return activeRole || null
   }
+
   const mongoClient = await getMongoClient()
   const collection = mongoClient.db(MONGODB_DB_NAME).collection<UserSettings>(MONGODB_USER_SETTINGS_COLLECTION)
   const userSettings = await collection.findOne({ principalId })
@@ -33,6 +34,7 @@ export const setActiveRole = async (user: User, requestedRole: string): Promise<
     logger.warn("User does not have the role {RequestedRole}", requestedRole)
     throw error(403, `Du har ikke rollen "${requestedRole}", så du kan ikke bytte til den.`)
   }
+
   logger.info("User has the role {RequestedRole}, changing active role", requestedRole)
   if (MOCK_API === "true") {
     const mockDb = getMockDb()
@@ -40,6 +42,7 @@ export const setActiveRole = async (user: User, requestedRole: string): Promise<
     logger.info("MOCK_API is enabled: changed active role to {RequestedRole} in mock db", requestedRole)
     return
   }
+
   const mongoClient = await getMongoClient()
   const collection = mongoClient.db(MONGODB_DB_NAME).collection<UserSettings>(MONGODB_USER_SETTINGS_COLLECTION)
   await collection.findOneAndUpdate(

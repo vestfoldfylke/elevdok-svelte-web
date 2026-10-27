@@ -19,6 +19,7 @@ export const getFile = async (user: User, studentFeidenavn: string, sourceId: st
   if (!fileId) {
     throw new Error('Missing required parameter "fileId"')
   }
+
   logger.info("Getting file {FileId} from source {SourceId} for student {StudentFeidenavn}", fileId, sourceId, studentFeidenavn)
 
   const teacherStudent = await requireStudentAccess(user, studentFeidenavn)
@@ -60,10 +61,12 @@ export const getFile = async (user: User, studentFeidenavn: string, sourceId: st
   } else if (VTFK_ARCHIVE_ENABLED === "true" && sourceId === "vtfk") {
     // implement
   }
+
   if (!result.base64 || !result.metadata) {
     logger.warn("No file fetched: source {SourceId} is unknown or not implemented", sourceId)
     throw error(404, `Kan ikke hente filer fra kilden "${sourceId}": kilden er ukjent eller ikke støttet ennå.`)
   }
+
   const logData = {
     user,
     teacherStudent,

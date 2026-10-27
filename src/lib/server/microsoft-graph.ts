@@ -54,16 +54,19 @@ const graphUrl = "https://graph.microsoft.com/v1.0"
 const fetchAllGraphPages = async <T>(firstPageUrl: string): Promise<T[]> => {
   const items: T[] = []
   let pageUrl: string | undefined = firstPageUrl
+
   while (pageUrl) {
     // Graph requires ConsistencyLevel for $count queries
     const page: GraphPage<T> = await fetchJsonWithMsalToken<GraphPage<T>>(pageUrl, { scope: graphScope, headers: { ConsistencyLevel: "eventual" } })
     items.push(...page.value)
     pageUrl = page["@odata.nextLink"]
+
     // The next page is fetched with our Graph token, so it must never point anywhere else
     if (pageUrl && !pageUrl.startsWith(`${graphUrl}/`)) {
       throw new Error(`Graph returned an @odata.nextLink outside ${graphUrl} (${pageUrl}). Refusing to send the Graph token there.`)
     }
   }
+
   return items
 }
 
@@ -88,6 +91,7 @@ export const getAllLeaderUsers = async (appId: string): Promise<LeaderUser[]> =>
   Skolen hentes fra gruppas navn, og vi kan slenge på skolenummer og navn på skolen fra vtfk-schools info. Merk at gruppas navn må matche et eller annet i vtfk-schools - tipper kortnavn
   Vi kan expande appRoleAssignment med upn siden alle brukerne ligger i en gruppe, og vi må hente de fra gruppa
   */
+
   const cacheKey = "all-leader-users"
   const internalCache = getInternalCache()
   const cachedData = internalCache.get<LeaderUser[]>(cacheKey)
@@ -136,6 +140,7 @@ export const getAllLeaderUsers = async (appId: string): Promise<LeaderUser[]> =>
         schoolShortName: "MS3"
       }
     ]
+
     // Legg til MOCK auth sin bruker med de rollene den har satt i env
     if (MOCK_AUTH === "true") {
       if (MOCK_AUTH_LEDER_ROLE === "true") {

@@ -48,6 +48,7 @@ const groupByStudentAndSchool = (memberships: StudentMembership[]): StudentWithS
       studentSchool.kontaktlarer = true
     }
   }
+
   return [...studentsByElevnummer.values()]
 }
 

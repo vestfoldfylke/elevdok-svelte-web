@@ -5,6 +5,7 @@ export const assertNoMockFlagsInProduction = (): void => {
   if (NODE_ENV !== "production") {
     return
   }
+
   const enabledMockFlags = Object.entries({ MOCK_API, MOCK_AUTH })
     .filter(([, value]) => value === "true")
     .map(([name]) => name)

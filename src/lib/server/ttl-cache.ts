@@ -24,10 +24,12 @@ export class TtlCache {
     if (!entry) {
       return undefined
     }
+
     if (Date.now() > entry.expiresAt) {
       this.store.delete(key)
       return undefined
     }
+
     return structuredClone(entry.value) as T
   }
 

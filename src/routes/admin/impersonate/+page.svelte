@@ -20,6 +20,7 @@
       errorMessage = "Du må skrive et gyldig brukernavn / epost"
       return
     }
+
     errorMessage = ""
     isLoading = true
     const result = await requestApi("/api/admin/setimpersonation", { method: "POST", body: { target: impersonationTarget, type } })

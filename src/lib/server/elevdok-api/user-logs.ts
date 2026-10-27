@@ -64,6 +64,7 @@ const escapeRegex = (str: string): string => {
 
 export const createUserLogEntry = async (logData: UserLogData): Promise<{ insertedId: string | ObjectId }> => {
   const { user, teacherStudent, accessType, action, file } = logData
+
   if (!action) {
     throw new Error('Missing required parameter "action"')
   }
@@ -111,6 +112,7 @@ export const createUserLogEntry = async (logData: UserLogData): Promise<{ insert
     action,
     file: file || null
   }
+
   if (MOCK_API === "true") {
     const mockDb = getMockDb()
     const randomId = new ObjectId().toString()
@@ -119,6 +121,7 @@ export const createUserLogEntry = async (logData: UserLogData): Promise<{ insert
     logger.info("MOCK_API is true: added log entry {LogEntryId} to mock db", randomId)
     return { insertedId: randomId }
   }
+
   const mongoClient = await getMongoClient()
   const collection = mongoClient.db(MONGODB_DB_NAME).collection<LogEntry>(`${MONGODB_LOGS_COLLECTION}-${getCurrentSchoolYear("-")}`)
   const insertLogResult = await collection.insertOne(logEntry)
@@ -132,6 +135,7 @@ export const logStudentSearch = async (user: User, searchName: string | null): P
   if (!searchName) {
     searchName = ""
   }
+
   if (MOCK_API === "true") {
     const students: LogStudent[] = []
     const mockDb = getMockDb()
@@ -148,12 +152,13 @@ export const logStudentSearch = async (user: User, searchName: string | null): P
         students.push(logElement.student)
       }
     }
+
     logger.info("MOCK_API is true: found {StudentCount} students in mock db", students.length)
     return students
   }
+
   // Get top 50 logs from mongodb
   const mongoClient = await getMongoClient()
-
   const collection = mongoClient.db(MONGODB_DB_NAME).collection<LogEntry>(`${MONGODB_LOGS_COLLECTION}-${getCurrentSchoolYear("-")}`)
 
   const escapedSearchName = escapeRegex(searchName)
@@ -174,6 +179,7 @@ export const logUserSearch = async (user: User, searchName: string | null): Prom
   if (!searchName) {
     searchName = ""
   }
+
   if (MOCK_API === "true") {
     const users: LogEntry["user"][] = []
     const mockDb = getMockDb()
@@ -190,14 +196,15 @@ export const logUserSearch = async (user: User, searchName: string | null): Prom
         users.push(logElement.user)
       }
     }
+
     logger.info("MOCK_API is true: found {UserCount} users in mock db", users.length)
     return users.map((user) => {
       return { name: user.name, principalId: user.principalId, principalName: user.principalName }
     })
   }
+
   // Get top 50 logs from mongodb
   const mongoClient = await getMongoClient()
-
   const collection = mongoClient.db(MONGODB_DB_NAME).collection<LogEntry>(`${MONGODB_LOGS_COLLECTION}-${getCurrentSchoolYear("-")}`)
 
   const escapedSearchName = escapeRegex(searchName)
@@ -216,6 +223,7 @@ export const getUserLogs = async (user: User, filter: LogFilter): Promise<LogEnt
   const { studentNumber, userPrincipalId, documentNumber } = filter
   requireAdminRole(user)
   logger.info("Getting user logs with filter {@Filter}", filter)
+
   if (MOCK_API === "true") {
     let userLogs: MockLogEntry[] = []
     const mockDb = getMockDb()
@@ -244,14 +252,17 @@ export const getUserLogs = async (user: User, filter: LogFilter): Promise<LogEnt
       return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     })
   }
+
   // Get logs from mongodb
   const mongoClient = await getMongoClient()
   const collection = mongoClient.db(MONGODB_DB_NAME).collection<LogEntry>(`${MONGODB_LOGS_COLLECTION}-${getCurrentSchoolYear("-")}`)
+
   if (!studentNumber && !userPrincipalId && !documentNumber) {
     logger.info("No filters applied, returning the 50 most recent log entries")
     const top50 = await collection.find().sort({ _id: -1 }).limit(50).toArray() // sort({_id:-1}) returns newest first
     return top50
   }
+
   const query: Record<string, string> = {}
   if (studentNumber) {
     query["student.elevnummer"] = studentNumber
@@ -262,6 +273,7 @@ export const getUserLogs = async (user: User, filter: LogFilter): Promise<LogEnt
   if (documentNumber) {
     query["file.documentNumber"] = documentNumber
   }
+
   const logs = await collection.find(query).sort({ _id: -1 }).toArray() // sort({_id:-1}) returns newest first
   logger.info("Found {LogEntryCount} log entries", logs.length)
   return logs

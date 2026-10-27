@@ -11,5 +11,6 @@ export const getInternalCache = (): TtlCache => {
     internalCache = new TtlCache(INTERNAL_CACHE_TTL_SECONDS)
     logger.info("Internal cache created")
   }
+
   return internalCache
 }

@@ -12,6 +12,7 @@ export const getMongoClient = async (): Promise<MongoClient> => {
     await client.connect()
     logger.info("MongoDB client connected")
   }
+
   return client
 }
 

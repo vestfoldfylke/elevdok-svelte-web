@@ -33,6 +33,7 @@ export const getAllLeaderAccess = async (user: User): Promise<SchoolAccess[]> =>
     }
     existingSchool.leaders.push({ principalName: leaderUser.principalName, principalId: leaderUser.principalId, displayName: leaderUser.principalDisplayName })
   }
+
   logger.info("Got all leader access for {SchoolCount} schools", schoolAccess.length)
   return schoolAccess
 }
@@ -61,9 +62,7 @@ export const getLeaderAccess = async (user: User): Promise<LeaderUser[]> => {
 
   // OBS, Internal caching in getAllLeaderUsers as well - reset cache if you need newest data
   const leaderUsers = await getAllLeaderUsers(FRONTEND_APP_ID)
-
   const leaderAccess = leaderUsers.filter((leaderUser) => leaderUser.principalId === leaderId || leaderUser.principalName === leaderId)
-
   internalCache.set(cacheKey, leaderAccess)
 
   logger.info(

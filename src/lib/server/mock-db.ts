@@ -11,5 +11,6 @@ export const getMockDb = (): TtlCache => {
     mockDb = new TtlCache(MOCK_DB_TTL_SECONDS)
     logger.info("Mock db created")
   }
+
   return mockDb
 }

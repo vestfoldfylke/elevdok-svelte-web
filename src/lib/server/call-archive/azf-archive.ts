@@ -16,6 +16,7 @@ export const repackP360Document = (document: P360Document, feidenavn: string, so
   if (!Array.isArray(document.Files)) {
     document.Files = []
   }
+
   const repacked = {
     title: document.Title,
     feidenavn,
@@ -51,6 +52,7 @@ export const getAzfArchiveDocuments = async (ssn: string, feidenavn: string): Pr
   if (!ssn || !feidenavn) {
     throw new Error('Missing required parameter "ssn" or "feidenavn"')
   }
+
   // Hent først saksnr for elevmappe(r), deretter dokumentene i elevmappe(ne)
   const result: ArchiveDocumentsResult = {
     documents: [],
@@ -95,6 +97,7 @@ export const getAzfArchiveDocuments = async (ssn: string, feidenavn: string): Pr
       result.errors.push("Fant ingen elevmappe i Public 360")
       return result
     }
+
     for (const archiveCase of cases) {
       caseNumbers.push(archiveCase.CaseNumber)
     }
@@ -102,8 +105,10 @@ export const getAzfArchiveDocuments = async (ssn: string, feidenavn: string): Pr
     logger.errorException(error, "Failed when fetching elevmappe for {StudentFeidenavn}", feidenavn)
     result.errors.push("Feilet ved henting av elevmappe fra arkivet. Prøv igjen senere.")
   }
+
   const allowedDocumentStatuses = ["J", "F", "E", "A"]
   const archiveDocuments: P360Document[] = []
+
   for (const caseNumber of caseNumbers) {
     try {
       const documentsRequest = {
@@ -122,6 +127,7 @@ export const getAzfArchiveDocuments = async (ssn: string, feidenavn: string): Pr
       result.errors.push(`Feilet ved henting av dokumenter for sak ${caseNumber}. Prøv igjen senere.`)
     }
   }
+
   logger.info("Found {DocumentCount} archive documents in {CaseCount} elevmapper for {StudentFeidenavn}", archiveDocuments.length, caseNumbers.length, feidenavn)
   result.documents = archiveDocuments.map((doc) => repackP360Document(doc, feidenavn, "mainArchive", MAIN_SOURCE_NAME))
 
@@ -153,6 +159,7 @@ export const getAzfArchiveFile = async (fileId: string): Promise<ArchiveFileWith
     }
   }
   const file = await callArchive<P360FileWithData>(fileRequest)
+
   return {
     base64: file.Base64Data,
     metadata: {

@@ -18,9 +18,11 @@
   const nextPage = () => {
     currentPage++
   }
+
   const previousPage = () => {
     currentPage--
   }
+
   const gotoPage = (pageNumber: number) => {
     currentPage = pageNumber
   }

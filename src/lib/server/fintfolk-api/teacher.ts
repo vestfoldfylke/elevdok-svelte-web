@@ -592,9 +592,11 @@ export const fintTeacher = async (userPrincipalName: string): Promise<FintTeache
   if (!identifier) {
     throw new Error('Missing required parameter "userPrincipalName"')
   }
+
   if (MOCK_API === "true") {
     await sleep(1000)
     return mockTeacher
   }
+
   return fetchFint<FintTeacher>(`/teacher/upn/${encodeURIComponent(identifier)}?includeStudentSsn=true`)
 }

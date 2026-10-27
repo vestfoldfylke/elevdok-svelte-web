@@ -39,6 +39,7 @@
         addSlashBefore: false
       }
     ]
+
     let currentLink = ""
     for (const part of parts) {
       if (part === "") {
@@ -51,6 +52,7 @@
         addSlashBefore: true
       })
     }
+
     return pathLinks
   }
 

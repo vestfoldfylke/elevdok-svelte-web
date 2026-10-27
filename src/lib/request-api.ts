@@ -7,6 +7,7 @@ type ApiRequestOptions = {
 
 const readErrorMessage = async (response: Response): Promise<string> => {
   const fallbackMessage = `Forespørselen feilet med status ${response.status}. Prøv igjen, eller kontakt support om det fortsetter.`
+
   try {
     const errorBody: unknown = await response.json()
     if (typeof errorBody === "object" && errorBody !== null && "message" in errorBody && typeof errorBody.message === "string") {

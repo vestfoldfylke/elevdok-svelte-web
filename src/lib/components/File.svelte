@@ -19,6 +19,7 @@
   const getFileData = async () => {
     errorMessage = ""
     fileLoading = true
+
     const studentFeidenavnPrefix = document.feidenavn.substring(0, document.feidenavn.indexOf("@"))
     const result = await requestApi<string>(`/api/students/${studentFeidenavnPrefix}/source/${document.source}/file/${file.id}`)
     fileLoading = false
@@ -26,6 +27,7 @@
       errorMessage = `Det oppstod en feil ved henting av fil: ${result.message}`
       return
     }
+
     base64Data = result.value
     displayFile = true
   }

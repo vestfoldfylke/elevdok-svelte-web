@@ -45,6 +45,7 @@ type ClientPrincipal = {
 export const getAuthenticatedUser = async (headers: Headers): Promise<User> => {
   if (MOCK_AUTH === "true") {
     logger.warn("MOCK_AUTH is true: injecting mock App Service authentication headers. This must never happen in production.")
+
     headers.set("x-ms-client-principal-name", `demo.spokelse@${FEIDENAVN_SUFFIX}`)
     headers.set("x-ms-client-principal-id", "12345-4378493-fjdiofjd")
 
@@ -76,6 +77,7 @@ export const getAuthenticatedUser = async (headers: Headers): Promise<User> => {
       name_typ: "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress",
       role_typ: "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
     }
+
     if (MOCK_AUTH_LARER_ROLE === "true") {
       mockClaims.claims.push({
         typ: "roles",
@@ -112,6 +114,7 @@ export const getAuthenticatedUser = async (headers: Headers): Promise<User> => {
   if (!Array.isArray(decodedClaims?.claims)) {
     throw new Error("x-ms-client-principal has no claims array: App Service authentication sent an empty or unexpected principal. Check the authentication settings on the Web App.")
   }
+
   const roles = decodedClaims.claims.filter((claim) => claim.typ === "roles").map((claim) => claim.val)
   const name = decodedClaims.claims.find((claim) => claim.typ === "name")?.val
   const audience = decodedClaims.claims.find((claim) => claim.typ === "aud")?.val
@@ -124,6 +127,7 @@ export const getAuthenticatedUser = async (headers: Headers): Promise<User> => {
   if (!firstRole) {
     throw error(403, "Du har ingen roller i ElevDok. Kontakt servicedesk om du skal ha tilgang.")
   }
+
   if (roles.length > 1) {
     // Check in db for activeRole for principalId (save principalName as well)
     const activeDbRole = await getActiveRole(principalId)
@@ -161,6 +165,7 @@ export const getAuthenticatedUser = async (headers: Headers): Promise<User> => {
     if (!roleName) {
       throw new Error(`Role "${role}" from Entra ID has no display name: it is not DEFAULT_ROLE, LEDER_ROLE or ADMIN_ROLE. Check the app roles of the app registration against those settings.`)
     }
+
     return {
       value: role,
       roleName

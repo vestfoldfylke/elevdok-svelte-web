@@ -14,5 +14,6 @@ export const fetchJson = async <T>(url: string, init: RequestInit = {}): Promise
   if (!response.ok) {
     throw new UpstreamRequestError(url, response.status, await response.text())
   }
+
   return (await response.json()) as T
 }

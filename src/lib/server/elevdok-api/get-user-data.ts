@@ -28,6 +28,7 @@ const getSchoolYearFromDate = (date: Date, delimiter = "/"): string => {
   const previousYear = year - 1
   const nextYear = year + 1
   const midsommar = new Date(`${year}-07-15`)
+
   if (date > midsommar) {
     return `${year}${delimiter}${nextYear}`
   }
@@ -50,6 +51,7 @@ export const repackMiniSchool = (school: FintSkole): MiniSchool => {
   if (!school.skolenummer) {
     throw new Error("Could not find schoolNumber for school in FINT!")
   }
+
   // Sjekker om skolen har et kortnavn, hvis ikke slår vi opp i vtfk-schools-info for å finne det basert på skolenummer
   if (!school.kortnavn) {
     const schoolsInfo = vtfkSchoolsInfo({ schoolNumber: school.skolenummer })
@@ -63,6 +65,7 @@ export const repackMiniSchool = (school: FintSkole): MiniSchool => {
       throw new Error(`Could not find school with schoolNumber "${school.skolenummer}" in vtfk-schools-info!`)
     }
   }
+
   const kortkortnavn = school.kortnavn.includes("-") ? school.kortnavn.substring(school.kortnavn.indexOf("-") + 1) : school.kortnavn
   return {
     kortkortnavn,
@@ -160,6 +163,7 @@ export const getUserData = async (user: User, maskSsn = true): Promise<UserData>
         if (invalid.undervisningsgrupper.some((gruppe) => Array.isArray(gruppe.elever) && gruppe.elever.length > 0)) {
           hasElever = true
         }
+
         if (hasElever) {
           logger.warn(
             "Teacher has undervisningsforhold {UndervisningsforholdSystemId} with description {Beskrivelse}, which does not give access to its students",
@@ -188,6 +192,7 @@ export const getUserData = async (user: User, maskSsn = true): Promise<UserData>
         })
       return [...basisgruppeMemberships, ...undervisningsgruppeMemberships]
     })
+
     const { students, skippedElevnummer } = buildStudentList(memberships, { maskSsn, isIopEnabled: IOP_FAGLARER_ACCESS_ENABLED === "true" })
     logSkippedStudents(skippedElevnummer)
     userData.students = students
@@ -233,6 +238,7 @@ export const getUserData = async (user: User, maskSsn = true): Promise<UserData>
         memberships.push(...basisgruppe.elever.map((elev) => ({ elev, school: miniSchool, klasse })))
       }
     }
+
     // IOP gives subject teachers access, leaders have access to all students at their schools anyway
     const { students, skippedElevnummer } = buildStudentList(memberships, { maskSsn, isIopEnabled: false })
     logSkippedStudents(skippedElevnummer)

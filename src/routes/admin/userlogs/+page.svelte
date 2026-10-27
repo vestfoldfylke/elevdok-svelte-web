@@ -77,6 +77,7 @@
   const getLogElements = async () => {
     errorMessage = ""
     loading = true
+
     const filter = new URLSearchParams()
     if (selectedStudent) {
       filter.set("student_number", selectedStudent.elevnummer)
@@ -87,6 +88,7 @@
     if (selectedDocumentNumber) {
       filter.set("document_number", selectedDocumentNumber)
     }
+
     const result = await requestApi<LogElement[]>(`/api/admin/logentries?${filter}`)
     if (result.ok) {
       logElements = result.value

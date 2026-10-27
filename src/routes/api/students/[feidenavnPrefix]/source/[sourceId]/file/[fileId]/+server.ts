@@ -6,6 +6,7 @@ export const GET: RequestHandler = async ({ locals, params }) => {
   const studentFeidenavn = `${params.feidenavnPrefix}@${FEIDENAVN_SUFFIX}`
   const sourceId = params.sourceId
   const fileId = params.fileId
+
   const base64 = await getFile(locals.user, studentFeidenavn, sourceId, fileId)
   return Response.json(base64)
 }

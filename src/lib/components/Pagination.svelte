@@ -34,6 +34,7 @@
     if (numberOfPages <= maxPageNumbers) {
       return allPages
     }
+
     const createWindowLimit = Math.ceil(maxPageNumbers / 2) // If max 11 => 5 allowed neighbouring numbers, always want 11 total
     if (currentPage < createWindowLimit) {
       return [...allPages.slice(0, maxPageNumbers - 2), "...", allPages.length - 1]
@@ -41,6 +42,7 @@
     if (currentPage > allPages.length - 1 - createWindowLimit) {
       return [0, "...", ...allPages.slice(allPages.length - maxPageNumbers + 2, allPages.length)]
     }
+
     const neighborsToTheLeft = (maxPageNumbers - 4 - 1) / 2 // One for each of the 0, '...', '...', '', allPages.length-1 below, and one for the current page itself, divided by two (neighbors on each side)
     const neighborsToTheRight = neighborsToTheLeft + 1 // slice not including last index
     return [0, "...", ...allPages.slice(currentPage - neighborsToTheLeft, currentPage + neighborsToTheRight), "...", allPages.length - 1]

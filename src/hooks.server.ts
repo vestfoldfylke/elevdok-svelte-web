@@ -32,9 +32,11 @@ export const handleError: HandleServerError = ({ kind, error, event }) => {
   if (kind !== "unknown") {
     return
   }
+
   // The request's contextId, so support can find every log line for the request
   const errorId = getLogContext()?.contextId ?? crypto.randomUUID()
   logger.errorException(error, "{Method} {Path} failed with error id {ErrorId}", event.request.method, event.url.pathname, errorId)
+
   // The id is part of the message, because the fallback error page (error.html) only shows status and message
   return { message: `Noe gikk galt. Prøv igjen, og kontakt support med feil-id ${errorId} om det fortsetter.` }
 }
