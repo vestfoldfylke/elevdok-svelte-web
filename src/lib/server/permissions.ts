@@ -5,27 +5,27 @@ import type { User } from "./authentication.js"
 import type { TeacherStudent } from "./elevdok-api/get-user-data.js"
 
 export type FileAccess = {
-  access: boolean
+  hasAccess: boolean
   type: "leader" | "kontaktlarer" | "faglarer" | "iop" | "ingen filtilgang"
 }
 
-export const hasFileAccessForStudent = (user: User, teacherStudent: TeacherStudent): FileAccess => {
+export const getFileAccessForStudent = (user: User, teacherStudent: TeacherStudent): FileAccess => {
   if (getEffectiveRole(user) === "leder") {
     logger.info("File access to {StudentFeidenavn}: leader", teacherStudent.feidenavn)
-    return { access: true, type: "leader" }
+    return { hasAccess: true, type: "leader" }
   }
   if (teacherStudent.skoler.some((school) => school.kontaktlarer)) {
     logger.info("File access to {StudentFeidenavn}: contact teacher", teacherStudent.feidenavn)
-    return { access: true, type: "kontaktlarer" }
+    return { hasAccess: true, type: "kontaktlarer" }
   }
   if (FAGLARER_ACCESS_ENABLED === "true") {
     logger.info("File access to {StudentFeidenavn}: subject teacher (FAGLARER_ACCESS_ENABLED is true)", teacherStudent.feidenavn)
-    return { access: true, type: "faglarer" }
+    return { hasAccess: true, type: "faglarer" }
   }
   if (IOP_FAGLARER_ACCESS_ENABLED === "true" && teacherStudent.skoler.some((school) => school.iop)) {
     logger.info("File access to {StudentFeidenavn}: IOP teacher (IOP_FAGLARER_ACCESS_ENABLED is true)", teacherStudent.feidenavn)
-    return { access: true, type: "iop" }
+    return { hasAccess: true, type: "iop" }
   }
   logger.info("No file access to {StudentFeidenavn}", teacherStudent.feidenavn)
-  return { access: false, type: "ingen filtilgang" }
+  return { hasAccess: false, type: "ingen filtilgang" }
 }

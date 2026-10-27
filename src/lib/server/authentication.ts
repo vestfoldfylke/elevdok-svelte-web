@@ -104,20 +104,20 @@ export const getAuthenticatedUser = async (headers: Headers): Promise<User> => {
   // Get MS Auth headers (https://learn.microsoft.com/en-us/azure/app-service/configure-authentication-user-identities)
   const principalName = headers.get("x-ms-client-principal-name")
   const principalId = headers.get("x-ms-client-principal-id")
-  const encodedClaims = headers.get("x-ms-client-principal")
+  const encodedClientPrincipal = headers.get("x-ms-client-principal")
 
-  if (!principalName || !principalId || !encodedClaims) {
+  if (!principalName || !principalId || !encodedClientPrincipal) {
     throw new Error("Missing x-ms-client-principal headers: the request did not pass App Service authentication. Check that authentication is enabled and requires login on the Web App.")
   }
 
-  const decodedClaims: ClientPrincipal | null = JSON.parse(Buffer.from(encodedClaims, "base64").toString())
-  if (!Array.isArray(decodedClaims?.claims)) {
+  const clientPrincipal: ClientPrincipal | null = JSON.parse(Buffer.from(encodedClientPrincipal, "base64").toString())
+  if (!Array.isArray(clientPrincipal?.claims)) {
     throw new Error("x-ms-client-principal has no claims array: App Service authentication sent an empty or unexpected principal. Check the authentication settings on the Web App.")
   }
 
-  const roles = decodedClaims.claims.filter((claim) => claim.typ === "roles").map((claim) => claim.val)
-  const name = decodedClaims.claims.find((claim) => claim.typ === "name")?.val
-  const audience = decodedClaims.claims.find((claim) => claim.typ === "aud")?.val
+  const roles = clientPrincipal.claims.filter((claim) => claim.typ === "roles").map((claim) => claim.val)
+  const name = clientPrincipal.claims.find((claim) => claim.typ === "name")?.val
+  const audience = clientPrincipal.claims.find((claim) => claim.typ === "aud")?.val
   if (!name || !audience) {
     throw new Error("Missing 'name' or 'aud' claim in x-ms-client-principal: App Service authentication must issue both. Check the token configuration of the app registration.")
   }

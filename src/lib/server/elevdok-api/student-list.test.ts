@@ -10,7 +10,7 @@ const basisgruppe: ElevKlasse = { navn: "2BU", type: "basisgruppe", systemId: "1
 const kroppsoving: ElevKlasse = { navn: "2PI/KRO1018", type: "undervisningsgruppe", systemId: "12041923", fag: [{ systemId: { identifikatorverdi: "KRO1018" } }] }
 const iopGruppe: ElevKlasse = { navn: "1ALA/IOP4000/1", type: "undervisningsgruppe", systemId: "120419277", fag: [{ systemId: { identifikatorverdi: "IOP4000" } }] }
 
-const noMaskNoIop = { maskSsn: false, isIopEnabled: false }
+const noMaskNoIop = { shouldMaskSsn: false, isIopEnabled: false }
 
 const createElev = (overrides: Partial<FintGruppeElev> = {}): FintGruppeElev => ({
   navn: "Frodo Baggins",
@@ -85,7 +85,7 @@ describe("buildStudentList", () => {
   })
 
   it("masks all but the first six digits of the ssn when asked", () => {
-    const { students } = buildStudentList([membership(mordor, basisgruppe)], { maskSsn: true, isIopEnabled: false })
+    const { students } = buildStudentList([membership(mordor, basisgruppe)], { shouldMaskSsn: true, isIopEnabled: false })
 
     assert.equal(students[0]?.fodselsnummer, "123456*****")
   })
@@ -103,7 +103,7 @@ describe("buildStudentList", () => {
   })
 
   it("marks only the schools with an IOP course when IOP is enabled", () => {
-    const { students } = buildStudentList([membership(mordor, basisgruppe), membership(hobbiton, iopGruppe)], { maskSsn: false, isIopEnabled: true })
+    const { students } = buildStudentList([membership(mordor, basisgruppe), membership(hobbiton, iopGruppe)], { shouldMaskSsn: false, isIopEnabled: true })
 
     assert.deepEqual(
       students[0]?.skoler.map((school) => school.iop),

@@ -11,7 +11,7 @@ export const requireStudentAccess = async (user: User, studentFeidenavn: string)
     throw error(403, "Rollen din gir ikke tilgang til elevdokumenter. Bytt rolle i brukermenyen om du har flere roller.")
   }
 
-  const userData = await getUserData(user, false)
+  const userData = await getUserData(user, { shouldMaskSsn: false })
   const teacherStudent = userData.students.find((student) => student.feidenavn === studentFeidenavn)
   if (!teacherStudent) {
     logger.warn("No access to student {StudentFeidenavn}, or the student does not exist", studentFeidenavn)

@@ -87,9 +87,9 @@ export const getAzfArchiveDocuments = async (ssn: string, feidenavn: string): Pr
     const allowedCaseStatuses = ["Under behandling", "Avsluttet"]
     const allowedAccessGroups = ["VFK Robot", "TFK Robot"]
     const cases = allCases.filter((archiveCase) => {
-      const allowedStatus = allowedCaseStatuses.includes(archiveCase.Status)
-      const allowedAccessGroup = allowedAccessGroups.includes(archiveCase.AccessGroup)
-      return allowedStatus && allowedAccessGroup
+      const hasAllowedStatus = allowedCaseStatuses.includes(archiveCase.Status)
+      const hasAllowedAccessGroup = allowedAccessGroups.includes(archiveCase.AccessGroup)
+      return hasAllowedStatus && hasAllowedAccessGroup
     })
 
     if (cases.length === 0) {
@@ -119,7 +119,7 @@ export const getAzfArchiveDocuments = async (ssn: string, feidenavn: string): Pr
         }
       }
       const allCaseDocuments = await callArchive<P360Document[]>(documentsRequest)
-      const caseDocuments = allCaseDocuments.filter((doc) => allowedDocumentStatuses.includes(doc.StatusCode))
+      const caseDocuments = allCaseDocuments.filter((document) => allowedDocumentStatuses.includes(document.StatusCode))
 
       archiveDocuments.push(...caseDocuments)
     } catch (error) {
@@ -129,7 +129,7 @@ export const getAzfArchiveDocuments = async (ssn: string, feidenavn: string): Pr
   }
 
   logger.info("Found {DocumentCount} archive documents in {CaseCount} elevmapper for {StudentFeidenavn}", archiveDocuments.length, caseNumbers.length, feidenavn)
-  result.documents = archiveDocuments.map((doc) => repackP360Document(doc, feidenavn, "mainArchive", MAIN_SOURCE_NAME))
+  result.documents = archiveDocuments.map((document) => repackP360Document(document, feidenavn, "mainArchive", MAIN_SOURCE_NAME))
 
   // Cache the result for 10 minutes
   internalCache.set(cacheKey, result, 600)
@@ -145,7 +145,7 @@ type ArchiveFileWithData = {
   }
 }
 
-export const getAzfArchiveFile = async (fileId: string): Promise<ArchiveFileWithData> => {
+export const fetchAzfArchiveFile = async (fileId: string): Promise<ArchiveFileWithData> => {
   if (!fileId) {
     throw new Error('Missing required parameter "fileId"')
   }

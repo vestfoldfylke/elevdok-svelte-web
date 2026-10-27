@@ -28,11 +28,11 @@
   }
 
   const matchesSearch = (student: TeacherStudent, searchValue: string): boolean => {
-    const sv = searchValue.toLowerCase()
+    const normalizedSearch = searchValue.toLowerCase()
     return (
-      student.navn.toLowerCase().startsWith(sv) ||
-      student.etternavn.toLowerCase().startsWith(sv) ||
-      student.skoler.some((school) => school.klasser.some((group) => group.navn.toLowerCase().includes(sv)))
+      student.navn.toLowerCase().startsWith(normalizedSearch) ||
+      student.etternavn.toLowerCase().startsWith(normalizedSearch) ||
+      student.skoler.some((school) => school.klasser.some((group) => group.navn.toLowerCase().includes(normalizedSearch)))
     )
   }
 

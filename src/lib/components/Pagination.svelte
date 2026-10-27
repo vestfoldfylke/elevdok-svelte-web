@@ -35,11 +35,11 @@
       return allPages
     }
 
-    const createWindowLimit = Math.ceil(maxPageNumbers / 2) // If max 11 => 5 allowed neighbouring numbers, always want 11 total
-    if (currentPage < createWindowLimit) {
+    const windowEdgeThreshold = Math.ceil(maxPageNumbers / 2) // If max 11 => 5 allowed neighbouring numbers, always want 11 total
+    if (currentPage < windowEdgeThreshold) {
       return [...allPages.slice(0, maxPageNumbers - 2), "...", allPages.length - 1]
     }
-    if (currentPage > allPages.length - 1 - createWindowLimit) {
+    if (currentPage > allPages.length - 1 - windowEdgeThreshold) {
       return [0, "...", ...allPages.slice(allPages.length - maxPageNumbers + 2, allPages.length)]
     }
 

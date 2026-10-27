@@ -9,7 +9,7 @@ export type StudentMembership = {
 }
 
 type StudentListOptions = {
-  maskSsn: boolean
+  shouldMaskSsn: boolean
   isIopEnabled: boolean
 }
 
@@ -57,13 +57,13 @@ const hasIopCourse = (school: ElevSkole): boolean => {
 }
 
 /** Groups the memberships per student and school, drops students without feidenavn, masks the ssn when asked, marks IOP schools when enabled, adds feidenavnPrefix and sorts by name */
-export const buildStudentList = (memberships: StudentMembership[], { maskSsn, isIopEnabled }: StudentListOptions): StudentList => {
+export const buildStudentList = (memberships: StudentMembership[], { shouldMaskSsn, isIopEnabled }: StudentListOptions): StudentList => {
   const groupedStudents = groupByStudentAndSchool(memberships)
   const skippedElevnummer = groupedStudents.filter((student) => !student.feidenavn).map((student) => student.elevnummer)
   const studentsWithFeidenavn = groupedStudents.filter((student): student is StudentWithSchools & { feidenavn: string } => Boolean(student.feidenavn))
 
   const students: TeacherStudent[] = studentsWithFeidenavn.map((student) => {
-    if (maskSsn) {
+    if (shouldMaskSsn) {
       student.fodselsnummer = `${student.fodselsnummer.substring(0, 6)}*****`
     }
     // kontaktlarer belongs to each school on the student, not to the student

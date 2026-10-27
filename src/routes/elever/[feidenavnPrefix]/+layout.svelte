@@ -10,7 +10,7 @@
 
   let { data, children }: Props = $props()
 
-  const student = $derived((data.students ?? []).find((stud) => stud.feidenavnPrefix === page.params.feidenavnPrefix))
+  const student = $derived((data.students ?? []).find((teacherStudent) => teacherStudent.feidenavnPrefix === page.params.feidenavnPrefix))
 </script>
 
 {#if !student}

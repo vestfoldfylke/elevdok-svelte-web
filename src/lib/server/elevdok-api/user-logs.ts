@@ -129,7 +129,7 @@ export const createUserLogEntry = async (logData: UserLogData): Promise<{ insert
   return insertLogResult
 }
 
-export const logStudentSearch = async (user: User, searchName: string | null): Promise<LogStudent[]> => {
+export const searchLoggedStudents = async (user: User, searchName: string | null): Promise<LogStudent[]> => {
   requireAdminRole(user)
   logger.info("Searching log students by name {SearchName}", searchName)
   if (!searchName) {
@@ -173,7 +173,7 @@ export const logStudentSearch = async (user: User, searchName: string | null): P
   return distinctStudents.map((student) => student._id)
 }
 
-export const logUserSearch = async (user: User, searchName: string | null): Promise<LogUser[]> => {
+export const searchLoggedUsers = async (user: User, searchName: string | null): Promise<LogUser[]> => {
   requireAdminRole(user)
   logger.info("Searching log users by name {SearchName}", searchName)
   if (!searchName) {
@@ -259,8 +259,8 @@ export const getUserLogs = async (user: User, filter: LogFilter): Promise<LogEnt
 
   if (!studentNumber && !userPrincipalId && !documentNumber) {
     logger.info("No filters applied, returning the 50 most recent log entries")
-    const top50 = await collection.find().sort({ _id: -1 }).limit(50).toArray() // sort({_id:-1}) returns newest first
-    return top50
+    const latestLogEntries = await collection.find().sort({ _id: -1 }).limit(50).toArray() // sort({_id:-1}) returns newest first
+    return latestLogEntries
   }
 
   const query: Record<string, string> = {}

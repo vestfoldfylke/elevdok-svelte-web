@@ -17,7 +17,7 @@
 
   let previewModal: HTMLDialogElement | undefined = $state()
 
-  const b64toBlob = async (base64: string | undefined, type = "application/octet-stream"): Promise<Blob> => {
+  const convertBase64ToBlob = async (base64: string | undefined, type = "application/octet-stream"): Promise<Blob> => {
     return (await fetch(`data:${type};base64,${base64}`)).blob()
   }
 
@@ -39,7 +39,7 @@
     </div>
     <div class="rawData">
       {#if showPdf}
-        {#await b64toBlob(base64Data, 'application/pdf')}
+        {#await convertBase64ToBlob(base64Data, 'application/pdf')}
           Laster pdf...
         {:then blobResponse}
             <object aria-label="PDF viewer" class="pdf-preview" data='{URL.createObjectURL(blobResponse)}#toolbar=0&navpanes=0&zoom=100'>

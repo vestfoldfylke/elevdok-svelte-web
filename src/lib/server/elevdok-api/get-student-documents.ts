@@ -4,7 +4,7 @@ import { getAzfArchiveDocuments } from "#lib/server/call-archive/azf-archive.js"
 import { getMockDocuments } from "#lib/server/call-archive/mock-data.js"
 import type { ArchiveDocument, ArchiveDocumentsResult, ArchiveFile } from "#lib/server/call-archive/types.js"
 import { requireStudentAccess } from "#lib/server/guards/require-student-access.js"
-import { hasFileAccessForStudent } from "#lib/server/permissions.js"
+import { getFileAccessForStudent } from "#lib/server/permissions.js"
 import { MOCK_API } from "$app/env/private"
 import { createUserLogEntry } from "./user-logs.js"
 
@@ -50,14 +50,14 @@ export const getStudentDocuments = async (user: User, studentFeidenavn: string):
     // To be implemented
   }
 
-  const { access, type } = hasFileAccessForStudent(user, teacherStudent)
-  const documents: StudentDocument[] = result.documents.map((doc) => {
+  const { hasAccess, type } = getFileAccessForStudent(user, teacherStudent)
+  const documents: StudentDocument[] = result.documents.map((document) => {
     return {
-      ...doc,
-      files: doc.files.map((file) => {
+      ...document,
+      files: document.files.map((file) => {
         return {
           ...file,
-          canView: access
+          canView: hasAccess
         }
       })
     }

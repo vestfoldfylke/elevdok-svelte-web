@@ -24,11 +24,11 @@ const statusCodes = ["J", "F", "E", "A"]
 const documentArchives = ["Elevdokument", "Sensitivt elevdokument"]
 const fileFormats = ["PDF", "pdf", "xlsx", "DOCX"]
 
-const randomValue = <T>(list: T[]): T => {
-  const randomNumber = Math.floor(Math.random() * list.length)
-  const value = list[randomNumber]
+const pickRandom = <T>(list: T[]): T => {
+  const randomIndex = Math.floor(Math.random() * list.length)
+  const value = list[randomIndex]
   if (value === undefined) {
-    throw new Error("randomValue: the list is empty, there is nothing to pick from")
+    throw new Error("pickRandom: the list is empty, there is nothing to pick from")
   }
 
   return value
@@ -43,12 +43,12 @@ export const getMockDocuments = (teacherStudent: { feidenavn: string }, numberOf
       DocumentNumber: `24/12345-${number}`,
       CaseNumber: "24/12345",
       CaseExternalId: null,
-      Title: `${randomValue(randomOfficialTitles)} - Elev Elevesen`,
+      Title: `${pickRandom(randomOfficialTitles)} - Elev Elevesen`,
       DocumentDate: "2024-08-14T00:00:00",
       JournalDate: null,
-      Category: randomValue(categories),
-      Type: randomValue(categories),
-      StatusCode: randomValue(statusCodes),
+      Category: pickRandom(categories),
+      Type: pickRandom(categories),
+      StatusCode: pickRandom(statusCodes),
       StatusDescription: "Reservert eller journalført eller hva søren",
       AccessCodeDescription: "Offl § 13 taushetsplikt",
       AccessCodeCode: "13",
@@ -107,8 +107,8 @@ export const getMockDocuments = (teacherStudent: { feidenavn: string }, numberOf
       Files: [
         {
           Recno: 411732,
-          Title: `${randomValue(randomOfficialTitles)} - Elev Elevesen`,
-          Format: randomValue(fileFormats),
+          Title: `${pickRandom(randomOfficialTitles)} - Elev Elevesen`,
+          Format: pickRandom(fileFormats),
           Base64Data: null,
           URL: "https://mordor.no",
           RelationTypeDescription: "Hoveddokument",
@@ -142,8 +142,8 @@ export const getMockDocuments = (teacherStudent: { feidenavn: string }, numberOf
         },
         {
           Recno: 411732,
-          Title: `${randomValue(randomOfficialTitles)} - Elev Elevesen`,
-          Format: randomValue(fileFormats),
+          Title: `${pickRandom(randomOfficialTitles)} - Elev Elevesen`,
+          Format: pickRandom(fileFormats),
           Base64Data: null,
           URL: "https://mordor.no",
           RelationTypeDescription: "Vedlegg",
@@ -179,16 +179,16 @@ export const getMockDocuments = (teacherStudent: { feidenavn: string }, numberOf
       Remarks: null,
       ReferringCases: null,
       ReferringDocuments: null,
-      OfficialTitle: randomValue(randomOfficialTitles),
-      CreatedDate: `2024-08-${randomValue(["01", "31", "12", "11", "17", "22"])}`,
+      OfficialTitle: pickRandom(randomOfficialTitles),
+      CreatedDate: `2024-08-${pickRandom(["01", "31", "12", "11", "17", "22"])}`,
       CaseRecno: "231691",
       LastChangedDate: "2024-08-14 12:11:29",
       CustomFields: null,
       DocumentRowPermissions: null,
       DocumentArchive: {
         Recno: 200005,
-        Code: randomValue(documentArchives),
-        Description: randomValue(documentArchives)
+        Code: pickRandom(documentArchives),
+        Description: pickRandom(documentArchives)
       },
       SubArchive: null,
       URL: "blablabla",

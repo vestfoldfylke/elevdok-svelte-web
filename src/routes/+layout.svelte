@@ -17,8 +17,8 @@
 
   let { data, children }: Props = $props()
 
-  let showUsermenu = $state(false)
-  let showUndervisningsgruppeWarning = $state(true)
+  let isUserMenuOpen = $state(false)
+  let isUndervisningsgruppeWarningVisible = $state(true)
 
   const isActiveRoute = (route: string, currentRoute: string): boolean => {
     if (currentRoute === route) {
@@ -133,10 +133,10 @@
           <span style="font-size: var(--font-size-small);">{data.user.roles.find(role => role.value === data.user.activeRole)?.roleName} {data.user.impersonating ? `( ${data.user.impersonating.type} )` : ''}</span>
         </div>
         <!-- Note the position: relative style -->
-        <button class="action{showUsermenu ? ' cheatActive' : ''}" onclick={() => {showUsermenu = !showUsermenu}} use:clickOutside onclick_outside={() => {showUsermenu = false}}>
+        <button class="action{isUserMenuOpen ? ' cheatActive' : ''}" onclick={() => {isUserMenuOpen = !isUserMenuOpen}} use:clickOutside onclick_outside={() => {isUserMenuOpen = false}}>
           <span class="material-symbols-outlined">more_vert</span>
         </button>
-        <div class="userMenu{!showUsermenu ? ' hidden' : ''}">
+        <div class="userMenu{!isUserMenuOpen ? ' hidden' : ''}">
           {#each getAvailableRoles(data.user.roles, data.user.activeRole) as availableRole}
             <form method="POST" action="/?/changeActiveRole">
               <input type="hidden" value="{availableRole.value}" name="active_role" />
@@ -159,11 +159,11 @@
     </div>
 
     <!-- WARNINGS -->
-    {#if Array.isArray(data.invalidUndervisningsforhold) && data.invalidUndervisningsforhold.length > 0 && Array.isArray(data.students) && data.students.length === 0 && showUndervisningsgruppeWarning}
+    {#if Array.isArray(data.invalidUndervisningsforhold) && data.invalidUndervisningsforhold.length > 0 && Array.isArray(data.students) && data.students.length === 0 && isUndervisningsgruppeWarningVisible}
       <div class="warning-box">
         <div style="display:flex;justify-content:space-between;">
           <h4>Advarsel</h4>
-          <button class="link" onclick={() => {showUndervisningsgruppeWarning = false}}>Lukk</button>
+          <button class="link" onclick={() => {isUndervisningsgruppeWarningVisible = false}}>Lukk</button>
         </div>
         <div>
           Du har undervisningsforhold som ikke er knyttet til stilling som lærer, og har derfor ikke tilgang til elever i disse undervisningsforhold(ene):

@@ -107,7 +107,7 @@ const mockSchool = {
   ]
 }
 
-export const fintSchool = async (schoolNumber: string): Promise<FintSchool | null> => {
+export const fetchFintSchool = async (schoolNumber: string): Promise<FintSchool | null> => {
   const identifier = schoolNumber
   if (!identifier) {
     throw new Error('Missing required parameter "schoolNumber"')

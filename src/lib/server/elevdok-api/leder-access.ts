@@ -17,7 +17,7 @@ export type SchoolAccess = {
   }[]
 }
 
-export const getAllLeaderAccess = async (user: User): Promise<SchoolAccess[]> => {
+export const getSchoolAccessForAllLeaders = async (user: User): Promise<SchoolAccess[]> => {
   requireAdminRole(user)
   logger.info("Getting all leaders access")
 
@@ -44,11 +44,11 @@ export const getLeaderAccess = async (user: User): Promise<LeaderUser[]> => {
     throw error(403, "Du må være leder / rådgiver for å se dette. Bytt rolle i brukermenyen om du har flere roller.")
   }
 
-  const leaderId = user.hasAdminRole && user.impersonating?.type === "leder" ? user.impersonating.target : user.principalName
-  logger.info("Getting leader access for leader {LeaderId}", leaderId)
+  const leaderPrincipalName = user.hasAdminRole && user.impersonating?.type === "leder" ? user.impersonating.target : user.principalName
+  logger.info("Getting leader access for leader {LeaderPrincipalName}", leaderPrincipalName)
 
   // Først sjekk om det er et entry i internalCache for denne lederen
-  const cacheKey = `leder-access-${leaderId}`
+  const cacheKey = `leder-access-${leaderPrincipalName}`
   const internalCache = getInternalCache()
   const cachedLeaderAccess = internalCache.get<LeaderUser[]>(cacheKey)
   if (cachedLeaderAccess) {
@@ -62,7 +62,7 @@ export const getLeaderAccess = async (user: User): Promise<LeaderUser[]> => {
 
   // OBS, Internal caching in getAllLeaderUsers as well - reset cache if you need newest data
   const leaderUsers = await getAllLeaderUsers(FRONTEND_APP_ID)
-  const leaderAccess = leaderUsers.filter((leaderUser) => leaderUser.principalId === leaderId || leaderUser.principalName === leaderId)
+  const leaderAccess = leaderUsers.filter((leaderUser) => leaderUser.principalId === leaderPrincipalName || leaderUser.principalName === leaderPrincipalName)
   internalCache.set(cacheKey, leaderAccess)
 
   logger.info(

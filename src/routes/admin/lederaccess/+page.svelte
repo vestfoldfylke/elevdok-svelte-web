@@ -6,20 +6,20 @@
   import type { SchoolAccess } from "#lib/server/elevdok-api/leder-access.js"
 
   let errorMessage = $state("")
-  let loading = $state(false)
+  let isLoading = $state(false)
 
   let schoolAccess: SchoolAccess[] = $state([])
 
   const getLeaderAccess = async () => {
     errorMessage = ""
-    loading = true
+    isLoading = true
     const result = await requestApi<SchoolAccess[]>("/api/admin/getleaderaccess")
     if (result.ok) {
       schoolAccess = result.value
     } else {
       errorMessage = result.message
     }
-    loading = false
+    isLoading = false
   }
 
   onMount(async () => {
@@ -33,7 +33,7 @@
 <p>
   Tilgang for ledere / rådgivere styres av tilgangsgrupper i EntraID. Servicedesk kan legge til brukere i gruppe A-TILGANG-ELEVDOK-LEDER-{"{SKOLEKORTNAVN}"}.
 </p>
-{#if loading}
+{#if isLoading}
   <LoadingSpinner />
 {:else}
   {#each schoolAccess as school}

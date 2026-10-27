@@ -1,10 +1,10 @@
 import { error } from "@sveltejs/kit"
 import { logger } from "@vestfoldfylke/loglady"
 import type { User } from "#lib/server/authentication.js"
-import { getAzfArchiveDocuments, getAzfArchiveFile } from "#lib/server/call-archive/azf-archive.js"
+import { fetchAzfArchiveFile, getAzfArchiveDocuments } from "#lib/server/call-archive/azf-archive.js"
 import { mockFile } from "#lib/server/call-archive/mock-data.js"
 import { requireStudentAccess } from "#lib/server/guards/require-student-access.js"
-import { hasFileAccessForStudent } from "#lib/server/permissions.js"
+import { getFileAccessForStudent } from "#lib/server/permissions.js"
 import { MOCK_API, VTFK_ARCHIVE_ENABLED } from "$app/env/private"
 import { createUserLogEntry } from "./user-logs.js"
 
@@ -25,8 +25,8 @@ export const getFile = async (user: User, studentFeidenavn: string, sourceId: st
   const teacherStudent = await requireStudentAccess(user, studentFeidenavn)
 
   // Sjekk også at bruker har tilgang til å faktisk åpne filen!! Basert på ENV-variabler
-  const { access, type } = hasFileAccessForStudent(user, teacherStudent)
-  if (!access) {
+  const { hasAccess, type } = getFileAccessForStudent(user, teacherStudent)
+  if (!hasAccess) {
     logger.warn("No access to files for student {StudentFeidenavn}", studentFeidenavn)
     throw error(403, "Du har ikke tilgang til å se dokumentene til denne eleven.")
   }
@@ -47,7 +47,7 @@ export const getFile = async (user: User, studentFeidenavn: string, sourceId: st
   } else if (sourceId === "mainArchive") {
     // Her må vi sjekke om at filen faktisk tilhører et dokument i elevmappen
     const { documents } = await getAzfArchiveDocuments(teacherStudent.fodselsnummer, studentFeidenavn)
-    const document = documents.find((doc) => Array.isArray(doc.files) && doc.files.some((file) => file.id.toString() === fileId.toString()))
+    const document = documents.find((archiveDocument) => Array.isArray(archiveDocument.files) && archiveDocument.files.some((file) => file.id.toString() === fileId.toString()))
 
     if (!document) {
       logger.warn("File {FileId} is not in any {SourceId} document for student {StudentFeidenavn}", fileId, sourceId, studentFeidenavn)
@@ -55,7 +55,7 @@ export const getFile = async (user: User, studentFeidenavn: string, sourceId: st
     }
     logger.info("File {FileId} is in document {DocumentNumber}, fetching it", fileId, document.documentNumber)
 
-    const { base64, metadata } = await getAzfArchiveFile(fileId)
+    const { base64, metadata } = await fetchAzfArchiveFile(fileId)
     result.base64 = base64
     result.metadata = metadata
   } else if (VTFK_ARCHIVE_ENABLED === "true" && sourceId === "vtfk") {

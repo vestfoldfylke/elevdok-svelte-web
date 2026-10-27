@@ -2,8 +2,8 @@ import { logger } from "@vestfoldfylke/loglady"
 import vtfkSchoolsInfo from "vtfk-schools-info"
 import type { User } from "#lib/server/authentication.js"
 import { getEffectiveRole } from "#lib/server/effective-role.js"
-import { fintSchool } from "#lib/server/fintfolk-api/school.js"
-import { fintTeacher } from "#lib/server/fintfolk-api/teacher.js"
+import { fetchFintSchool } from "#lib/server/fintfolk-api/school.js"
+import { fetchFintTeacher } from "#lib/server/fintfolk-api/teacher.js"
 import type { FintElev, FintFag, FintSkole } from "#lib/server/fintfolk-api/types.js"
 import { IOP_FAGLARER_ACCESS_ENABLED } from "$app/env/private"
 import { getLeaderAccess } from "./leder-access.js"
@@ -27,9 +27,9 @@ const getSchoolYearFromDate = (date: Date, delimiter = "/"): string => {
   const year = date.getFullYear()
   const previousYear = year - 1
   const nextYear = year + 1
-  const midsommar = new Date(`${year}-07-15`)
+  const schoolYearRollover = new Date(`${year}-07-15`)
 
-  if (date > midsommar) {
+  if (date > schoolYearRollover) {
     return `${year}${delimiter}${nextYear}`
   }
   return `${previousYear}${delimiter}${year}`
@@ -123,7 +123,11 @@ const logSkippedStudents = (skippedElevnummer: string[]): void => {
   }
 }
 
-export const getUserData = async (user: User, maskSsn = true): Promise<UserData> => {
+type UserDataOptions = {
+  shouldMaskSsn?: boolean
+}
+
+export const getUserData = async (user: User, { shouldMaskSsn = true }: UserDataOptions = {}): Promise<UserData> => {
   const userData: UserData = {
     personData: null,
     invalidUndervisningsforhold: [],
@@ -135,7 +139,7 @@ export const getUserData = async (user: User, maskSsn = true): Promise<UserData>
   if (effectiveRole === "larer") {
     const teacherUpn = user.hasAdminRole && user.impersonating?.type === "larer" ? user.impersonating.target : user.principalName
     logger.info("Getting teacher {TeacherUpn} from FINT", teacherUpn)
-    const teacher = await fintTeacher(teacherUpn)
+    const teacher = await fetchFintTeacher(teacherUpn)
     if (!teacher) {
       return userData
     }
@@ -193,22 +197,22 @@ export const getUserData = async (user: User, maskSsn = true): Promise<UserData>
       return [...basisgruppeMemberships, ...undervisningsgruppeMemberships]
     })
 
-    const { students, skippedElevnummer } = buildStudentList(memberships, { maskSsn, isIopEnabled: IOP_FAGLARER_ACCESS_ENABLED === "true" })
+    const { students, skippedElevnummer } = buildStudentList(memberships, { shouldMaskSsn, isIopEnabled: IOP_FAGLARER_ACCESS_ENABLED === "true" })
     logSkippedStudents(skippedElevnummer)
     userData.students = students
   }
 
   if (effectiveRole === "leder") {
-    const leaderId = user.hasAdminRole && user.impersonating?.type === "leder" ? user.impersonating.target : user.principalId
+    const leaderPrincipalId = user.hasAdminRole && user.impersonating?.type === "leder" ? user.impersonating.target : user.principalId
 
-    logger.info("Getting school access for leader {LeaderId}", leaderId)
+    logger.info("Getting school access for leader {LeaderPrincipalId}", leaderPrincipalId)
     // Sjekker først om vi har schoolaccess for brukeren i cachen
     const leaderAccess = await getLeaderAccess(user)
 
     const memberships: StudentMembership[] = []
     for (const schoolAccess of leaderAccess) {
       logger.info("Getting school {SchoolName} ({SchoolNumber}) from FINT", schoolAccess.schoolName, schoolAccess.schoolNumber)
-      const school = await fintSchool(schoolAccess.schoolNumber)
+      const school = await fetchFintSchool(schoolAccess.schoolNumber)
       if (!school) {
         logger.warn("School {SchoolName} ({SchoolNumber}) does not exist in FINT, skipping it", schoolAccess.schoolName, schoolAccess.schoolNumber)
         continue
@@ -240,7 +244,7 @@ export const getUserData = async (user: User, maskSsn = true): Promise<UserData>
     }
 
     // IOP gives subject teachers access, leaders have access to all students at their schools anyway
-    const { students, skippedElevnummer } = buildStudentList(memberships, { maskSsn, isIopEnabled: false })
+    const { students, skippedElevnummer } = buildStudentList(memberships, { shouldMaskSsn, isIopEnabled: false })
     logSkippedStudents(skippedElevnummer)
     userData.students = students
 

@@ -587,7 +587,7 @@ for (let i = 0; i < 2000; i++) {
 }
 */
 
-export const fintTeacher = async (userPrincipalName: string): Promise<FintTeacher | null> => {
+export const fetchFintTeacher = async (userPrincipalName: string): Promise<FintTeacher | null> => {
   const identifier = userPrincipalName
   if (!identifier) {
     throw new Error('Missing required parameter "userPrincipalName"')

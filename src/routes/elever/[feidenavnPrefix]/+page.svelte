@@ -13,9 +13,9 @@
 
   let { data }: Props = $props()
 
-  const student = $derived((data.students ?? []).find((stud) => stud.feidenavnPrefix === page.params.feidenavnPrefix))
+  const student = $derived((data.students ?? []).find((teacherStudent) => teacherStudent.feidenavnPrefix === page.params.feidenavnPrefix))
 
-  let showArchiveWarning = $state(true)
+  let isArchiveWarningVisible = $state(true)
   let documentsPerPage = 10
   let currentPage = $state(0) // zero-indexed
   let searchValue = $state("")
@@ -33,8 +33,8 @@
   }
 
   const matchesSearch = (document: StudentDocument, searchValue: string): boolean => {
-    const sv = searchValue.toLowerCase()
-    return document.title.toLowerCase().startsWith(sv) || document.documentNumber.toLowerCase().startsWith(sv) || document.title.toLowerCase().includes(sv)
+    const normalizedSearch = searchValue.toLowerCase()
+    return document.title.toLowerCase().startsWith(normalizedSearch) || document.documentNumber.toLowerCase().startsWith(normalizedSearch) || document.title.toLowerCase().includes(normalizedSearch)
   }
 
   const originalDocuments = $derived(data.studentDocuments.documents)
@@ -44,11 +44,11 @@
 <h2>Elevens dokumenter</h2>
 
 <div>
-  {#if data.studentDocuments.errors.length > 0 && showArchiveWarning}
+  {#if data.studentDocuments.errors.length > 0 && isArchiveWarningVisible}
     <div class="error-box">
       <div style="display:flex;justify-content:space-between;">
         <h4>Det skjedde en feil under hentingen av elevens dokumenter 😩</h4>
-        <button class="link" onclick={() => {showArchiveWarning = false}}>Lukk</button>
+        <button class="link" onclick={() => {isArchiveWarningVisible = false}}>Lukk</button>
       </div>
       <div>
         {#each data.studentDocuments.errors as error}

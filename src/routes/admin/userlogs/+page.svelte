@@ -11,15 +11,15 @@
   }
 
   let errorMessage = $state("")
-  let loading = $state(false)
+  let isLoading = $state(false)
 
-  let initialStudentSearch = $state(false)
+  let hasSearchedStudents = $state(false)
   let studentSearchName = $state("")
   let selectedStudent: LogStudent | null = $state(null)
   let students: LogStudent[] | null = $state([])
   let studentErrorMessage = $state("")
 
-  let initialUserSearch = $state(false)
+  let hasSearchedUsers = $state(false)
   let userSearchName = $state("")
   let selectedUser: LogUser | null = $state(null)
   let users: LogUser[] | null = $state([])
@@ -41,7 +41,7 @@
       studentErrorMessage = result.message
       students = []
     }
-    initialStudentSearch = true
+    hasSearchedStudents = true
   }
 
   const getLogUsers = async (event: Event) => {
@@ -54,10 +54,10 @@
       userErrorMessage = result.message
       users = []
     }
-    initialUserSearch = true
+    hasSearchedUsers = true
   }
 
-  const setDocumentNumber = async (event: Event) => {
+  const applyDocumentNumberFilter = async (event: Event) => {
     event.preventDefault()
     try {
       const documentNumberParts = documentNumber.split("/")
@@ -76,7 +76,7 @@
 
   const getLogElements = async () => {
     errorMessage = ""
-    loading = true
+    isLoading = true
 
     const filter = new URLSearchParams()
     if (selectedStudent) {
@@ -96,7 +96,7 @@
       errorMessage = result.message
       logElements = []
     }
-    loading = false
+    isLoading = false
   }
 
   onMount(async () => {
@@ -128,7 +128,7 @@
     <LoadingSpinner />
   {:else if Array.isArray(students)}
     {#if students.length === 0}
-      {#if initialStudentSearch}
+      {#if hasSearchedStudents}
         <div><i>Ingen elever funnet med navn {studentSearchName}</i></div>
       {/if}
     {:else}
@@ -167,7 +167,7 @@
     <LoadingSpinner />
   {:else if Array.isArray(users)}
     {#if users.length === 0}
-      {#if initialUserSearch}
+      {#if hasSearchedUsers}
         <div><i>Ingen ansatte funnet med navn {userSearchName}</i></div>
       {/if}
     {:else}
@@ -193,7 +193,7 @@
   <form>
     <div class="button-input">
       <input bind:value={documentNumber} id="documentNumber" type="text" placeholder="eks. 24/12345-2" />
-      <button onclick={setDocumentNumber}><span class="material-symbols-outlined">add_circle</span> Legg til i filter</button>
+      <button onclick={applyDocumentNumberFilter}><span class="material-symbols-outlined">add_circle</span> Legg til i filter</button>
     </div>
   </form>
   {#if documentNumberErrorMessage}
@@ -211,7 +211,7 @@
 <button class="filled" onclick={() => getLogElements()}>Søk i logger med valgt filter</button>
 <br />
 <div><strong>Logger</strong></div>
-{#if loading}
+{#if isLoading}
   <LoadingSpinner />
 {:else}
   <i>Viser {logElements.length} logg-elementer</i>

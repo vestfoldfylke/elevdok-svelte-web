@@ -70,16 +70,16 @@ const fetchAllGraphPages = async <T>(firstPageUrl: string): Promise<T[]> => {
   return items
 }
 
-const getApplicationRoles = async (appId: string): Promise<Application> => {
+const fetchApplication = async (appId: string): Promise<Application> => {
   return fetchJsonWithMsalToken<Application>(`${graphUrl}/applications(appId='${appId}')?$select=appId,displayName,appRoles`, { scope: graphScope })
 }
 
-const getGroupMembers = async (groupId: string): Promise<GroupMember[]> => {
+const fetchGroupMembers = async (groupId: string): Promise<GroupMember[]> => {
   // OBS OBS trenger groupMember.read.all
   return fetchAllGraphPages<GroupMember>(`${graphUrl}/groups/${groupId}/members?$select=id,displayName,userPrincipalName&$top=999&$count=true`)
 }
 
-const getAppRoleAssignments = async (appId: string): Promise<AppRoleAssignment[]> => {
+const fetchAppRoleAssignments = async (appId: string): Promise<AppRoleAssignment[]> => {
   return fetchAllGraphPages<AppRoleAssignment>(
     `${graphUrl}/servicePrincipals(appId='${appId}')/appRoleAssignedTo?$select=id,appRoleId,principalDisplayName,principalId,principalType&$top=999&$count=true`
   )
@@ -164,12 +164,12 @@ export const getAllLeaderUsers = async (appId: string): Promise<LeaderUser[]> =>
     return mockUsers
   }
 
-  const allAppRoles = await getApplicationRoles(appId)
-  const relevantAppRoles = allAppRoles.appRoles.filter((appRole) => appRole.isEnabled && appRole.allowedMemberTypes.includes("User"))
+  const application = await fetchApplication(appId)
+  const enabledUserAppRoles = application.appRoles.filter((appRole) => appRole.isEnabled && appRole.allowedMemberTypes.includes("User"))
 
-  const allAppRoleAssignments = await getAppRoleAssignments(appId)
+  const allAppRoleAssignments = await fetchAppRoleAssignments(appId)
 
-  const leaderAppRole = relevantAppRoles.find((role) => role.value === LEDER_ROLE)
+  const leaderAppRole = enabledUserAppRoles.find((role) => role.value === LEDER_ROLE)
   if (!leaderAppRole) {
     throw new Error(`App ${appId} has no enabled user app role with value LEDER_ROLE (${LEDER_ROLE}). Check the app roles of the app registration and the LEDER_ROLE setting.`)
   }
@@ -193,7 +193,7 @@ export const getAllLeaderUsers = async (appId: string): Promise<LeaderUser[]> =>
       continue
     }
 
-    const groupMembers = await getGroupMembers(groupAssignment.principalId)
+    const groupMembers = await fetchGroupMembers(groupAssignment.principalId)
     for (const groupMember of groupMembers) {
       if (!leaderUsers.some((user) => user.principalId === groupMember.id && user.schoolNumber === school.schoolNumber)) {
         leaderUsers.push({
