@@ -1,5 +1,5 @@
 import { error } from "@sveltejs/kit"
-import { logger } from "@vtfk/logger"
+import { logger } from "@vestfoldfylke/loglady"
 import { ADMIN_ROLE, DEFAULT_ROLE, FEIDENAVN_SUFFIX, LEDER_ROLE, MOCK_AUTH, MOCK_AUTH_ADMIN_ROLE, MOCK_AUTH_LARER_ROLE, MOCK_AUTH_LEDER_ROLE, NODE_ENV } from "$app/env/private"
 import { getAdminImpersonation } from "./elevdok-api/admin-impersonation.js"
 import { getActiveRole } from "./elevdok-api/roles.js"
@@ -44,7 +44,7 @@ type ClientPrincipal = {
 
 export const getAuthenticatedUser = async (headers: Headers): Promise<User> => {
   if (MOCK_AUTH === "true" && NODE_ENV !== "production") {
-    logger("warn", ["env.MOCK_AUTH is true, injecting MS auth headers, enjoy your local testing - if this in prod, pray and delete everything"])
+    logger.warn("MOCK_AUTH is true: injecting mock App Service authentication headers. This must never happen in production.")
     headers.set("x-ms-client-principal-name", `demo.spokelse@${FEIDENAVN_SUFFIX}`)
     headers.set("x-ms-client-principal-id", "12345-4378493-fjdiofjd")
 
@@ -105,7 +105,6 @@ export const getAuthenticatedUser = async (headers: Headers): Promise<User> => {
   const encodedClaims = headers.get("x-ms-client-principal")
 
   if (!principalName || !principalId || !encodedClaims) {
-    logger("warn", ["Missing authentication headers from Microsoft, something is wrong"])
     throw new Error("Missing x-ms-client-principal headers: the request did not pass App Service authentication. Check that authentication is enabled and requires login on the Web App.")
   }
 
@@ -127,7 +126,6 @@ export const getAuthenticatedUser = async (headers: Headers): Promise<User> => {
   }
   if (roles.length > 1) {
     // Check in db for activeRole for principalId (save principalName as well)
-    logger("info", ["User has more than one role, checking for active role"])
     const activeDbRole = await getActiveRole(principalId)
     if (!activeDbRole) {
       if (roles.includes(LEDER_ROLE)) {
@@ -136,12 +134,10 @@ export const getAuthenticatedUser = async (headers: Headers): Promise<User> => {
         activeRole = firstRole // Else just set first role as active
       }
     } else {
-      logger("info", [`User ${principalName} has active db role: ${activeDbRole}`, "Verifying and setting active"])
       if (!roles.includes(activeDbRole)) {
-        logger("warn", [`User ${principalName} has active db role: ${activeDbRole} - but no access to this role from entra auth. Will not use illegal role`])
+        logger.warn("User {PrincipalName} has active role {ActiveDbRole} in db, but not that role in Entra ID. Using {FirstRole} instead", principalName, activeDbRole, firstRole)
         activeRole = firstRole
       } else {
-        logger("info", [`User ${principalName} has active db role: ${activeDbRole} and access to this role from entra auth. Will set active role as ${activeDbRole}`])
         activeRole = activeDbRole
       }
     }

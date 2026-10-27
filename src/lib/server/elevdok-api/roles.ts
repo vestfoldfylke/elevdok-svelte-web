@@ -1,5 +1,5 @@
 import { error } from "@sveltejs/kit"
-import { logger } from "@vtfk/logger"
+import { logger } from "@vestfoldfylke/loglady"
 import type { User } from "#lib/server/authentication.js"
 import { getMockDb } from "#lib/server/mock-db.js"
 import { closeMongoClient, getMongoClient } from "#lib/server/mongo-client.js"
@@ -28,7 +28,7 @@ export const getActiveRole = async (principalId: string): Promise<string | null>
     return userSettings.activeRole || null
   } catch (error) {
     if (String(error).startsWith("MongoTopologyClosedError")) {
-      logger("warn", "Oh no, topology is closed! Closing client")
+      logger.warn("MongoDB topology is closed - closing the client")
       closeMongoClient()
     }
     throw error
@@ -36,16 +36,16 @@ export const getActiveRole = async (principalId: string): Promise<string | null>
 }
 
 export const setActiveRole = async (user: User, requestedRole: string): Promise<void> => {
-  logger("info", [`${user.principalName} requested role change to role: ${requestedRole}`])
+  logger.info("Requested role change to {RequestedRole}", requestedRole)
   if (!user.roles.some((role) => role.value === requestedRole)) {
-    logger("warn", [`${user.principalName} does not have access to role: ${requestedRole}`])
+    logger.warn("User does not have the role {RequestedRole}", requestedRole)
     throw error(403, `Du har ikke rollen "${requestedRole}", så du kan ikke bytte til den.`)
   }
-  logger("info", [`${user.principalName} has access to role ${requestedRole}, changing role for user`])
+  logger.info("User has the role {RequestedRole}, changing active role", requestedRole)
   if (MOCK_API === "true") {
     const mockDb = getMockDb()
     mockDb.set("activeRole", requestedRole)
-    logger("info", ["MOCK-API is enabled", `${user.principalName} succesfully changed role to ${requestedRole} in mock db`])
+    logger.info("MOCK_API is enabled: changed active role to {RequestedRole} in mock db", requestedRole)
     return
   }
   try {
@@ -56,10 +56,10 @@ export const setActiveRole = async (user: User, requestedRole: string): Promise<
       { $set: { principalId: user.principalId, principalName: user.principalName, activeRole: requestedRole, changedTimestamp: new Date().toISOString() } },
       { upsert: true }
     )
-    logger("info", [`${user.principalName} succesfully changed role to ${requestedRole} in db`])
+    logger.info("Changed active role to {RequestedRole} in db", requestedRole)
   } catch (error) {
     if (String(error).startsWith("MongoTopologyClosedError")) {
-      logger("warn", "Oh no, topology is closed! Closing client")
+      logger.warn("MongoDB topology is closed - closing the client")
       closeMongoClient()
     }
     throw error

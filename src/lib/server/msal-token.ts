@@ -1,5 +1,5 @@
 import { ConfidentialClientApplication } from "@azure/msal-node"
-import { logger } from "@vtfk/logger"
+import { logger } from "@vestfoldfylke/loglady"
 import { APPREG_CLIENT_ID, APPREG_CLIENT_SECRET, APPREG_TENANT_ID } from "$app/env/private"
 import { TtlCache } from "./ttl-cache.js"
 
@@ -20,11 +20,10 @@ export const getMsalToken = async (config: MsalTokenConfig): Promise<string> => 
 
   const cachedToken = cache.get<string>(cacheKey)
   if (!config.forceNew && cachedToken) {
-    // logger('info', ['getMsalToken', 'found valid token in cache, will use that instead of fetching new'])
     return cachedToken.substring(0, cachedToken.length - 2)
   }
 
-  logger("info", ["getMsalToken", "no token in cache, fetching new from Microsoft"])
+  logger.info("No token in cache for scope {Scope}, fetching a new one from Microsoft", config.scope)
 
   const confidentialClientApplication = new ConfidentialClientApplication({
     auth: {
@@ -41,9 +40,8 @@ export const getMsalToken = async (config: MsalTokenConfig): Promise<string> => 
     throw new Error(`Failed to get access token for scope '${config.scope}': MSAL returned no token or no expiry. Check the app registration's client secret and API permissions.`)
   }
   const expires = Math.floor((token.expiresOn.getTime() - Date.now()) / 1000)
-  logger("info", ["getMsalToken", `Got token from Microsoft, expires in ${expires} seconds.`])
+  logger.info("Got token for scope {Scope} from Microsoft, expires in {ExpiresInSeconds} seconds", config.scope, expires)
   cache.set(cacheKey, `${token.accessToken}==`, expires) // Haha, just to make the cached token not directly usable
-  logger("info", ["getMsalToken", "Token stored in cache"])
 
   return token.accessToken
 }

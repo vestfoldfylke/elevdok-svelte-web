@@ -1,4 +1,4 @@
-import { logger } from "@vtfk/logger"
+import { logger } from "@vestfoldfylke/loglady"
 import { TtlCache } from "./ttl-cache.js"
 
 const INTERNAL_CACHE_TTL_SECONDS = 10000
@@ -7,9 +7,9 @@ let internalCache: TtlCache | null = null
 
 export const getInternalCache = (): TtlCache => {
   if (!internalCache) {
-    logger("info", ["internal-cache", "Internal cache does not exist - creating"])
+    logger.info("Internal cache does not exist - creating")
     internalCache = new TtlCache(INTERNAL_CACHE_TTL_SECONDS)
-    logger("info", ["internal-cache", "Internal cache created - returning"])
+    logger.info("Internal cache created")
   }
   return internalCache
 }

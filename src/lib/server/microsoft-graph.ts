@@ -1,4 +1,4 @@
-import { logger } from "@vtfk/logger"
+import { logger } from "@vestfoldfylke/loglady"
 import vtfkSchoolsInfo from "vtfk-schools-info"
 import { DEFAULT_ROLE, FEIDENAVN_SUFFIX, LEDER_ROLE, MOCK_API, MOCK_AUTH, MOCK_AUTH_LARER_ROLE, MOCK_AUTH_LEDER_ROLE, NODE_ENV } from "$app/env/private"
 import { fetchJsonWithMsalToken } from "./http/fetch-json-with-msal-token.js"
@@ -79,10 +79,8 @@ const getAppRoleAssignments = async (appId: string): Promise<AppRoleAssignment[]
 }
 
 export const getApplicationUsers = async (appId: string): Promise<ApplicationUser[]> => {
-  const loggerPrefix = `getApplicationUsers - ${appId}`
-
   if (MOCK_API === "true") {
-    logger("info", [loggerPrefix, "MOCK_API is enabled, returning mock"])
+    logger.info("MOCK_API is true, returning mock users")
     const mockUsers = [
       {
         appRoleValue: LEDER_ROLE,
@@ -144,24 +142,18 @@ export const getApplicationUsers = async (appId: string): Promise<ApplicationUse
     return mockUsers
   }
 
-  logger("info", [loggerPrefix, "Getting all app roles for app", appId])
   const allAppRoles = await getApplicationRoles(appId)
   const relevantAppRoles = allAppRoles.appRoles.filter((appRole) => appRole.isEnabled && appRole.allowedMemberTypes.includes("User"))
-  logger("info", [loggerPrefix, `Got ${relevantAppRoles.length} relevant appRoles, total number of app roles: ${allAppRoles.appRoles.length}`])
 
-  logger("info", [loggerPrefix, "Getting all app role assignments for app", appId])
   const allAppRoleAssignments = await getAppRoleAssignments(appId)
   const relevantAppRoleAssignments = allAppRoleAssignments.filter((appRoleAssignment) => relevantAppRoles.some((role) => role.id === appRoleAssignment.appRoleId))
-  logger("info", [loggerPrefix, `Got ${relevantAppRoleAssignments.length} relevant appRoleAssignments, total number of app role assignments (including groups): ${allAppRoleAssignments.length}`])
 
   const userAssignments = relevantAppRoleAssignments.filter((appRoleAssignment) => appRoleAssignment.principalType === "User")
   const groupAssignments = relevantAppRoleAssignments.filter((appRoleAssignment) => appRoleAssignment.principalType === "Group")
-  logger("info", [loggerPrefix, `Got ${userAssignments.length} users and ${groupAssignments.length} groups from appRoleAssignments`])
+  logger.info("App {AppId} has {UserCount} user and {GroupCount} group assignments", appId, userAssignments.length, groupAssignments.length)
 
   for (const groupAssignment of groupAssignments) {
-    logger("info", [loggerPrefix, "Getting members for group", groupAssignment.principalDisplayName])
     const groupMembers = await getGroupMembers(groupAssignment.principalId)
-    logger("info", [loggerPrefix, `Got ${groupMembers.length} members for group`, groupAssignment.principalDisplayName, "adding them to userAssignments if they are not already there"])
     for (const groupMember of groupMembers) {
       if (!userAssignments.some((user) => user.principalId === groupMember.id && user.appRoleId === groupAssignment.appRoleId)) {
         userAssignments.push({
@@ -175,7 +167,6 @@ export const getApplicationUsers = async (appId: string): Promise<ApplicationUse
     }
   }
 
-  logger("info", [loggerPrefix, `Got ${userAssignments.length} userAssignments after adding group members, adding role names and returning`])
   const users = userAssignments.map((userAssignment) => {
     const appRole = relevantAppRoles.find((role) => role.id === userAssignment.appRoleId)
     if (!appRole) {
@@ -217,18 +208,16 @@ export const getAllLeaderUsers = async (appId: string): Promise<LeaderUser[]> =>
   Skolen hentes fra gruppas navn, og vi kan slenge på skolenummer og navn på skolen fra vtfk-schools info. Merk at gruppas navn må matche et eller annet i vtfk-schools - tipper kortnavn
   Vi kan expande appRoleAssignment med upn siden alle brukerne ligger i en gruppe, og vi må hente de fra gruppa
   */
-  const loggerPrefix = `getAllLeaderUsers - ${appId}`
-
   const cacheKey = "all-leader-users"
   const internalCache = getInternalCache()
   const cachedData = internalCache.get<LeaderUser[]>(cacheKey)
   if (cachedData) {
-    logger("info", [loggerPrefix, "Found leader users in cache - quick returning"])
+    logger.info("Found leader users in cache")
     return cachedData
   }
 
   if (MOCK_API === "true") {
-    logger("info", [loggerPrefix, "MOCK_API is enabled, returning mock"])
+    logger.info("MOCK_API is true, returning mock users")
     const mockUsers: LeaderUser[] = [
       {
         appRoleValue: LEDER_ROLE,
@@ -290,12 +279,9 @@ export const getAllLeaderUsers = async (appId: string): Promise<LeaderUser[]> =>
     return mockUsers
   }
 
-  logger("info", [loggerPrefix, "Getting all app roles for app", appId])
   const allAppRoles = await getApplicationRoles(appId)
   const relevantAppRoles = allAppRoles.appRoles.filter((appRole) => appRole.isEnabled && appRole.allowedMemberTypes.includes("User"))
-  logger("info", [loggerPrefix, `Got ${relevantAppRoles.length} relevant appRoles, total number of app roles: ${allAppRoles.appRoles.length}`])
 
-  logger("info", [loggerPrefix, "Getting all app role assignments for app", appId])
   const allAppRoleAssignments = await getAppRoleAssignments(appId)
 
   const leaderAppRole = relevantAppRoles.find((role) => role.value === LEDER_ROLE)
@@ -304,9 +290,7 @@ export const getAllLeaderUsers = async (appId: string): Promise<LeaderUser[]> =>
   }
 
   const leaderGroupAssignments = allAppRoleAssignments.filter((appRoleAssignment) => appRoleAssignment.principalType === "Group" && appRoleAssignment.appRoleId === leaderAppRole.id)
-  logger("info", [loggerPrefix, `Got ${leaderGroupAssignments.length} leader group appRoleAssignments, total number of app role assignments (including groups): ${allAppRoleAssignments.length}`])
-
-  logger("info", [loggerPrefix, `Getting school data (vtfk-schools-info) for all ${leaderGroupAssignments.length} groups`])
+  logger.info("App {AppId} has {GroupCount} leader groups", appId, leaderGroupAssignments.length)
 
   const leaderUsers: LeaderUser[] = []
 
@@ -320,14 +304,11 @@ export const getAllLeaderUsers = async (appId: string): Promise<LeaderUser[]> =>
 
     const school = allSchools.find((school) => school.shortName === groupSchoolShortName)
     if (!school) {
-      logger("warn", [loggerPrefix, "Could not find school for group", groupAssignment.principalDisplayName, "group does not have valid school short name at end - skipping group"])
+      logger.warn("Group {GroupName} does not end with a known school short name, skipping it", groupAssignment.principalDisplayName)
       continue
     }
 
-    logger("info", [loggerPrefix, "Found school for group", groupAssignment.principalDisplayName, "school", school.fullname, "Fetching members for group"])
-
     const groupMembers = await getGroupMembers(groupAssignment.principalId)
-    logger("info", [loggerPrefix, `Got ${groupMembers.length} members for group`, groupAssignment.principalDisplayName, "adding them to userAssignments if they are not already there"])
     for (const groupMember of groupMembers) {
       if (!leaderUsers.some((user) => user.principalId === groupMember.id && user.schoolNumber === school.schoolNumber)) {
         leaderUsers.push({
@@ -346,7 +327,7 @@ export const getAllLeaderUsers = async (appId: string): Promise<LeaderUser[]> =>
     }
   }
 
-  logger("info", [loggerPrefix, `Got a total of ${leaderUsers.length} leaderUsers after fetching all group members, setting in cache, and returning`])
+  logger.info("Found {LeaderUserCount} leader users", leaderUsers.length)
 
   // Legg til MOCK auth sin bruker med de rollene den har satt i env om vi har MOCK_AUTH lik true
   if (MOCK_AUTH && NODE_ENV !== "production") {

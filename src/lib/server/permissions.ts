@@ -1,6 +1,4 @@
-// ONLY SERVER SIDE
-
-import { logger } from "@vtfk/logger"
+import { logger } from "@vestfoldfylke/loglady"
 import { FAGLARER_ACCESS_ENABLED, IOP_FAGLARER_ACCESS_ENABLED, LEDER_ROLE } from "$app/env/private"
 import type { User } from "./authentication.js"
 import type { TeacherStudent } from "./elevdok-api/get-user-data.js"
@@ -10,27 +8,23 @@ export type FileAccess = {
   type: "leader" | "kontaktlarer" | "faglarer" | "iop" | "ingen filtilgang"
 }
 
-export const hasFileAccessForStudent = (user: User, teacherStudent: TeacherStudent, loggerPrefix: string): FileAccess => {
-  logger("info", [loggerPrefix, "Checking if user has leader access"])
+export const hasFileAccessForStudent = (user: User, teacherStudent: TeacherStudent): FileAccess => {
   if (user.activeRole === LEDER_ROLE || (user.hasAdminRole && user.impersonating && user.impersonating?.type === "leder")) {
-    logger("info", [loggerPrefix, "User has leader access"])
+    logger.info("File access to {StudentFeidenavn}: leader", teacherStudent.feidenavn)
     return { access: true, type: "leader" }
   }
-  logger("info", [loggerPrefix, "Checking if teacher has contactTeacher access"])
   if (teacherStudent.skoler.some((school) => school.kontaktlarer)) {
-    logger("info", [loggerPrefix, "Teacher has contactTeacher access"])
+    logger.info("File access to {StudentFeidenavn}: contact teacher", teacherStudent.feidenavn)
     return { access: true, type: "kontaktlarer" }
   }
   if (FAGLARER_ACCESS_ENABLED === "true") {
-    logger("info", [loggerPrefix, "env.FAGLARER_ACCESS_ENABLED is true - all teachers have access"])
+    logger.info("File access to {StudentFeidenavn}: subject teacher (FAGLARER_ACCESS_ENABLED is true)", teacherStudent.feidenavn)
     return { access: true, type: "faglarer" }
   }
-  if (IOP_FAGLARER_ACCESS_ENABLED === "true") {
-    logger("info", [loggerPrefix, "env.IOP_FAGLARER_ACCESS_ENABLED is true - checking if teacher has IOP access"])
-    if (teacherStudent.skoler.some((school) => school.iop)) {
-      logger("info", [loggerPrefix, "Teacher has IOP access"])
-      return { access: true, type: "iop" }
-    }
+  if (IOP_FAGLARER_ACCESS_ENABLED === "true" && teacherStudent.skoler.some((school) => school.iop)) {
+    logger.info("File access to {StudentFeidenavn}: IOP teacher (IOP_FAGLARER_ACCESS_ENABLED is true)", teacherStudent.feidenavn)
+    return { access: true, type: "iop" }
   }
+  logger.info("No file access to {StudentFeidenavn}", teacherStudent.feidenavn)
   return { access: false, type: "ingen filtilgang" }
 }

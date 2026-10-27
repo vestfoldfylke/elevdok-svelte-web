@@ -1,4 +1,4 @@
-import { logger } from "@vtfk/logger"
+import { logger } from "@vestfoldfylke/loglady"
 import vtfkSchoolsInfo from "vtfk-schools-info"
 import type { User } from "#lib/server/authentication.js"
 import { fintSchool } from "#lib/server/fintfolk-api/school.js"
@@ -48,7 +48,6 @@ export type MiniSchool = {
 
 export const repackMiniSchool = (school: FintSkole, kontaktlarer: boolean | undefined): MiniSchool => {
   if (!school.skolenummer) {
-    logger("error", ["Could not find schoolNumber for school in FINT!"])
     throw new Error("Could not find schoolNumber for school in FINT!")
   }
   // Sjekker om skolen har et kortnavn, hvis ikke slår vi opp i vtfk-schools-info for å finne det basert på skolenummer
@@ -57,12 +56,10 @@ export const repackMiniSchool = (school: FintSkole, kontaktlarer: boolean | unde
     if (schoolsInfo.length === 1) {
       const shortName = schoolsInfo[0]?.shortName
       if (!shortName) {
-        logger("error", [`Could not find shortName for school with schoolNumber "${school.skolenummer}" in vtfk-schools-info!`])
         throw new Error(`Could not find shortName for school with schoolNumber "${school.skolenummer}" in vtfk-schools-info!`)
       }
       school.kortnavn = shortName // Sett kortnavn til kortnavnet i vtfk-schools-info dersom vi fant en skole på skolenummeret
     } else {
-      logger("error", [`Could not find school with schoolNumber "${school.skolenummer}" in vtfk-schools-info!`])
       throw new Error(`Could not find school with schoolNumber "${school.skolenummer}" in vtfk-schools-info!`)
     }
   }
@@ -148,8 +145,6 @@ export type UserData = {
 }
 
 export const getUserData = async (user: User, maskSsn = true): Promise<UserData> => {
-  let loggerPrefix = `getUserData - user: ${user.principalName}`
-  logger("info", [loggerPrefix, "New request"])
   const userData: UserData = {
     personData: null,
     invalidUndervisningsforhold: [],
@@ -159,13 +154,8 @@ export const getUserData = async (user: User, maskSsn = true): Promise<UserData>
 
   // If regular teacher or administrator impersonating teacher
   if (user.activeRole === DEFAULT_ROLE || (user.hasAdminRole && user.impersonating?.type === "larer")) {
-    loggerPrefix += " - role: Teacher"
-    logger("info", [loggerPrefix, "Fetching teacher data from FINT"])
-    if (user.impersonating?.type === "larer") {
-      loggerPrefix += ` - impersonating: ${user.impersonating.target}`
-    }
     const teacherUpn = user.hasAdminRole && user.impersonating?.type === "larer" ? user.impersonating.target : user.principalName
-    logger("info", [loggerPrefix, "Fetching teacher data from FINT with teacher id", teacherUpn])
+    logger.info("Getting teacher {TeacherUpn} from FINT", teacherUpn)
     const teacher = await fintTeacher(teacherUpn)
     if (!teacher) {
       return userData
@@ -180,7 +170,6 @@ export const getUserData = async (user: User, maskSsn = true): Promise<UserData>
       lastName: teacher.etternavn
     }
 
-    logger("info", [loggerPrefix, "Got data from FINT - validating undervsiningsforhold description"])
     const validUndervisningsforhold = teacher.undervisningsforhold.filter((forhold) => forhold.aktiv && allowedUndervisningsforholdDescription.includes(forhold.beskrivelse))
     const invalidUndervisningsforhold = teacher.undervisningsforhold.filter((forhold) => forhold.aktiv && !allowedUndervisningsforholdDescription.includes(forhold.beskrivelse))
     if (invalidUndervisningsforhold.length > 0) {
@@ -196,15 +185,15 @@ export const getUserData = async (user: User, maskSsn = true): Promise<UserData>
           hasElever = true
         }
         if (hasElever) {
-          logger("warn", [
-            loggerPrefix,
-            `Teacher has invalid undervisningforhold description: ${invalid.beskrivelse} (${invalid.systemId}) with elevforhold in undervisningsforhold - no access to students in this undervisningsforhold`
-          ])
+          logger.warn(
+            "Teacher has undervisningsforhold {UndervisningsforholdSystemId} with description {Beskrivelse}, which does not give access to its students",
+            invalid.systemId,
+            invalid.beskrivelse
+          )
           userData.invalidUndervisningsforhold.push({ beskrivelse: invalid.beskrivelse, systemId: invalid.systemId })
         }
       }
     }
-    logger("info", [loggerPrefix, `Validated undervsiningsforhold description - ${validUndervisningsforhold.length} valid undervisningsforhold`])
 
     // Kontaktlærer flyttes fra rett på eleven til skolearrayet på eleven - sett om læreren er kontaktlærer for eleven på gitt skole
     const students: StudentDraft[] = []
@@ -280,10 +269,11 @@ export const getUserData = async (user: User, maskSsn = true): Promise<UserData>
     // Filtrer vekk elever uten feidenavn - fåkke brukt de (enda hvertfall)
     const studentsWithoutFeidenavn = students.filter((stud) => !stud.feidenavn)
     if (studentsWithoutFeidenavn.length > 0) {
-      logger("warn", [
-        loggerPrefix,
-        `Fount ${studentsWithoutFeidenavn.length} students without feidenavn, filtering them away... Elevnummers: ${studentsWithoutFeidenavn.map((stud) => stud.elevnummer).join(", ")}`
-      ])
+      logger.warn(
+        "Skipping {StudentCount} students without feidenavn: {@Elevnummer}",
+        studentsWithoutFeidenavn.length,
+        studentsWithoutFeidenavn.map((stud) => stud.elevnummer)
+      )
     }
     const studentsWithFeidenavn = students.filter((stud): stud is StudentDraft & { feidenavn: string } => Boolean(stud.feidenavn))
 
@@ -317,26 +307,20 @@ export const getUserData = async (user: User, maskSsn = true): Promise<UserData>
   // TODO - finn ut av leder rådgiver
   // If leder / rådgiver or administrator impersonating teacher
   if (user.activeRole === LEDER_ROLE || (user.hasAdminRole && user.impersonating?.type === "leder")) {
-    loggerPrefix += " - role: Leder"
-    if (user.impersonating?.type === "leder") {
-      loggerPrefix += ` - impersonating: ${user.impersonating.target}`
-    }
-    logger("info", [loggerPrefix, "Checking school access"])
     const leaderId = user.hasAdminRole && user.impersonating?.type === "leder" ? user.impersonating.target : user.principalId
 
-    logger("info", [loggerPrefix, "Fetching leader data with leader id", leaderId])
+    logger.info("Getting school access for leader {LeaderId}", leaderId)
     // Sjekker først om vi har schoolaccess for brukeren i cachen
     const leaderAccess = await getLeaderAccess(user)
 
     const students: StudentDraft[] = []
     for (const schoolAccess of leaderAccess) {
-      logger("info", [loggerPrefix, `Fetching data for school ${schoolAccess.schoolName} (${schoolAccess.schoolNumber}) from FINT`])
+      logger.info("Getting school {SchoolName} ({SchoolNumber}) from FINT", schoolAccess.schoolName, schoolAccess.schoolNumber)
       const school = await fintSchool(schoolAccess.schoolNumber)
       if (!school) {
-        logger("warn", [loggerPrefix, `School ${schoolAccess.schoolName} with schoolNumber (${schoolAccess.schoolNumber}) does not exist in FINT, skipping`])
+        logger.warn("School {SchoolName} ({SchoolNumber}) does not exist in FINT, skipping it", schoolAccess.schoolName, schoolAccess.schoolNumber)
         continue
       }
-      logger("info", [loggerPrefix, `Got data for school ${schoolAccess.schoolName} (${schoolAccess.schoolNumber}) from FINT`])
 
       // If no shortname, try to find it in vtfk-schools-info
       if (school.skolenummer && !school.kortnavn) {
@@ -344,12 +328,11 @@ export const getUserData = async (user: User, maskSsn = true): Promise<UserData>
         if (schoolsInfo.length === 1) {
           const shortName = schoolsInfo[0]?.shortName
           if (!shortName) {
-            logger("error", [loggerPrefix, `Could not find shortName for school with schoolNumber "${school.skolenummer}" in vtfk-schools-info!`])
             throw new Error(`Could not find shortName for school with schoolNumber "${school.skolenummer}" in vtfk-schools-info!`)
           }
           school.kortnavn = shortName // Sett kortnavn til kortnavnet i vtfk-schools-info dersom vi fant en skole på skolenummeret
         } else {
-          logger("info", [loggerPrefix, `Could not find school with schoolNumber "${school.skolenummer}" in vtfk-schools-info. Simply setting shortname to "SKOLE"`])
+          logger.info('School {SchoolNumber} is not in vtfk-schools-info, using the organisation short name or "SKOLE"', school.skolenummer)
           school.kortnavn = school.organisasjon?.kortnavn || "SKOLE" // Sett kortnavn til SKOLE dersom vi ikke finner noe annet
         }
       }
@@ -398,7 +381,7 @@ export const getUserData = async (user: User, maskSsn = true): Promise<UserData>
     // Filtrer vekk elever uten feidenavn - fåkke brukt de (enda hvertfall)
     const studentsWithoutFeidenavn = students.filter((stud) => !stud.feidenavn)
     if (studentsWithoutFeidenavn.length > 0) {
-      logger("warn", [loggerPrefix, `Fount ${studentsWithoutFeidenavn.length} students without feidenavn, filtering them away...`])
+      logger.warn("Skipping {StudentCount} students without feidenavn", studentsWithoutFeidenavn.length)
     }
     const studentsWithFeidenavn = students.filter((stud): stud is StudentDraft & { feidenavn: string } => Boolean(stud.feidenavn))
 

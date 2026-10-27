@@ -1,5 +1,5 @@
 import { error } from "@sveltejs/kit"
-import { logger } from "@vtfk/logger"
+import { logger } from "@vestfoldfylke/loglady"
 import type { InsertOneResult } from "mongodb"
 import type { Impersonation, User } from "#lib/server/authentication.js"
 import { requireAdminRole } from "#lib/server/guards/require-admin-role.js"
@@ -41,11 +41,8 @@ export const setAdminImpersonation = async (user: User, target: string, type: Im
   }
   const internalCache = getInternalCache()
   internalCache.set(`${user.principalId}-impersonation`, { target, type })
-  logger("warn", [
-    `Admin user ${user.principalName} is impersonating user ${target} (type: ${type})`,
-    `${user.principalName} probably need to do this, but logging for extra safety.`,
-    "Saving impersonation-logEntry to db as well"
-  ])
+  // warn, not info: impersonation is legitimate, but should be easy to spot
+  logger.warn("Admin is impersonating {ImpersonationTarget} as {ImpersonationType}, saving an impersonation log entry", target, type)
   if (MOCK_API === "true") {
     return
   }
@@ -65,7 +62,7 @@ export const setAdminImpersonation = async (user: User, target: string, type: Im
     return insertLogResult
   } catch (error) {
     if (String(error).startsWith("MongoTopologyClosedError")) {
-      logger("warn", "Oh no, topology is closed! Closing client")
+      logger.warn("MongoDB topology is closed - closing the client")
       closeMongoClient()
     }
     throw error

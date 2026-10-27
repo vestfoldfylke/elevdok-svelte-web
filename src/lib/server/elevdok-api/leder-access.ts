@@ -1,5 +1,5 @@
 import { error } from "@sveltejs/kit"
-import { logger } from "@vtfk/logger"
+import { logger } from "@vestfoldfylke/loglady"
 import type { User } from "#lib/server/authentication.js"
 import { requireAdminRole } from "#lib/server/guards/require-admin-role.js"
 import { getInternalCache } from "#lib/server/internal-cache.js"
@@ -17,9 +17,8 @@ export type SchoolAccess = {
 }
 
 export const getAllLeaderAccess = async (user: User): Promise<SchoolAccess[]> => {
-  const loggerPrefix = `getAllLeaderAccess - user: ${user.principalName}`
   requireAdminRole(user)
-  logger("info", [loggerPrefix, "Getting all leaders access"])
+  logger.info("Getting all leaders access")
 
   // Internal caching in getAllLeaderUsers
   const leaderUsers = await getAllLeaderUsers(FRONTEND_APP_ID)
@@ -33,30 +32,29 @@ export const getAllLeaderAccess = async (user: User): Promise<SchoolAccess[]> =>
     }
     existingSchool.leaders.push({ principalName: leaderUser.principalName, principalId: leaderUser.principalId, displayName: leaderUser.principalDisplayName })
   }
-  logger("info", [loggerPrefix, `Got all leader access for ${schoolAccess.length} schools`])
+  logger.info("Got all leader access for {SchoolCount} schools", schoolAccess.length)
   return schoolAccess
 }
 
 export const getLeaderAccess = async (user: User): Promise<LeaderUser[]> => {
-  const loggerPrefix = `getLeaderAccess - user: ${user.principalName}`
-
   if (user.activeRole !== LEDER_ROLE && !(user.hasAdminRole && user.impersonating && user.impersonating?.type === "leder")) {
-    logger("warn", [loggerPrefix, "User is not leader and not impersonating leader, no access"])
+    logger.warn("User is not leader and not impersonating leader, no access")
     throw error(403, "Du må være leder / rådgiver for å se dette. Bytt rolle i brukermenyen om du har flere roller.")
   }
 
   const leaderId = user.hasAdminRole && user.impersonating?.type === "leder" ? user.impersonating.target : user.principalName
-  logger("info", [loggerPrefix, `Getting leader access for leader: ${leaderId}`])
+  logger.info("Getting leader access for leader {LeaderId}", leaderId)
 
   // Først sjekk om det er et entry i internalCache for denne lederen
   const cacheKey = `leder-access-${leaderId}`
   const internalCache = getInternalCache()
   const cachedLeaderAccess = internalCache.get<LeaderUser[]>(cacheKey)
   if (cachedLeaderAccess) {
-    logger("info", [
-      loggerPrefix,
-      `Found leader access in cache. Got leader access to ${cachedLeaderAccess.length} schools: ${cachedLeaderAccess.map((entry) => entry.schoolName).join(", ")} returning`
-    ])
+    logger.info(
+      "Found leader access in cache, to {SchoolCount} schools: {@SchoolNames}",
+      cachedLeaderAccess.length,
+      cachedLeaderAccess.map((entry) => entry.schoolName)
+    )
     return cachedLeaderAccess
   }
 
@@ -67,6 +65,10 @@ export const getLeaderAccess = async (user: User): Promise<LeaderUser[]> => {
 
   internalCache.set(cacheKey, leaderAccess)
 
-  logger("info", [loggerPrefix, `Got leader access to ${leaderAccess.length} schools: ${leaderAccess.map((entry) => entry.schoolName).join(", ")} returning`])
+  logger.info(
+    "Got leader access to {SchoolCount} schools: {@SchoolNames}",
+    leaderAccess.length,
+    leaderAccess.map((entry) => entry.schoolName)
+  )
   return leaderAccess
 }
