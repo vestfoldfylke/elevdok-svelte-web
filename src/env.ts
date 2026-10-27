@@ -4,7 +4,7 @@ import { building } from "$app/env"
 // The code reads an unset flag as off.
 const optional = { schema: (value: string | undefined) => value }
 
-// We only allow required to be missing while building, as they are all dynamic and we don't need them in ci/cd 
+// We only allow required to be missing while building, as they are all dynamic and we don't need them in ci/cd
 const required = {
   schema: (value: string | undefined): string => {
     if (value === undefined && !building) {
