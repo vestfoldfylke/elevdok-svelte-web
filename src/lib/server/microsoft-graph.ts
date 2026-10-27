@@ -1,6 +1,6 @@
 import { logger } from "@vestfoldfylke/loglady"
 import vtfkSchoolsInfo from "vtfk-schools-info"
-import { DEFAULT_ROLE, FEIDENAVN_SUFFIX, LEDER_ROLE, MOCK_API, MOCK_AUTH, MOCK_AUTH_LARER_ROLE, MOCK_AUTH_LEDER_ROLE, NODE_ENV } from "$app/env/private"
+import { DEFAULT_ROLE, FEIDENAVN_SUFFIX, LEDER_ROLE, MOCK_API, MOCK_AUTH, MOCK_AUTH_LARER_ROLE, MOCK_AUTH_LEDER_ROLE } from "$app/env/private"
 import { fetchJsonWithMsalToken } from "./http/fetch-json-with-msal-token.js"
 import { getInternalCache } from "./internal-cache.js"
 
@@ -176,7 +176,7 @@ export const getApplicationUsers = async (appId: string): Promise<ApplicationUse
   })
 
   // Legg til MOCK auth sin bruker med de rollene den har satt i env om vi har MOCK_AUTH lik true
-  if (MOCK_AUTH === "true" && NODE_ENV !== "production") {
+  if (MOCK_AUTH === "true") {
     if (MOCK_AUTH_LARER_ROLE === "true") {
       users.push({
         appRoleValue: DEFAULT_ROLE,
@@ -330,7 +330,7 @@ export const getAllLeaderUsers = async (appId: string): Promise<LeaderUser[]> =>
   logger.info("Found {LeaderUserCount} leader users", leaderUsers.length)
 
   // Legg til MOCK auth sin bruker med de rollene den har satt i env om vi har MOCK_AUTH lik true
-  if (MOCK_AUTH === "true" && NODE_ENV !== "production") {
+  if (MOCK_AUTH === "true") {
     if (MOCK_AUTH_LEDER_ROLE === "true") {
       leaderUsers.push({
         appRoleValue: LEDER_ROLE,

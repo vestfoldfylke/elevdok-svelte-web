@@ -1,6 +1,6 @@
 import { error } from "@sveltejs/kit"
 import { logger } from "@vestfoldfylke/loglady"
-import { ADMIN_ROLE, DEFAULT_ROLE, FEIDENAVN_SUFFIX, LEDER_ROLE, MOCK_AUTH, MOCK_AUTH_ADMIN_ROLE, MOCK_AUTH_LARER_ROLE, MOCK_AUTH_LEDER_ROLE, NODE_ENV } from "$app/env/private"
+import { ADMIN_ROLE, DEFAULT_ROLE, FEIDENAVN_SUFFIX, LEDER_ROLE, MOCK_AUTH, MOCK_AUTH_ADMIN_ROLE, MOCK_AUTH_LARER_ROLE, MOCK_AUTH_LEDER_ROLE } from "$app/env/private"
 import { getAdminImpersonation } from "./elevdok-api/admin-impersonation.js"
 import { getActiveRole } from "./elevdok-api/roles.js"
 
@@ -43,7 +43,7 @@ type ClientPrincipal = {
 }
 
 export const getAuthenticatedUser = async (headers: Headers): Promise<User> => {
-  if (MOCK_AUTH === "true" && NODE_ENV !== "production") {
+  if (MOCK_AUTH === "true") {
     logger.warn("MOCK_AUTH is true: injecting mock App Service authentication headers. This must never happen in production.")
     headers.set("x-ms-client-principal-name", `demo.spokelse@${FEIDENAVN_SUFFIX}`)
     headers.set("x-ms-client-principal-id", "12345-4378493-fjdiofjd")

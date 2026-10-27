@@ -1,5 +1,5 @@
 import { sleep } from "#lib/helpers/sleep.js"
-import { FEIDENAVN_SUFFIX, MOCK_API, NODE_ENV } from "$app/env/private"
+import { FEIDENAVN_SUFFIX, MOCK_API } from "$app/env/private"
 import { fetchFint } from "./fetch-fint.js"
 import type { FintSchool } from "./types.js"
 
@@ -112,7 +112,7 @@ export const fintSchool = async (schoolNumber: string): Promise<FintSchool | nul
   if (!identifier) {
     throw new Error('Missing required parameter "schoolNumber"')
   }
-  if (MOCK_API === "true" && NODE_ENV !== "production") {
+  if (MOCK_API === "true") {
     await sleep(1000)
     return mockSchool
   }

@@ -1,5 +1,6 @@
-import type { Handle, HandleServerError } from "@sveltejs/kit/hooks"
+import type { Handle, HandleServerError, ServerInit } from "@sveltejs/kit/hooks"
 import { logger } from "@vestfoldfylke/loglady"
+import { assertNoMockFlagsInProduction } from "#lib/server/assert-no-mock-flags-in-production.js"
 import { getAuthenticatedUser } from "#lib/server/authentication.js"
 import { getLogContext, runInLogContext, updateLogContext } from "#lib/server/logging/log-context.js"
 
@@ -7,6 +8,10 @@ import { getLogContext, runInLogContext, updateLogContext } from "#lib/server/lo
 process.on("sveltekit:shutdown", async () => {
   await logger.flush()
 })
+
+export const init: ServerInit = () => {
+  assertNoMockFlagsInProduction()
+}
 
 export const handle: Handle = async ({ event, resolve }) => {
   return runInLogContext({ contextId: crypto.randomUUID() }, async () => {
