@@ -1,6 +1,7 @@
 import { logger } from "@vtfk/logger"
 import { ObjectId } from "mongodb"
 import type { Impersonation, User } from "#lib/server/authentication.js"
+import { requireAdminRole } from "#lib/server/guards/require-admin-role.js"
 import { getMockDb } from "#lib/server/mock-db.js"
 import { closeMongoClient, getMongoClient } from "#lib/server/mongo-client.js"
 import { MOCK_API, MONGODB_DB_NAME, MONGODB_LOGS_COLLECTION } from "$app/env/private"
@@ -142,10 +143,7 @@ export const createUserLogEntry = async (logData: UserLogData, loggerPrefix: str
 export const logStudentSearch = async (user: User, searchName: string | null): Promise<LogStudent[]> => {
   const loggerPrefix = `logStudentSearch - user: ${user.principalName} - searchName: ${searchName}`
   logger("info", [loggerPrefix, "New student search"])
-  if (!user.hasAdminRole) {
-    logger("warn", [loggerPrefix, "Missing required admin access to log student search"])
-    throw new Error("You do not have permission to do this")
-  }
+  requireAdminRole(user)
   if (!searchName) {
     searchName = ""
   }
@@ -200,10 +198,7 @@ export const logStudentSearch = async (user: User, searchName: string | null): P
 export const logUserSearch = async (user: User, searchName: string | null): Promise<LogUser[]> => {
   const loggerPrefix = `logUserSearch - user: ${user.principalName} - searchName: ${searchName}`
   logger("info", [loggerPrefix, "New student search"])
-  if (!user.hasAdminRole) {
-    logger("warn", [loggerPrefix, "Missing required admin access to log user search"])
-    throw new Error("You do not have permission to do this")
-  }
+  requireAdminRole(user)
   if (!searchName) {
     searchName = ""
   }
@@ -257,10 +252,7 @@ export const logUserSearch = async (user: User, searchName: string | null): Prom
 export const getUserLogs = async (user: User, filter: LogFilter): Promise<LogEntry[]> => {
   const { studentNumber, userPrincipalId, documentNumber } = filter
   const loggerPrefix = `getUserLogs - user: ${user.principalName} - filter: { elevnummer: ${studentNumber}, userPrincipalId: ${userPrincipalId}, documentNumber: ${documentNumber} }`
-  if (!user.hasAdminRole) {
-    logger("warn", [loggerPrefix, "Missing required admin access to get user logs"])
-    throw new Error("You do not have permission to do this")
-  }
+  requireAdminRole(user)
   logger("info", [loggerPrefix, "Getting user logs from db"])
   if (MOCK_API === "true") {
     logger("info", [loggerPrefix, "MOCK_API is true, getting logs from mockDb"])

@@ -1,3 +1,4 @@
+import { error } from "@sveltejs/kit"
 import { logger } from "@vtfk/logger"
 import type { User } from "#lib/server/authentication.js"
 import { getAzfArchiveDocuments } from "#lib/server/call-archive/azf-archive.js"
@@ -33,7 +34,7 @@ export const getStudentDocuments = async (user: User, studentFeidenavn: string):
     user.activeRole === DEFAULT_ROLE || user.activeRole === LEDER_ROLE || (user.hasAdminRole && user.impersonating?.type === "larer") || (user.hasAdminRole && user.impersonating?.type === "leder")
   if (!canViewDocuments) {
     logger("warn", [loggerPrefix, "Not allowed to view documents with current role"])
-    throw new Error("Not allowed to view documents with current role")
+    throw error(403, "Rollen din gir ikke tilgang til elevdokumenter. Bytt rolle i brukermenyen om du har flere roller.")
   }
 
   // Then validate access to student
@@ -43,7 +44,7 @@ export const getStudentDocuments = async (user: User, studentFeidenavn: string):
   const teacherStudent = availableStudents.find((stud) => stud.feidenavn === studentFeidenavn)
   if (!teacherStudent) {
     logger("warn", [loggerPrefix, "No access to student, or student does not exist"])
-    throw new Error("No access to student, or student is not registered")
+    throw error(403, "Du har ikke tilgang til denne eleven, eller eleven finnes ikke.")
   }
 
   logger("info", [loggerPrefix, "Access to student validated"])

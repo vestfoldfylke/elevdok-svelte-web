@@ -1,6 +1,8 @@
+import { error } from "@sveltejs/kit"
 import { logger } from "@vtfk/logger"
 import type { InsertOneResult } from "mongodb"
 import type { Impersonation, User } from "#lib/server/authentication.js"
+import { requireAdminRole } from "#lib/server/guards/require-admin-role.js"
 import { getInternalCache } from "#lib/server/internal-cache.js"
 import { closeMongoClient, getMongoClient } from "#lib/server/mongo-client.js"
 import { FEIDENAVN_SUFFIX, MOCK_API, MONGODB_DB_NAME, MONGODB_USER_IMPERSONATION_COLLECTION } from "$app/env/private"
@@ -20,26 +22,22 @@ const isGuid = (value: string) => {
 }
 
 export const getAdminImpersonation = (user: Pick<User, "principalId" | "hasAdminRole">): Impersonation | null => {
-  if (!user.hasAdminRole) {
-    throw new Error("You do not have permission to do this")
-  }
+  requireAdminRole(user)
   const internalCache = getInternalCache()
   const impersonation = internalCache.get<Impersonation>(`${user.principalId}-impersonation`)
   return impersonation || null
 }
 
 export const setAdminImpersonation = async (user: User, target: string, type: Impersonation["type"]): Promise<InsertOneResult<ImpersonationLogEntry> | undefined> => {
-  if (!user.hasAdminRole) {
-    throw new Error("You do not have permission to do this")
-  }
+  requireAdminRole(user)
   if (typeof target !== "string") {
-    throw new Error("target må værra string")
+    throw error(400, "Brukeren du vil logge inn som må være tekst.")
   }
   if (!target.endsWith(`@${FEIDENAVN_SUFFIX}`) && !isGuid(target)) {
-    throw new Error(`Target må ende på @${FEIDENAVN_SUFFIX} eller værra en guid`)
+    throw error(400, `Brukeren du vil logge inn som må ende på @${FEIDENAVN_SUFFIX} eller være en guid.`)
   }
   if (!["larer", "leder"].includes(type)) {
-    throw new Error('type må værra "larer" eller "leder"')
+    throw error(400, 'Rollen du vil logge inn med må være "larer" eller "leder".')
   }
   const internalCache = getInternalCache()
   internalCache.set(`${user.principalId}-impersonation`, { target, type })
@@ -75,9 +73,7 @@ export const setAdminImpersonation = async (user: User, target: string, type: Im
 }
 
 export const deleteAdminImpersonation = (user: User): void => {
-  if (!user.hasAdminRole) {
-    throw new Error("You do not have permission to do this")
-  }
+  requireAdminRole(user)
   const internalCache = getInternalCache()
   internalCache.delete(`${user.principalId}-impersonation`)
 }

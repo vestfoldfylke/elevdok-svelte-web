@@ -1,8 +1,8 @@
+import { error } from "@sveltejs/kit"
 import { logger } from "@vtfk/logger"
 import type { User } from "#lib/server/authentication.js"
 import { getAzfArchiveDocuments, getAzfArchiveFile } from "#lib/server/call-archive/azf-archive.js"
 import { mockFile } from "#lib/server/call-archive/mock-data.js"
-import { getErrorDetails } from "#lib/server/error-details.js"
 import { hasFileAccessForStudent } from "#lib/server/permissions.js"
 import { DEFAULT_ROLE, LEDER_ROLE, MOCK_API, VTFK_ARCHIVE_ENABLED } from "$app/env/private"
 import { getUserData } from "./get-user-data.js"
@@ -32,7 +32,7 @@ export const getFile = async (user: User, studentFeidenavn: string, sourceId: st
     user.activeRole === DEFAULT_ROLE || user.activeRole === LEDER_ROLE || (user.hasAdminRole && user.impersonating?.type === "larer") || (user.hasAdminRole && user.impersonating?.type === "leder")
   if (!canViewDocuments) {
     logger("warn", [loggerPrefix, "Not allowed to view documents with current role"])
-    throw new Error("Not allowed to view documents with current role")
+    throw error(403, "Rollen din gir ikke tilgang til elevdokumenter. Bytt rolle i brukermenyen om du har flere roller.")
   }
 
   // Then validate access to student
@@ -42,7 +42,7 @@ export const getFile = async (user: User, studentFeidenavn: string, sourceId: st
   const teacherStudent = availableStudents.find((stud) => stud.feidenavn === studentFeidenavn)
   if (!teacherStudent) {
     logger("warn", [loggerPrefix, "No access to student, or student does not exist"])
-    throw new Error("No access to student, or student is not registered")
+    throw error(403, "Du har ikke tilgang til denne eleven, eller eleven finnes ikke.")
   }
 
   logger("info", [loggerPrefix, "Access to student validated"])
@@ -53,7 +53,7 @@ export const getFile = async (user: User, studentFeidenavn: string, sourceId: st
 
   if (!access) {
     logger("warn", [loggerPrefix, "Teacher does NOT have access to files for student"])
-    throw new Error("Du har ikke tilgang på å se dette dokumentet")
+    throw error(403, "Du har ikke tilgang til å se dokumentene til denne eleven.")
   } else {
     logger("info", [loggerPrefix, `Validated access to files for student - accessType: ${type}`])
   }
@@ -81,24 +81,19 @@ export const getFile = async (user: User, studentFeidenavn: string, sourceId: st
 
     if (!document) {
       logger("warn", [loggerPrefix, `FileId ${fileId} does not exist in any of the ${sourceId} documents for student ${studentFeidenavn}`])
-      throw new Error("Du har ikke tilgang til denne filen")
+      throw error(403, "Filen hører ikke til et dokument i elevmappen, så du har ikke tilgang til den.")
     }
     logger("info", [loggerPrefix, `FileId ${fileId} exists in document ${document.documentNumber} for student ${studentFeidenavn} - fetching file`])
 
-    try {
-      const { base64, metadata } = await getAzfArchiveFile(fileId, loggerPrefix)
-      result.base64 = base64
-      result.metadata = metadata
-    } catch (error) {
-      logger("error", [loggerPrefix, `Failed when fetching file (${fileId}) from mainArchive`, getErrorDetails(error)])
-      throw new Error("No access to student, or student is not registered")
-    }
+    const { base64, metadata } = await getAzfArchiveFile(fileId, loggerPrefix)
+    result.base64 = base64
+    result.metadata = metadata
   } else if (VTFK_ARCHIVE_ENABLED === "true" && sourceId === "vtfk") {
     // implement
   }
   if (!result.base64 || !result.metadata) {
     logger("error", [loggerPrefix, `No file fetched: sourceId ${sourceId} is unknown or not implemented`])
-    throw new Error(`Kan ikke hente filer fra kilden "${sourceId}": kilden er ukjent eller ikke støttet ennå`)
+    throw error(404, `Kan ikke hente filer fra kilden "${sourceId}": kilden er ukjent eller ikke støttet ennå.`)
   }
   logger("info", [loggerPrefix, "Got base64file - creating logEntry"])
   const logData = {

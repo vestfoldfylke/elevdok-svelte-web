@@ -1,4 +1,3 @@
-import { error } from "@sveltejs/kit"
 import { sleep } from "#lib/helpers/sleep.js"
 import { FEIDENAVN_SUFFIX, MOCK_API, NODE_ENV } from "$app/env/private"
 import { fetchFint } from "./fetch-fint.js"
@@ -111,7 +110,7 @@ const mockSchool = {
 export const fintSchool = async (schoolNumber: string): Promise<FintSchool | null> => {
   const identifier = schoolNumber
   if (!identifier) {
-    throw error(400, 'Missing required parameter "schoolNumber"')
+    throw new Error('Missing required parameter "schoolNumber"')
   }
   if (MOCK_API === "true" && NODE_ENV !== "production") {
     await sleep(1000)

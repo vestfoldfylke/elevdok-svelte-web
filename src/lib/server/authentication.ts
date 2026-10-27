@@ -106,24 +106,24 @@ export const getAuthenticatedUser = async (headers: Headers): Promise<User> => {
 
   if (!principalName || !principalId || !encodedClaims) {
     logger("warn", ["Missing authentication headers from Microsoft, something is wrong"])
-    throw error(500, "Missing authentication headers from Microsoft, something is wrong")
+    throw new Error("Missing x-ms-client-principal headers: the request did not pass App Service authentication. Check that authentication is enabled and requires login on the Web App.")
   }
 
   const decodedClaims: ClientPrincipal | null = JSON.parse(Buffer.from(encodedClaims, "base64").toString())
   if (!decodedClaims) {
-    throw error(500, "Det e itj no token her")
+    throw new Error("x-ms-client-principal decoded to null: App Service authentication sent an empty principal. Check the authentication settings on the Web App.")
   }
   const roles = decodedClaims.claims.filter((claim) => claim.typ === "roles").map((claim) => claim.val)
   const name = decodedClaims.claims.find((claim) => claim.typ === "name")?.val
   const audience = decodedClaims.claims.find((claim) => claim.typ === "aud")?.val
   if (!name || !audience) {
-    throw error(500, "Missing 'name' or 'aud' claim in x-ms-client-principal: App Service authentication must issue both. Check the token configuration of the app registration.")
+    throw new Error("Missing 'name' or 'aud' claim in x-ms-client-principal: App Service authentication must issue both. Check the token configuration of the app registration.")
   }
 
   let activeRole = ""
   const firstRole = roles[0]
   if (!firstRole) {
-    throw new Error("DU HAKKE TILGANG PÅ NOE DU!")
+    throw error(403, "Du har ingen roller i ElevDok. Kontakt servicedesk om du skal ha tilgang.")
   }
   if (roles.length > 1) {
     // Check in db for activeRole for principalId (save principalName as well)

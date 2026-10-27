@@ -20,9 +20,15 @@ const readErrorMessage = async (response: Response): Promise<string> => {
 
 /** Calls the app's own API. Failures are returned, not thrown, with a message that is safe to show the user. */
 export const requestApi = async <T>(path: string, { method = "GET", body }: ApiRequestOptions = {}): Promise<ApiResult<T>> => {
+  // Accept makes SvelteKit answer errors with JSON ({ message }) instead of its HTML error page
+  const headers = new Headers({ Accept: "application/json" })
+  if (body !== undefined) {
+    headers.set("Content-Type", "application/json")
+  }
+
   let response: Response
   try {
-    response = await fetch(path, body === undefined ? { method } : { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
+    response = await fetch(path, { method, headers, body: body === undefined ? null : JSON.stringify(body) })
   } catch {
     return { ok: false, message: "Fikk ikke kontakt med serveren. Sjekk nettverket og prøv igjen." }
   }

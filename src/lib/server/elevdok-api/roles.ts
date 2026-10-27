@@ -1,3 +1,4 @@
+import { error } from "@sveltejs/kit"
 import { logger } from "@vtfk/logger"
 import type { User } from "#lib/server/authentication.js"
 import { getMockDb } from "#lib/server/mock-db.js"
@@ -38,7 +39,7 @@ export const setActiveRole = async (user: User, requestedRole: string): Promise<
   logger("info", [`${user.principalName} requested role change to role: ${requestedRole}`])
   if (!user.roles.some((role) => role.value === requestedRole)) {
     logger("warn", [`${user.principalName} does not have access to role: ${requestedRole}`])
-    throw new Error("Du har ikke tilgang på den rollen")
+    throw error(403, `Du har ikke rollen "${requestedRole}", så du kan ikke bytte til den.`)
   }
   logger("info", [`${user.principalName} has access to role ${requestedRole}, changing role for user`])
   if (MOCK_API === "true") {

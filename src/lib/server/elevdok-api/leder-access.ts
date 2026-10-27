@@ -1,5 +1,7 @@
+import { error } from "@sveltejs/kit"
 import { logger } from "@vtfk/logger"
 import type { User } from "#lib/server/authentication.js"
+import { requireAdminRole } from "#lib/server/guards/require-admin-role.js"
 import { getInternalCache } from "#lib/server/internal-cache.js"
 import { getAllLeaderUsers, type LeaderUser } from "#lib/server/microsoft-graph.js"
 import { FRONTEND_APP_ID, LEDER_ROLE } from "$app/env/private"
@@ -16,10 +18,7 @@ export type SchoolAccess = {
 
 export const getAllLeaderAccess = async (user: User): Promise<SchoolAccess[]> => {
   const loggerPrefix = `getAllLeaderAccess - user: ${user.principalName}`
-  if (!user.hasAdminRole) {
-    logger("warn", [loggerPrefix, "User does not have admin role, no access"])
-    throw new Error("Du har ikke tilgang på denne funksjonen")
-  }
+  requireAdminRole(user)
   logger("info", [loggerPrefix, "Getting all leaders access"])
 
   // Internal caching in getAllLeaderUsers
@@ -43,7 +42,7 @@ export const getLeaderAccess = async (user: User): Promise<LeaderUser[]> => {
 
   if (user.activeRole !== LEDER_ROLE && !(user.hasAdminRole && user.impersonating && user.impersonating?.type === "leder")) {
     logger("warn", [loggerPrefix, "User is not leader and not impersonating leader, no access"])
-    throw new Error("Du har ikke riktig rolle for å gjøre dette")
+    throw error(403, "Du må være leder / rådgiver for å se dette. Bytt rolle i brukermenyen om du har flere roller.")
   }
 
   const leaderId = user.hasAdminRole && user.impersonating?.type === "leder" ? user.impersonating.target : user.principalName
