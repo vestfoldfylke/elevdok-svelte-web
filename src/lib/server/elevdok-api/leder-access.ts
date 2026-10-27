@@ -37,7 +37,7 @@ export const getAllLeaderAccess = async (user: User): Promise<SchoolAccess[]> =>
 }
 
 export const getLeaderAccess = async (user: User): Promise<LeaderUser[]> => {
-  if (user.activeRole !== LEDER_ROLE && !(user.hasAdminRole && user.impersonating && user.impersonating?.type === "leder")) {
+  if (user.activeRole !== LEDER_ROLE && !(user.hasAdminRole && user.impersonating?.type === "leder")) {
     logger.warn("User is not leader and not impersonating leader, no access")
     throw error(403, "Du må være leder / rådgiver for å se dette. Bytt rolle i brukermenyen om du har flere roller.")
   }

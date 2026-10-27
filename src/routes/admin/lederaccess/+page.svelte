@@ -6,7 +6,6 @@
   import type { SchoolAccess } from "#lib/server/elevdok-api/leder-access.js"
 
   let errorMessage = $state("")
-  let searchValue
   let loading = $state(false)
 
   let schoolAccess: SchoolAccess[] = $state([])

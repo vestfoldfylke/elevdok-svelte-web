@@ -9,7 +9,7 @@ export type FileAccess = {
 }
 
 export const hasFileAccessForStudent = (user: User, teacherStudent: TeacherStudent): FileAccess => {
-  if (user.activeRole === LEDER_ROLE || (user.hasAdminRole && user.impersonating && user.impersonating?.type === "leder")) {
+  if (user.activeRole === LEDER_ROLE || (user.hasAdminRole && user.impersonating?.type === "leder")) {
     logger.info("File access to {StudentFeidenavn}: leader", teacherStudent.feidenavn)
     return { access: true, type: "leader" }
   }

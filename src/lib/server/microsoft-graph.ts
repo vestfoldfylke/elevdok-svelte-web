@@ -1,6 +1,6 @@
 import { logger } from "@vestfoldfylke/loglady"
 import vtfkSchoolsInfo from "vtfk-schools-info"
-import { DEFAULT_ROLE, FEIDENAVN_SUFFIX, LEDER_ROLE, MOCK_API, MOCK_AUTH, MOCK_AUTH_LARER_ROLE, MOCK_AUTH_LEDER_ROLE } from "$app/env/private"
+import { FEIDENAVN_SUFFIX, LEDER_ROLE, MOCK_API, MOCK_AUTH, MOCK_AUTH_LEDER_ROLE } from "$app/env/private"
 import { fetchJsonWithMsalToken } from "./http/fetch-json-with-msal-token.js"
 import { getInternalCache } from "./internal-cache.js"
 
@@ -80,130 +80,6 @@ const getAppRoleAssignments = async (appId: string): Promise<AppRoleAssignment[]
   return fetchAllGraphPages<AppRoleAssignment>(
     `${graphUrl}/servicePrincipals(appId='${appId}')/appRoleAssignedTo?$select=id,appRoleId,principalDisplayName,principalId,principalType&$top=999&$count=true`
   )
-}
-
-export const getApplicationUsers = async (appId: string): Promise<ApplicationUser[]> => {
-  if (MOCK_API === "true") {
-    logger.info("MOCK_API is true, returning mock users")
-    const mockUsers = [
-      {
-        appRoleValue: LEDER_ROLE,
-        appRoleId: "mockleder",
-        id: "mockId1",
-        principalDisplayName: "Mock Leder 1",
-        principalId: "mockPrincipalId1",
-        principalType: "User"
-      },
-      {
-        appRoleValue: LEDER_ROLE,
-        appRoleId: "mockleder",
-        id: "mockId2",
-        principalDisplayName: "Mock Leder 2",
-        principalId: "mockPrincipalId2",
-        principalType: "User"
-      },
-      {
-        appRoleValue: LEDER_ROLE,
-        appRoleId: "mockleder",
-        id: "mockId3",
-        principalDisplayName: "Mock Leder 3",
-        principalId: "mockPrincipalId3",
-        principalType: "User"
-      },
-      {
-        appRoleValue: DEFAULT_ROLE,
-        appRoleId: "mocklarer",
-        id: "mockId4",
-        principalDisplayName: "Mock Lærer 1",
-        principalId: "mockPrincipalId4",
-        principalType: "User"
-      }
-    ]
-    // Legg til MOCK auth sin bruker med de rollene den har satt i env
-    if (MOCK_AUTH === "true") {
-      if (MOCK_AUTH_LARER_ROLE === "true") {
-        mockUsers.push({
-          appRoleValue: DEFAULT_ROLE,
-          appRoleId: "mocklarer",
-          id: "mockId6",
-          principalDisplayName: "Demo Spøkelse",
-          principalId: "12345-4378493-fjdiofjd",
-          principalType: "User"
-        })
-      }
-      if (MOCK_AUTH_LEDER_ROLE === "true") {
-        mockUsers.push({
-          appRoleValue: LEDER_ROLE,
-          appRoleId: "mockleder",
-          id: "mockId7",
-          principalDisplayName: "Demo Spøkelse",
-          principalId: "12345-4378493-fjdiofjd",
-          principalType: "User"
-        })
-      }
-    }
-
-    return mockUsers
-  }
-
-  const allAppRoles = await getApplicationRoles(appId)
-  const relevantAppRoles = allAppRoles.appRoles.filter((appRole) => appRole.isEnabled && appRole.allowedMemberTypes.includes("User"))
-
-  const allAppRoleAssignments = await getAppRoleAssignments(appId)
-  const relevantAppRoleAssignments = allAppRoleAssignments.filter((appRoleAssignment) => relevantAppRoles.some((role) => role.id === appRoleAssignment.appRoleId))
-
-  const userAssignments = relevantAppRoleAssignments.filter((appRoleAssignment) => appRoleAssignment.principalType === "User")
-  const groupAssignments = relevantAppRoleAssignments.filter((appRoleAssignment) => appRoleAssignment.principalType === "Group")
-  logger.info("App {AppId} has {UserCount} user and {GroupCount} group assignments", appId, userAssignments.length, groupAssignments.length)
-
-  for (const groupAssignment of groupAssignments) {
-    const groupMembers = await getGroupMembers(groupAssignment.principalId)
-    for (const groupMember of groupMembers) {
-      if (!userAssignments.some((user) => user.principalId === groupMember.id && user.appRoleId === groupAssignment.appRoleId)) {
-        userAssignments.push({
-          appRoleId: groupAssignment.appRoleId,
-          id: groupAssignment.id,
-          principalDisplayName: groupMember.displayName,
-          principalId: groupMember.id,
-          principalType: "User"
-        })
-      }
-    }
-  }
-
-  const users = userAssignments.map((userAssignment) => {
-    const appRole = relevantAppRoles.find((role) => role.id === userAssignment.appRoleId)
-    if (!appRole) {
-      throw new Error(`App role ${userAssignment.appRoleId} for ${userAssignment.principalDisplayName} is not among the enabled user app roles of app ${appId}`)
-    }
-    return { ...userAssignment, appRoleValue: appRole.value }
-  })
-
-  // Legg til MOCK auth sin bruker med de rollene den har satt i env om vi har MOCK_AUTH lik true
-  if (MOCK_AUTH === "true") {
-    if (MOCK_AUTH_LARER_ROLE === "true") {
-      users.push({
-        appRoleValue: DEFAULT_ROLE,
-        appRoleId: "mocklarer",
-        id: "mockId6",
-        principalDisplayName: "Demo Spøkelse",
-        principalId: "12345-4378493-fjdiofjd",
-        principalType: "User"
-      })
-    }
-    if (MOCK_AUTH_LEDER_ROLE === "true") {
-      users.push({
-        appRoleValue: LEDER_ROLE,
-        appRoleId: "mockleder",
-        id: "mockId7",
-        principalDisplayName: "Demo Spøkelse",
-        principalId: "12345-4378493-fjdiofjd",
-        principalType: "User"
-      })
-    }
-  }
-
-  return users
 }
 
 export const getAllLeaderUsers = async (appId: string): Promise<LeaderUser[]> => {

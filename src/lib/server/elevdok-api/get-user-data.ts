@@ -63,7 +63,7 @@ export const repackMiniSchool = (school: FintSkole, kontaktlarer: boolean | unde
       throw new Error(`Could not find school with schoolNumber "${school.skolenummer}" in vtfk-schools-info!`)
     }
   }
-  const kortkortnavn = school.kortnavn.indexOf("-") ? school.kortnavn.substring(school.kortnavn.indexOf("-") + 1) : school.kortnavn
+  const kortkortnavn = school.kortnavn.includes("-") ? school.kortnavn.substring(school.kortnavn.indexOf("-") + 1) : school.kortnavn
   return {
     kortkortnavn,
     skolenummer: school.skolenummer,

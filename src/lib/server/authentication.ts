@@ -159,7 +159,7 @@ export const getAuthenticatedUser = async (headers: Headers): Promise<User> => {
       roleName = "Administrator"
     }
     if (!roleName) {
-      throw new Error(`HEIHEI, her mangler det displayName for rollen med verdi ${role}`)
+      throw new Error(`Role "${role}" from Entra ID has no display name: it is not DEFAULT_ROLE, LEDER_ROLE or ADMIN_ROLE. Check the app roles of the app registration against those settings.`)
     }
     return {
       value: role,

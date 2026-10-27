@@ -11,7 +11,6 @@
   }
 
   let errorMessage = $state("")
-  let searchValue
   let loading = $state(false)
 
   let initialStudentSearch = $state(false)
@@ -35,7 +34,7 @@
   const getLogStudents = async (event: Event) => {
     event.preventDefault()
     students = null
-    const result = await requestApi<LogStudent[]>(studentSearchName ? `/api/admin/logstudents?search_name=${studentSearchName}` : "/api/admin/logstudents")
+    const result = await requestApi<LogStudent[]>(`/api/admin/logstudents?${new URLSearchParams({ search_name: studentSearchName })}`)
     if (result.ok) {
       students = result.value
     } else {
@@ -48,7 +47,7 @@
   const getLogUsers = async (event: Event) => {
     event.preventDefault()
     users = null
-    const result = await requestApi<LogUser[]>(userSearchName ? `/api/admin/logusers?search_name=${userSearchName}` : "/api/admin/logusers")
+    const result = await requestApi<LogUser[]>(`/api/admin/logusers?${new URLSearchParams({ search_name: userSearchName })}`)
     if (result.ok) {
       users = result.value
     } else {
@@ -78,21 +77,17 @@
   const getLogElements = async () => {
     errorMessage = ""
     loading = true
-    let url = "/api/admin/logentries"
-    let addedQuery = false
+    const filter = new URLSearchParams()
     if (selectedStudent) {
-      url += `?student_number=${selectedStudent.elevnummer}`
-      addedQuery = true
+      filter.set("student_number", selectedStudent.elevnummer)
     }
     if (selectedUser) {
-      url += `${addedQuery ? "&" : "?"}user_principal_id=${selectedUser.principalId}`
-      addedQuery = true
+      filter.set("user_principal_id", selectedUser.principalId)
     }
     if (selectedDocumentNumber) {
-      url += `${addedQuery ? "&" : "?"}document_number=${selectedDocumentNumber}`
-      addedQuery = true
+      filter.set("document_number", selectedDocumentNumber)
     }
-    const result = await requestApi<LogElement[]>(url)
+    const result = await requestApi<LogElement[]>(`/api/admin/logentries?${filter}`)
     if (result.ok) {
       logElements = result.value
     } else {
