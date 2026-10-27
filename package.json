@@ -13,7 +13,8 @@
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
-    "test": "node --test \"src/**/*.test.ts\""
+    "node:test": "node --test \"src/**/*.test.ts\"",
+    "test": "npm run lint && npm run check && npm run node:test"
   },
   "imports": {
     "#lib": "./src/lib/index.js",
@@ -21,6 +22,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.15",
+    "@sveltejs/adapter-node": "^6.0.0",
     "@sveltejs/kit": "^3.1.0",
     "@sveltejs/vite-plugin-svelte": "^7.3.1",
     "@types/node": "^24.19.2",
@@ -32,7 +34,6 @@
   "type": "module",
   "dependencies": {
     "@azure/msal-node": "^7.1.1",
-    "@sveltejs/adapter-node": "^6.0.0",
     "@vestfoldfylke/loglady": "^2.1.0",
     "@vtfk/encryption": "^1.0.3",
     "mongodb": "^6.21.0",
