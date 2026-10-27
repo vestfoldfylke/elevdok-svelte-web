@@ -116,8 +116,8 @@ export const getApplicationUsers = async (appId: string): Promise<ApplicationUse
       }
     ]
     // Legg til MOCK auth sin bruker med de rollene den har satt i env
-    if (MOCK_AUTH) {
-      if (MOCK_AUTH_LARER_ROLE) {
+    if (MOCK_AUTH === "true") {
+      if (MOCK_AUTH_LARER_ROLE === "true") {
         mockUsers.push({
           appRoleValue: DEFAULT_ROLE,
           appRoleId: "mocklarer",
@@ -127,7 +127,7 @@ export const getApplicationUsers = async (appId: string): Promise<ApplicationUse
           principalType: "User"
         })
       }
-      if (MOCK_AUTH_LEDER_ROLE) {
+      if (MOCK_AUTH_LEDER_ROLE === "true") {
         mockUsers.push({
           appRoleValue: LEDER_ROLE,
           appRoleId: "mockleder",
@@ -176,8 +176,8 @@ export const getApplicationUsers = async (appId: string): Promise<ApplicationUse
   })
 
   // Legg til MOCK auth sin bruker med de rollene den har satt i env om vi har MOCK_AUTH lik true
-  if (MOCK_AUTH && NODE_ENV !== "production") {
-    if (MOCK_AUTH_LARER_ROLE) {
+  if (MOCK_AUTH === "true" && NODE_ENV !== "production") {
+    if (MOCK_AUTH_LARER_ROLE === "true") {
       users.push({
         appRoleValue: DEFAULT_ROLE,
         appRoleId: "mocklarer",
@@ -187,7 +187,7 @@ export const getApplicationUsers = async (appId: string): Promise<ApplicationUse
         principalType: "User"
       })
     }
-    if (MOCK_AUTH_LEDER_ROLE) {
+    if (MOCK_AUTH_LEDER_ROLE === "true") {
       users.push({
         appRoleValue: LEDER_ROLE,
         appRoleId: "mockleder",
@@ -257,8 +257,8 @@ export const getAllLeaderUsers = async (appId: string): Promise<LeaderUser[]> =>
       }
     ]
     // Legg til MOCK auth sin bruker med de rollene den har satt i env
-    if (MOCK_AUTH) {
-      if (MOCK_AUTH_LEDER_ROLE) {
+    if (MOCK_AUTH === "true") {
+      if (MOCK_AUTH_LEDER_ROLE === "true") {
         mockUsers.push({
           appRoleValue: LEDER_ROLE,
           appRoleId: "mockleder",
@@ -330,8 +330,8 @@ export const getAllLeaderUsers = async (appId: string): Promise<LeaderUser[]> =>
   logger.info("Found {LeaderUserCount} leader users", leaderUsers.length)
 
   // Legg til MOCK auth sin bruker med de rollene den har satt i env om vi har MOCK_AUTH lik true
-  if (MOCK_AUTH && NODE_ENV !== "production") {
-    if (MOCK_AUTH_LEDER_ROLE) {
+  if (MOCK_AUTH === "true" && NODE_ENV !== "production") {
+    if (MOCK_AUTH_LEDER_ROLE === "true") {
       leaderUsers.push({
         appRoleValue: LEDER_ROLE,
         appRoleId: "mockleder",
