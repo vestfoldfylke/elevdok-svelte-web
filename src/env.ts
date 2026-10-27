@@ -1,12 +1,15 @@
 import { defineEnvVars } from "@sveltejs/kit/env"
 
+// Without a schema a variable is required and the server will not start without it. The code reads an unset flag as off.
+const optional = { schema: (value: string | undefined) => value }
+
 export const variables = defineEnvVars({
-  NODE_ENV: {},
-  MOCK_AUTH: {},
-  MOCK_API: {},
-  MOCK_AUTH_LARER_ROLE: {},
-  MOCK_AUTH_LEDER_ROLE: {},
-  MOCK_AUTH_ADMIN_ROLE: {},
+  NODE_ENV: optional,
+  MOCK_AUTH: optional,
+  MOCK_API: optional,
+  MOCK_AUTH_LARER_ROLE: optional,
+  MOCK_AUTH_LEDER_ROLE: optional,
+  MOCK_AUTH_ADMIN_ROLE: optional,
   DEFAULT_ROLE: {},
   LEDER_ROLE: {},
   ADMIN_ROLE: {},
@@ -23,10 +26,10 @@ export const variables = defineEnvVars({
   FINTFOLK_API_SCOPE: {},
   AZF_ARCHIVE_URL: {},
   AZF_ARCHIVE_SCOPE: {},
-  FAGLARER_ACCESS_ENABLED: {},
-  IOP_FAGLARER_ACCESS_ENABLED: {},
-  MAINTENANCE_MODE: {},
+  FAGLARER_ACCESS_ENABLED: optional,
+  IOP_FAGLARER_ACCESS_ENABLED: optional,
+  MAINTENANCE_MODE: optional,
   MAIN_SOURCE_NAME: {},
-  VTFK_ARCHIVE_ENABLED: {},
+  VTFK_ARCHIVE_ENABLED: optional,
   FRONTEND_APP_ID: {}
 })

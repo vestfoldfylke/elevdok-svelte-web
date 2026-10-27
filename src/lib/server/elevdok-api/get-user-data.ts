@@ -181,19 +181,24 @@ export const getUserData = async (user: User, { shouldMaskSsn = true }: UserData
 
     // A teacher can have the same undervisningsgruppe in several undervisningsforhold, buildStudentList adds each class once
     const memberships: StudentMembership[] = validUndervisningsforhold.flatMap((undervisningsforhold) => {
+      const activeBasisgrupper = undervisningsforhold.basisgrupper.filter((gruppe) => gruppe.aktiv)
+      const activeUndervisningsgrupper = undervisningsforhold.undervisningsgrupper.filter((gruppe) => gruppe.aktiv)
+
+      // repackMiniSchool throws for a school it can not map, so only an undervisningsforhold with students may stop the teacher's list
+      const hasStudents = [...activeBasisgrupper, ...activeUndervisningsgrupper].some((gruppe) => gruppe.elever.length > 0)
+      if (!hasStudents) {
+        return []
+      }
+
       const school = repackMiniSchool(undervisningsforhold.skole)
-      const basisgruppeMemberships = undervisningsforhold.basisgrupper
-        .filter((gruppe) => gruppe.aktiv)
-        .flatMap((basisgruppe) => {
-          const klasse: ElevKlasse = { navn: basisgruppe.navn, type: "basisgruppe", systemId: basisgruppe.systemId, fag: [] }
-          return basisgruppe.elever.map((elev) => ({ elev, school, klasse }))
-        })
-      const undervisningsgruppeMemberships = undervisningsforhold.undervisningsgrupper
-        .filter((gruppe) => gruppe.aktiv)
-        .flatMap((undervisningsgruppe) => {
-          const klasse: ElevKlasse = { navn: undervisningsgruppe.navn, type: "undervisningsgruppe", systemId: undervisningsgruppe.systemId, fag: undervisningsgruppe.fag }
-          return undervisningsgruppe.elever.map((elev) => ({ elev, school, klasse }))
-        })
+      const basisgruppeMemberships = activeBasisgrupper.flatMap((basisgruppe) => {
+        const klasse: ElevKlasse = { navn: basisgruppe.navn, type: "basisgruppe", systemId: basisgruppe.systemId, fag: [] }
+        return basisgruppe.elever.map((elev) => ({ elev, school, klasse }))
+      })
+      const undervisningsgruppeMemberships = activeUndervisningsgrupper.flatMap((undervisningsgruppe) => {
+        const klasse: ElevKlasse = { navn: undervisningsgruppe.navn, type: "undervisningsgruppe", systemId: undervisningsgruppe.systemId, fag: undervisningsgruppe.fag }
+        return undervisningsgruppe.elever.map((elev) => ({ elev, school, klasse }))
+      })
       return [...basisgruppeMemberships, ...undervisningsgruppeMemberships]
     })
 
