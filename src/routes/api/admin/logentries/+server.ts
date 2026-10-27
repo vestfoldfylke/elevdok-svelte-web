@@ -1,9 +1,7 @@
-import { getAuthenticatedUser } from "#lib/server/authentication.js"
 import { getUserLogs } from "#lib/server/elevdok-api/user-logs.js"
 import type { RequestHandler } from "./$types"
 
-export const GET: RequestHandler = async ({ request, url }) => {
-  const user = await getAuthenticatedUser(request.headers)
+export const GET: RequestHandler = async ({ locals, url }) => {
   const studentNumber = url.searchParams.get("student_number")
   const userPrincipalId = url.searchParams.get("user_principal_id")
   const documentNumber = url.searchParams.get("document_number")
@@ -14,7 +12,7 @@ export const GET: RequestHandler = async ({ request, url }) => {
     documentNumber
   }
 
-  const logEntries = await getUserLogs(user, filter)
+  const logEntries = await getUserLogs(locals.user, filter)
 
   return Response.json(logEntries)
 }

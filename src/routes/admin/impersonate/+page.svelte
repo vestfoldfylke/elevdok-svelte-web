@@ -44,38 +44,34 @@
   }
 </script>
 
-{#if data.user.hasAdminRole}
-  <h2>Administrator</h2>
-  <h3>Logg inn som en annen bruker for feilsøking</h3>
-  <p>Merk at dette logges</p>
-  <br>
-  {#if isLoading}
-    <LoadingSpinner />
-  {:else}
-    {#if data.user.impersonating}
-      Du er logget inn som <strong>{data.user.impersonating.target}</strong> med rollen <strong>{data.user.impersonating.type}</strong>
-      <button class="filled" onclick={deleteImpersonation}><span class="material-symbols-outlined">cancel</span>Fjern innloggingen som {data.user.impersonating.target}</button>
-      <br>  
-    {/if}
-
-    <div class="label-input">
-      <label for="impersonationTarget">Brukernavnet til den du vil logge inn som (må være korrekt)</label>
-      <input bind:value={impersonationTarget} id="impersonationTarget" type="email" placeholder="f. eks per.son@fylke.no" />
-    </div>
-    <br>
-    <div class="actionButtons">
-      <button onclick={() => setImpersonation('larer')}>Logg in som lærer</button>
-      <button onclick={() => setImpersonation('leder')}>Logg in som leder / rådgiver</button>
-    </div>
-    {#if errorMessage}
-      <div class="error">
-        <p>Det skjedde en feil :(</p>
-        <p>{errorMessage}</p>
-      </div>
-    {/if}
-  {/if}
+<h2>Administrator</h2>
+<h3>Logg inn som en annen bruker for feilsøking</h3>
+<p>Merk at dette logges</p>
+<br>
+{#if isLoading}
+  <LoadingSpinner />
 {:else}
-  Du har ikke tilgang på denne siden
+  {#if data.user.impersonating}
+    Du er logget inn som <strong>{data.user.impersonating.target}</strong> med rollen <strong>{data.user.impersonating.type}</strong>
+    <button class="filled" onclick={deleteImpersonation}><span class="material-symbols-outlined">cancel</span>Fjern innloggingen som {data.user.impersonating.target}</button>
+    <br>  
+  {/if}
+
+  <div class="label-input">
+    <label for="impersonationTarget">Brukernavnet til den du vil logge inn som (må være korrekt)</label>
+    <input bind:value={impersonationTarget} id="impersonationTarget" type="email" placeholder="f. eks per.son@fylke.no" />
+  </div>
+  <br>
+  <div class="actionButtons">
+    <button onclick={() => setImpersonation('larer')}>Logg in som lærer</button>
+    <button onclick={() => setImpersonation('leder')}>Logg in som leder / rådgiver</button>
+  </div>
+  {#if errorMessage}
+    <div class="error">
+      <p>Det skjedde en feil :(</p>
+      <p>{errorMessage}</p>
+    </div>
+  {/if}
 {/if}
 
 <style>

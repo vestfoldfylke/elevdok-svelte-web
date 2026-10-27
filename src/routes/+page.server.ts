@@ -1,5 +1,4 @@
 import { error, redirect } from "@sveltejs/kit"
-import { getAuthenticatedUser } from "#lib/server/authentication.js"
 import { setActiveRole } from "#lib/server/elevdok-api/roles.js"
 import type { Actions } from "./$types"
 
@@ -9,8 +8,7 @@ export const actions: Actions = {
     if (!requestedRole || typeof requestedRole !== "string") {
       throw error(400, 'Mangler rollen du vil bytte til ("active_role").')
     }
-    const user = await getAuthenticatedUser(event.request.headers)
-    await setActiveRole(user, requestedRole)
+    await setActiveRole(event.locals.user, requestedRole)
     throw redirect(303, "/")
   }
 }

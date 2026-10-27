@@ -4,13 +4,6 @@
   import { prettyPrintDate } from "#lib/helpers/pretty-date.js"
   import { requestApi } from "#lib/request-api.js"
   import type { SchoolAccess } from "#lib/server/elevdok-api/leder-access.js"
-  import type { PageData } from "./$types"
-
-  type Props = {
-    data: PageData
-  }
-
-  let { data }: Props = $props()
 
   let errorMessage = $state("")
   let searchValue
@@ -35,31 +28,27 @@
   })
 </script>
 
-{#if data.user.hasAdminRole}
-  <h2>Administrator</h2>
-  <h3>Se oversikt over ledertilganger</h3>
+<h2>Administrator</h2>
+<h3>Se oversikt over ledertilganger</h3>
 
-  <p>
-    Tilgang for ledere / rådgivere styres av tilgangsgrupper i EntraID. Servicedesk kan legge til brukere i gruppe A-TILGANG-ELEVDOK-LEDER-{"{SKOLEKORTNAVN}"}.
-  </p>
-  {#if loading}
-    <LoadingSpinner />
-  {:else}
-    {#each schoolAccess as school}
-      <h3>{school.schoolName}</h3>
-      {#each school.leaders as leader}
-        <div>{leader.displayName} ({leader.principalName})</div>
-      {/each}
-    {/each}
-  {/if}
-  {#if errorMessage}
-    <div>
-      <p>Det skjedde en feil</p>
-      <p>{errorMessage}</p>
-    </div>
-  {/if}
+<p>
+  Tilgang for ledere / rådgivere styres av tilgangsgrupper i EntraID. Servicedesk kan legge til brukere i gruppe A-TILGANG-ELEVDOK-LEDER-{"{SKOLEKORTNAVN}"}.
+</p>
+{#if loading}
+  <LoadingSpinner />
 {:else}
-  Du har ikke tilgang på denne siden
+  {#each schoolAccess as school}
+    <h3>{school.schoolName}</h3>
+    {#each school.leaders as leader}
+      <div>{leader.displayName} ({leader.principalName})</div>
+    {/each}
+  {/each}
+{/if}
+{#if errorMessage}
+  <div>
+    <p>Det skjedde en feil</p>
+    <p>{errorMessage}</p>
+  </div>
 {/if}
 
 <style>

@@ -3,9 +3,9 @@ import { logger } from "@vtfk/logger"
 import type { User } from "#lib/server/authentication.js"
 import { getAzfArchiveDocuments, getAzfArchiveFile } from "#lib/server/call-archive/azf-archive.js"
 import { mockFile } from "#lib/server/call-archive/mock-data.js"
+import { requireStudentAccess } from "#lib/server/guards/require-student-access.js"
 import { hasFileAccessForStudent } from "#lib/server/permissions.js"
-import { DEFAULT_ROLE, LEDER_ROLE, MOCK_API, VTFK_ARCHIVE_ENABLED } from "$app/env/private"
-import { getUserData } from "./get-user-data.js"
+import { MOCK_API, VTFK_ARCHIVE_ENABLED } from "$app/env/private"
 import { createUserLogEntry } from "./user-logs.js"
 
 /** Returns the file as base64 */
@@ -27,25 +27,7 @@ export const getFile = async (user: User, studentFeidenavn: string, sourceId: st
     throw new Error('Missing required parameter "fileId"')
   }
 
-  // Check if regular teacher or administrator impersonating teacher or leder
-  const canViewDocuments =
-    user.activeRole === DEFAULT_ROLE || user.activeRole === LEDER_ROLE || (user.hasAdminRole && user.impersonating?.type === "larer") || (user.hasAdminRole && user.impersonating?.type === "leder")
-  if (!canViewDocuments) {
-    logger("warn", [loggerPrefix, "Not allowed to view documents with current role"])
-    throw error(403, "Rollen din gir ikke tilgang til elevdokumenter. Bytt rolle i brukermenyen om du har flere roller.")
-  }
-
-  // Then validate access to student
-  const userData = await getUserData(user, false)
-  const availableStudents = userData.students
-  logger("info", [loggerPrefix, "Validating access to student"])
-  const teacherStudent = availableStudents.find((stud) => stud.feidenavn === studentFeidenavn)
-  if (!teacherStudent) {
-    logger("warn", [loggerPrefix, "No access to student, or student does not exist"])
-    throw error(403, "Du har ikke tilgang til denne eleven, eller eleven finnes ikke.")
-  }
-
-  logger("info", [loggerPrefix, "Access to student validated"])
+  const teacherStudent = await requireStudentAccess(user, studentFeidenavn, loggerPrefix)
 
   // Sjekk også at bruker har tilgang til å faktisk åpne filen!! Basert på ENV-variabler
   logger("info", [loggerPrefix, "Validating access to files for student"])
