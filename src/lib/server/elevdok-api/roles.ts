@@ -2,7 +2,7 @@ import { error } from "@sveltejs/kit"
 import { logger } from "@vestfoldfylke/loglady"
 import type { User } from "#lib/server/authentication.js"
 import { getMockDb } from "#lib/server/mock-db.js"
-import { closeMongoClient, getMongoClient } from "#lib/server/mongo-client.js"
+import { getMongoClient } from "#lib/server/mongo-client.js"
 import { MOCK_API, MONGODB_DB_NAME, MONGODB_USER_SETTINGS_COLLECTION } from "$app/env/private"
 
 type UserSettings = {
@@ -18,21 +18,13 @@ export const getActiveRole = async (principalId: string): Promise<string | null>
     const activeRole = mockDb.get<string>("activeRole")
     return activeRole || null
   }
-  try {
-    const mongoClient = await getMongoClient()
-    const collection = mongoClient.db(MONGODB_DB_NAME).collection<UserSettings>(MONGODB_USER_SETTINGS_COLLECTION)
-    const userSettings = await collection.findOne({ principalId })
-    if (!userSettings) {
-      return null
-    }
-    return userSettings.activeRole || null
-  } catch (error) {
-    if (String(error).startsWith("MongoTopologyClosedError")) {
-      logger.warn("MongoDB topology is closed - closing the client")
-      closeMongoClient()
-    }
-    throw error
+  const mongoClient = await getMongoClient()
+  const collection = mongoClient.db(MONGODB_DB_NAME).collection<UserSettings>(MONGODB_USER_SETTINGS_COLLECTION)
+  const userSettings = await collection.findOne({ principalId })
+  if (!userSettings) {
+    return null
   }
+  return userSettings.activeRole || null
 }
 
 export const setActiveRole = async (user: User, requestedRole: string): Promise<void> => {
@@ -48,20 +40,12 @@ export const setActiveRole = async (user: User, requestedRole: string): Promise<
     logger.info("MOCK_API is enabled: changed active role to {RequestedRole} in mock db", requestedRole)
     return
   }
-  try {
-    const mongoClient = await getMongoClient()
-    const collection = mongoClient.db(MONGODB_DB_NAME).collection<UserSettings>(MONGODB_USER_SETTINGS_COLLECTION)
-    await collection.findOneAndUpdate(
-      { principalId: user.principalId },
-      { $set: { principalId: user.principalId, principalName: user.principalName, activeRole: requestedRole, changedTimestamp: new Date().toISOString() } },
-      { upsert: true }
-    )
-    logger.info("Changed active role to {RequestedRole} in db", requestedRole)
-  } catch (error) {
-    if (String(error).startsWith("MongoTopologyClosedError")) {
-      logger.warn("MongoDB topology is closed - closing the client")
-      closeMongoClient()
-    }
-    throw error
-  }
+  const mongoClient = await getMongoClient()
+  const collection = mongoClient.db(MONGODB_DB_NAME).collection<UserSettings>(MONGODB_USER_SETTINGS_COLLECTION)
+  await collection.findOneAndUpdate(
+    { principalId: user.principalId },
+    { $set: { principalId: user.principalId, principalName: user.principalName, activeRole: requestedRole, changedTimestamp: new Date().toISOString() } },
+    { upsert: true }
+  )
+  logger.info("Changed active role to {RequestedRole} in db", requestedRole)
 }

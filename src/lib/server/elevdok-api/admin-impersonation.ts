@@ -4,7 +4,7 @@ import type { InsertOneResult } from "mongodb"
 import type { Impersonation, User } from "#lib/server/authentication.js"
 import { requireAdminRole } from "#lib/server/guards/require-admin-role.js"
 import { getInternalCache } from "#lib/server/internal-cache.js"
-import { closeMongoClient, getMongoClient } from "#lib/server/mongo-client.js"
+import { getMongoClient } from "#lib/server/mongo-client.js"
 import { FEIDENAVN_SUFFIX, MOCK_API, MONGODB_DB_NAME, MONGODB_USER_IMPERSONATION_COLLECTION } from "$app/env/private"
 
 type ImpersonationLogEntry = {
@@ -46,27 +46,19 @@ export const setAdminImpersonation = async (user: User, target: string, type: Im
   if (MOCK_API === "true") {
     return
   }
-  try {
-    const mongoClient = await getMongoClient()
-    const collection = mongoClient.db(MONGODB_DB_NAME).collection<ImpersonationLogEntry>(MONGODB_USER_IMPERSONATION_COLLECTION)
-    const logEntry: ImpersonationLogEntry = {
-      timestamp: new Date().toISOString(),
-      user: {
-        principalName: user.principalName,
-        principalId: user.principalId
-      },
-      impersonationTarget: target,
-      impersonationRole: type
-    }
-    const insertLogResult = await collection.insertOne(logEntry)
-    return insertLogResult
-  } catch (error) {
-    if (String(error).startsWith("MongoTopologyClosedError")) {
-      logger.warn("MongoDB topology is closed - closing the client")
-      closeMongoClient()
-    }
-    throw error
+  const mongoClient = await getMongoClient()
+  const collection = mongoClient.db(MONGODB_DB_NAME).collection<ImpersonationLogEntry>(MONGODB_USER_IMPERSONATION_COLLECTION)
+  const logEntry: ImpersonationLogEntry = {
+    timestamp: new Date().toISOString(),
+    user: {
+      principalName: user.principalName,
+      principalId: user.principalId
+    },
+    impersonationTarget: target,
+    impersonationRole: type
   }
+  const insertLogResult = await collection.insertOne(logEntry)
+  return insertLogResult
 }
 
 export const deleteAdminImpersonation = (user: User): void => {

@@ -3,7 +3,7 @@ import { ObjectId } from "mongodb"
 import type { Impersonation, User } from "#lib/server/authentication.js"
 import { requireAdminRole } from "#lib/server/guards/require-admin-role.js"
 import { getMockDb } from "#lib/server/mock-db.js"
-import { closeMongoClient, getMongoClient } from "#lib/server/mongo-client.js"
+import { getMongoClient } from "#lib/server/mongo-client.js"
 import { MOCK_API, MONGODB_DB_NAME, MONGODB_LOGS_COLLECTION } from "$app/env/private"
 import { getCurrentSchoolYear, type TeacherStudent } from "./get-user-data.js"
 
@@ -119,19 +119,11 @@ export const createUserLogEntry = async (logData: UserLogData): Promise<{ insert
     logger.info("MOCK_API is true: added log entry {LogEntryId} to mock db", randomId)
     return { insertedId: randomId }
   }
-  try {
-    const mongoClient = await getMongoClient()
-    const collection = mongoClient.db(MONGODB_DB_NAME).collection<LogEntry>(`${MONGODB_LOGS_COLLECTION}-${getCurrentSchoolYear("-")}`)
-    const insertLogResult = await collection.insertOne(logEntry)
-    logger.info("Added log entry {LogEntryId}", insertLogResult.insertedId.toString())
-    return insertLogResult
-  } catch (error) {
-    if (String(error).startsWith("MongoTopologyClosedError")) {
-      logger.warn("MongoDB topology is closed - closing the client")
-      closeMongoClient()
-    }
-    throw error
-  }
+  const mongoClient = await getMongoClient()
+  const collection = mongoClient.db(MONGODB_DB_NAME).collection<LogEntry>(`${MONGODB_LOGS_COLLECTION}-${getCurrentSchoolYear("-")}`)
+  const insertLogResult = await collection.insertOne(logEntry)
+  logger.info("Added log entry {LogEntryId}", insertLogResult.insertedId.toString())
+  return insertLogResult
 }
 
 export const logStudentSearch = async (user: User, searchName: string | null): Promise<LogStudent[]> => {
@@ -160,31 +152,20 @@ export const logStudentSearch = async (user: User, searchName: string | null): P
     return students
   }
   // Get top 50 logs from mongodb
-  try {
-    const mongoClient = await getMongoClient()
+  const mongoClient = await getMongoClient()
 
-    const collection = mongoClient.db(MONGODB_DB_NAME).collection<LogEntry>(`${MONGODB_LOGS_COLLECTION}-${getCurrentSchoolYear("-")}`)
+  const collection = mongoClient.db(MONGODB_DB_NAME).collection<LogEntry>(`${MONGODB_LOGS_COLLECTION}-${getCurrentSchoolYear("-")}`)
 
-    const escapedSearchName = escapeRegex(searchName)
-    const regex = new RegExp(`^${escapedSearchName}`, "i")
-    const distinctStudents = await collection
-      .aggregate<{ _id: LogStudent }>([
-        { $group: { _id: { elevnummer: "$student.elevnummer", name: "$student.name", feidenavn: "$student.feidenavn" } } },
-        { $match: { "_id.name": { $regex: regex } } }
-      ])
-      .sort({ "_id.name": 1 })
-      .limit(15)
-      .toArray()
+  const escapedSearchName = escapeRegex(searchName)
+  const regex = new RegExp(`^${escapedSearchName}`, "i")
+  const distinctStudents = await collection
+    .aggregate<{ _id: LogStudent }>([{ $group: { _id: { elevnummer: "$student.elevnummer", name: "$student.name", feidenavn: "$student.feidenavn" } } }, { $match: { "_id.name": { $regex: regex } } }])
+    .sort({ "_id.name": 1 })
+    .limit(15)
+    .toArray()
 
-    logger.info("Found {StudentCount} students", distinctStudents.length)
-    return distinctStudents.map((student) => student._id)
-  } catch (error) {
-    if (String(error).startsWith("MongoTopologyClosedError")) {
-      logger.warn("MongoDB topology is closed - closing the client")
-      closeMongoClient()
-    }
-    throw error
-  }
+  logger.info("Found {StudentCount} students", distinctStudents.length)
+  return distinctStudents.map((student) => student._id)
 }
 
 export const logUserSearch = async (user: User, searchName: string | null): Promise<LogUser[]> => {
@@ -215,28 +196,20 @@ export const logUserSearch = async (user: User, searchName: string | null): Prom
     })
   }
   // Get top 50 logs from mongodb
-  try {
-    const mongoClient = await getMongoClient()
+  const mongoClient = await getMongoClient()
 
-    const collection = mongoClient.db(MONGODB_DB_NAME).collection<LogEntry>(`${MONGODB_LOGS_COLLECTION}-${getCurrentSchoolYear("-")}`)
+  const collection = mongoClient.db(MONGODB_DB_NAME).collection<LogEntry>(`${MONGODB_LOGS_COLLECTION}-${getCurrentSchoolYear("-")}`)
 
-    const escapedSearchName = escapeRegex(searchName)
-    const regex = new RegExp(`^${escapedSearchName}`, "i")
-    const distinctUsers = await collection
-      .aggregate<{ _id: LogUser }>([{ $group: { _id: { principalId: "$user.principalId", name: "$user.name", principalName: "$user.principalName" } } }, { $match: { "_id.name": { $regex: regex } } }])
-      .sort({ "_id.name": 1 })
-      .limit(15)
-      .toArray()
+  const escapedSearchName = escapeRegex(searchName)
+  const regex = new RegExp(`^${escapedSearchName}`, "i")
+  const distinctUsers = await collection
+    .aggregate<{ _id: LogUser }>([{ $group: { _id: { principalId: "$user.principalId", name: "$user.name", principalName: "$user.principalName" } } }, { $match: { "_id.name": { $regex: regex } } }])
+    .sort({ "_id.name": 1 })
+    .limit(15)
+    .toArray()
 
-    logger.info("Found {UserCount} users", distinctUsers.length)
-    return distinctUsers.map((user) => user._id)
-  } catch (error) {
-    if (String(error).startsWith("MongoTopologyClosedError")) {
-      logger.warn("MongoDB topology is closed - closing the client")
-      closeMongoClient()
-    }
-    throw error
-  }
+  logger.info("Found {UserCount} users", distinctUsers.length)
+  return distinctUsers.map((user) => user._id)
 }
 
 export const getUserLogs = async (user: User, filter: LogFilter): Promise<LogEntry[]> => {
@@ -272,32 +245,24 @@ export const getUserLogs = async (user: User, filter: LogFilter): Promise<LogEnt
     })
   }
   // Get logs from mongodb
-  try {
-    const mongoClient = await getMongoClient()
-    const collection = mongoClient.db(MONGODB_DB_NAME).collection<LogEntry>(`${MONGODB_LOGS_COLLECTION}-${getCurrentSchoolYear("-")}`)
-    if (!studentNumber && !userPrincipalId && !documentNumber) {
-      logger.info("No filters applied, returning the 50 most recent log entries")
-      const top50 = await collection.find().sort({ _id: -1 }).limit(50).toArray() // sort({_id:-1}) returns newest first
-      return top50
-    }
-    const query: Record<string, string> = {}
-    if (studentNumber) {
-      query["student.elevnummer"] = studentNumber
-    }
-    if (userPrincipalId) {
-      query["user.principalId"] = userPrincipalId
-    }
-    if (documentNumber) {
-      query["file.documentNumber"] = documentNumber
-    }
-    const logs = await collection.find(query).sort({ _id: -1 }).toArray() // sort({_id:-1}) returns newest first
-    logger.info("Found {LogEntryCount} log entries", logs.length)
-    return logs
-  } catch (error) {
-    if (String(error).startsWith("MongoTopologyClosedError")) {
-      logger.warn("MongoDB topology is closed - closing the client")
-      closeMongoClient()
-    }
-    throw error
+  const mongoClient = await getMongoClient()
+  const collection = mongoClient.db(MONGODB_DB_NAME).collection<LogEntry>(`${MONGODB_LOGS_COLLECTION}-${getCurrentSchoolYear("-")}`)
+  if (!studentNumber && !userPrincipalId && !documentNumber) {
+    logger.info("No filters applied, returning the 50 most recent log entries")
+    const top50 = await collection.find().sort({ _id: -1 }).limit(50).toArray() // sort({_id:-1}) returns newest first
+    return top50
   }
+  const query: Record<string, string> = {}
+  if (studentNumber) {
+    query["student.elevnummer"] = studentNumber
+  }
+  if (userPrincipalId) {
+    query["user.principalId"] = userPrincipalId
+  }
+  if (documentNumber) {
+    query["file.documentNumber"] = documentNumber
+  }
+  const logs = await collection.find(query).sort({ _id: -1 }).toArray() // sort({_id:-1}) returns newest first
+  logger.info("Found {LogEntryCount} log entries", logs.length)
+  return logs
 }

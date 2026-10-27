@@ -3,9 +3,11 @@ import { logger } from "@vestfoldfylke/loglady"
 import { assertNoMockFlagsInProduction } from "#lib/server/assert-no-mock-flags-in-production.js"
 import { getAuthenticatedUser } from "#lib/server/authentication.js"
 import { getLogContext, runInLogContext, updateLogContext } from "#lib/server/logging/log-context.js"
+import { closeMongoClient } from "#lib/server/mongo-client.js"
 
 // Log destinations like Betterstack and Teams send asynchronously, so flush before the server exits
 process.on("sveltekit:shutdown", async () => {
+  await closeMongoClient()
   await logger.flush()
 })
 
