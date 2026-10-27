@@ -20,6 +20,7 @@
     <div class="studentIcon">
       <span class="material-symbols-outlined">school</span>
     </div>
+
     <div class="studentInfo">
       {#if student.skoler.some(school => school.kontaktlarer)}
         <div title="Du er kontaktlærer for denne eleven" class="studentId"><strong>Kontaktlærer</strong></div>
@@ -38,6 +39,7 @@
       </div>
     </div>
   </div>
+
   {@render children?.()}
 {/if}
 
@@ -47,6 +49,7 @@
     align-items: center;
     gap: 1.5rem;
   }
+
   .studentIcon {
     width: 4rem;
     height: 4rem;
@@ -54,17 +57,21 @@
     border-radius: 100%;
     background-color: var(--primary-color-40);
   }
+
   .studentIcon span {
     font-size: 4rem;
   }
+
   .studentTitle {
     padding: 0rem;
     margin: 0rem;
   }
+
   .subinfo {
     padding: 0rem;
     margin: 0rem;
   }
+
   .classes {
     display: flex;
     flex-wrap: wrap;

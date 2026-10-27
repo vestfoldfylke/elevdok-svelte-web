@@ -51,12 +51,14 @@
 
 <div class="pageRow">
   <div class="pageInfo">Side {currentPage+1} av {numberOfPages}</div>
+
   <div class="pageNumbers">
     {#if currentPage === 0}
       <button disabled title="forrige side" class="link pageArrow"><span class="material-symbols-outlined">chevron_left</span></button>
     {:else}
         <button title="forrige side" class="link pageArrow" onclick={previousPage}><span class="material-symbols-outlined">chevron_left</span></button>
     {/if}
+
     {#each getPaginationArray(currentPage, numberOfPages) as pageNumber}
       {#if pageNumber === '...'}
           <button disabled class="link currentPage">{pageNumber}</button>
@@ -66,12 +68,14 @@
           <button class="link{currentPage === pageNumber ? ' currentPage' : ''}" onclick={() => {gotoPage(pageNumber)}}>{pageNumber+1}</button> <!--må muligens sende inn funksjon her og-->
       {/if}
     {/each}
+
     {#if currentPage === numberOfPages-1}
       <button disabled title="neste side" class="link pageArrow"><span class="material-symbols-outlined">chevron_right</span></button>
     {:else}
       <button title="neste side" class="link pageArrow" onclick={nextPage}><span class="material-symbols-outlined">chevron_right</span></button>
     {/if}
   </div>
+
   {#if currentPage === numberOfPages-1} <!--last page-->
     <div class="countInfo">Viser {elementsPerPage > numberOfElements ? numberOfElements : `${(elementsPerPage * currentPage) + 1}-${numberOfElements}`} av {numberOfElements} {elementName}</div>
   {:else}
@@ -84,15 +88,18 @@
 			display: flex;
 			justify-content: space-between;
 	}
+
 	.pageNumbers {
 			display: flex;
 			gap: 0.5rem;
 	}
+
 	.currentPage {
 			font-weight: bold;
 			color: var(--font-color) !important ;
 			text-decoration: none;
 	}
+
 	.pageArrow {
 			text-decoration: none;
 	}
@@ -101,12 +108,13 @@
     .countInfo {
       display: none;
     }
+
     .pageInfo {
       display: none;
     }
+
     .pageRow {
       justify-content: center;
     }
   }
-
 </style>

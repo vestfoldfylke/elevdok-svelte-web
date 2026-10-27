@@ -41,10 +41,12 @@
 </script>
 
 <h2>Dine elever</h2>
+
 <div class="icon-input" style="width: 16rem;">
 	<span class="material-symbols-outlined">search</span>
 	<input type="text" bind:value={searchValue} oninput={() => { currentPage = 0 }} placeholder="Søk etter elev eller klasse" />
 </div>
+
 <div class="studentList">
 	{#if originalStudents.length === 0}
 		<br />
@@ -57,6 +59,7 @@
 			<div class="studentInfo">Navn</div>
 			<div>Skole / Klasse</div>
 		</div>
+
 		{#each students.slice(currentPage * studentsPerPage, (currentPage * studentsPerPage) + studentsPerPage) as student}
 			<div class=studentRow>
 				<div class="studentInfo">
@@ -82,6 +85,7 @@
 				</div>
 			</div>
 		{/each}
+
 		<Pagination {currentPage} elementName={'elever'} elementsPerPage={studentsPerPage} maxPageNumbers={11} {gotoPage} {nextPage} {previousPage} numberOfElements={students.length} />
 	{/if}
 </div>
@@ -92,22 +96,28 @@
 		align-items: center;
 		padding: 1rem 2rem;
 	}
+
 	.studentRow.header {
 		padding: 1rem 2rem 0rem 2rem;
 	}
+
 	.studentInfo {
 		max-width: 11rem;
 		flex-grow: 1;
 	}
+
 	.contactTeacher {
 		font-size: var(--font-size-extra-small);
 	}
+
 	.studentId {
 		font-size: var(--font-size-small);
 	}
+
 	.classGroup {
 		font-size: var(--font-size-small);
 	}
+
 	.studentRow:nth-child(even) {
 		background-color: var(--primary-color-10);
 	}

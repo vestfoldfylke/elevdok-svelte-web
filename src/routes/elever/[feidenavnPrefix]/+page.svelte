@@ -58,10 +58,12 @@
     </div>
     <br />
   {/if}
+
   <div class="icon-input" style="width: 16rem;">
     <span class="material-symbols-outlined">search</span>
     <input type="text" bind:value={searchValue} oninput={() => { currentPage = 0 }} placeholder="Søk etter tittel eller dokumentnummer" />
   </div>
+
   {#if originalDocuments.length === 0}
     <br />
     Fant ingen dokumenter for eleven 🤷‍♂️
@@ -72,6 +74,7 @@
     {#each documents.slice(currentPage * documentsPerPage, (currentPage * documentsPerPage) + documentsPerPage) as document, index}
       <Document {document} currentIndex={index} open={false} />
     {/each}
+
     <Pagination {currentPage} elementName={'dokumenter'} elementsPerPage={documentsPerPage} maxPageNumbers={11} {gotoPage} {nextPage} {previousPage} numberOfElements={documents.length} />
   {/if}    
 </div>

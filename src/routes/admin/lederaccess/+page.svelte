@@ -33,6 +33,7 @@
 <p>
   Tilgang for ledere / rådgivere styres av tilgangsgrupper i EntraID. Servicedesk kan legge til brukere i gruppe A-TILGANG-ELEVDOK-LEDER-{"{SKOLEKORTNAVN}"}.
 </p>
+
 {#if isLoading}
   <LoadingSpinner />
 {:else}
@@ -43,6 +44,7 @@
     {/each}
   {/each}
 {/if}
+
 {#if errorMessage}
   <div>
     <p>Det skjedde en feil</p>
@@ -51,5 +53,4 @@
 {/if}
 
 <style>
-
 </style>

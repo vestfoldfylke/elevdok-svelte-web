@@ -56,7 +56,6 @@
 
 <PDFViewer title={file.title} showPdf={isPdfOpen} {base64Data} closePdf={() => {isPdfOpen = false}} />
 
-
 <style>
   .fileContainer {
     display: flex;

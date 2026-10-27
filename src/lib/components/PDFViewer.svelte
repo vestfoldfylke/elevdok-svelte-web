@@ -37,6 +37,7 @@
       </div>
       <button onclick={closePdf} title="Lukk modal"><span class="material-symbols-outlined">close</span>Lukk</button>
     </div>
+
     <div class="rawData">
       {#if showPdf}
         {#await convertBase64ToBlob(base64Data, 'application/pdf')}
@@ -61,6 +62,7 @@
     width: 100%;
     min-height: 80vh;
   }
+
   dialog {
     width: 90vw;
     height: 90vh;
@@ -68,10 +70,12 @@
     border: none;
     padding: 32px
   }
+
   dialog::backdrop {
     background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.7));
     animation: fade-in 1s;
   }
+
   .modalTitle {
     display: flex;
     align-items: center;

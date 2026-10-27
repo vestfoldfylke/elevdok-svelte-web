@@ -49,6 +49,7 @@
 <h3>Logg inn som en annen bruker for feilsøking</h3>
 <p>Merk at dette logges</p>
 <br>
+
 {#if isLoading}
   <LoadingSpinner />
 {:else}
@@ -62,11 +63,13 @@
     <label for="impersonationTarget">Brukernavnet til den du vil logge inn som (må være korrekt)</label>
     <input bind:value={impersonationTarget} id="impersonationTarget" type="email" placeholder="f. eks per.son@fylke.no" />
   </div>
+
   <br>
   <div class="actionButtons">
     <button onclick={() => setImpersonation('larer')}>Logg in som lærer</button>
     <button onclick={() => setImpersonation('leder')}>Logg in som leder / rådgiver</button>
   </div>
+
   {#if errorMessage}
     <div class="error">
       <p>Det skjedde en feil :(</p>
@@ -80,6 +83,7 @@
     display: flex;
     gap: 1rem;
   }
+
   .error {
     color: var(--error-color);
   }

@@ -119,6 +119,7 @@
       <button onclick={getLogStudents}><span class="material-symbols-outlined">search</span> Søk</button>
     </div>
   </form>
+
   {#if studentErrorMessage}
     <div class="error">
       <p>Det skjedde en feil 😩</p>
@@ -157,6 +158,7 @@
       <button onclick={getLogUsers}><span class="material-symbols-outlined">search</span> Søk</button>
     </div>
   </form>
+
   <!-- Hvis jeg bruker en await - og bare bytter en variabel awaiten er avhengig av, så slipper jeg alle state variablene?-->
   {#if userErrorMessage}
     <div class="error">
@@ -196,6 +198,7 @@
       <button onclick={applyDocumentNumberFilter}><span class="material-symbols-outlined">add_circle</span> Legg til i filter</button>
     </div>
   </form>
+
   {#if documentNumberErrorMessage}
     <div class="error">
       <p>{JSON.stringify(documentNumberErrorMessage)}</p>
@@ -207,9 +210,11 @@
     <button class="link" onclick={() => selectedDocumentNumber = null}><span class="material-symbols-outlined">close</span>{selectedDocumentNumber}</button>
   </div>
 {/if}
+
 <br>
 <button class="filled" onclick={() => getLogElements()}>Søk i logger med valgt filter</button>
 <br />
+
 <div><strong>Logger</strong></div>
 {#if isLoading}
   <LoadingSpinner />
@@ -232,6 +237,7 @@
     </div>
   {/each}
 {/if}
+
 {#if errorMessage}
   <div class="error">
     <p>Det har skjedd en feil 😩</p>
@@ -243,12 +249,15 @@
   .logElement {
     padding: 1rem 1rem;
   }
+
   .logElement:nth-child(even) {
 		background-color: var(--primary-color-10);
 	}
+
   .searchResult {
     padding: 1rem;
   }
+
   .error {
     color: var(--error-color);
   }

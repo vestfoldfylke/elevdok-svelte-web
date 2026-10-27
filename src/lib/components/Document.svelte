@@ -23,6 +23,7 @@
   <div>
     <span class="material-symbols-outlined">{open ? 'expand_circle_up' : 'expand_circle_down'}</span>
   </div>
+
   <!--
   <p>{document.title}</p>
   <p>{document.sourceName}</p>
@@ -40,6 +41,7 @@
   {/each}
   -->
 </button>
+
 {#if open}
   <div class="documentData{isEven ? ' even' : ''}">
     <div>
@@ -54,11 +56,13 @@
     <div>
       <strong>Tilgangskode:</strong> {document.accessCode}
     </div>
+
     {#each document.contacts as contact}
       <div>
         <strong>{contact.role}:</strong> {contact.name}
       </div>
     {/each}
+
     <div>
       <strong>Filer:</strong>
     </div>
@@ -67,7 +71,6 @@
     {/each}
   </div>
 {/if}
-
 
 <style>
   .documentBoxButton {
@@ -80,9 +83,11 @@
     text-align: left;
     justify-content: space-between;
   }
+
   .documentBoxButton:hover {
     background-color: var(--primary-color-20);
   }
+
   .documentBoxButton.open {
     border-top: 1px solid var(--primary-color);
     border-left: 1px solid var(--primary-color);
@@ -90,21 +95,24 @@
     /* padding: 1rem 2rem; */
     /* background-color: var(--primary-color-20); */
   }
+
   .even {
     background-color: var(--secondary-color-10);
   }
+
   .upperTitle {
     font-size: var(--font-size-small);
   }
+
   .title {
     font-size: 1.1rem;
     font-weight: bold;
   }
+
   .documentData {
     padding: 0rem 3rem 1.5rem 3rem;
     border-bottom: 1px solid var(--primary-color);
     border-left: 1px solid var(--primary-color);
     border-right: 1px solid var(--primary-color);
   }
-
 </style>
