@@ -3,9 +3,10 @@ import vtfkSchoolsInfo from "vtfk-schools-info"
 import type { User } from "#lib/server/authentication.js"
 import { fintSchool } from "#lib/server/fintfolk-api/school.js"
 import { fintTeacher } from "#lib/server/fintfolk-api/teacher.js"
-import type { FintElev, FintFag, FintGruppeElev, FintSkole } from "#lib/server/fintfolk-api/types.js"
+import type { FintElev, FintFag, FintSkole } from "#lib/server/fintfolk-api/types.js"
 import { DEFAULT_ROLE, IOP_FAGLARER_ACCESS_ENABLED, LEDER_ROLE } from "$app/env/private"
 import { getLeaderAccess } from "./leder-access.js"
+import { buildStudentList, type StudentMembership } from "./student-list.js"
 
 const allowedUndervisningsforholdDescription = [
   "Adjunkt",
@@ -42,11 +43,9 @@ export type MiniSchool = {
   skolenummer: string
   kortnavn: string
   navn: string
-  /** is current user contactTeacher for student at this school */
-  kontaktlarer: boolean
 }
 
-export const repackMiniSchool = (school: FintSkole, kontaktlarer: boolean | undefined): MiniSchool => {
+export const repackMiniSchool = (school: FintSkole): MiniSchool => {
   if (!school.skolenummer) {
     throw new Error("Could not find schoolNumber for school in FINT!")
   }
@@ -68,25 +67,8 @@ export const repackMiniSchool = (school: FintSkole, kontaktlarer: boolean | unde
     kortkortnavn,
     skolenummer: school.skolenummer,
     kortnavn: school.kortnavn,
-    navn: school.navn,
-    kontaktlarer: kontaktlarer || false
+    navn: school.navn
   }
-}
-
-const getIOPSchools = (teacherStudent: { skoler: ElevSkole[] }): ElevSkole[] => {
-  const IOPCourseIds = ["IOP1000", "IOP2000", "IOP3000", "IOP4000", "IOP5000"]
-  if (!teacherStudent) {
-    throw new Error('Missing required parameter "teacherStudent"')
-  }
-  if (!Array.isArray(teacherStudent.skoler)) {
-    throw new Error('Missing "skoler" array from teacherStudent')
-  }
-  if (!teacherStudent.skoler.every((school) => Array.isArray(school.klasser) && school.klasser.every((group) => Array.isArray(group.fag)))) {
-    throw new Error('Either missing "klasser" array from skole, or missing "fag" array from klasse')
-  }
-  // Getting IOPSchools in case of future requirement where teachers can only see documents for specific schools
-  const IOPSchools = teacherStudent.skoler.filter((school) => school.klasser.some((group) => group.fag.some((course) => IOPCourseIds.includes(course.systemId?.identifikatorverdi))))
-  return IOPSchools
 }
 
 export type ElevKlasse = {
@@ -97,6 +79,8 @@ export type ElevKlasse = {
 }
 
 export type ElevSkole = MiniSchool & {
+  /** is current user contactTeacher for student at this school */
+  kontaktlarer: boolean
   klasser: ElevKlasse[]
   /** om brukeren har tilgang via iop-klasse */
   iop?: boolean
@@ -107,11 +91,6 @@ export type TeacherStudent = FintElev & {
   skoler: ElevSkole[]
   /** feidenavn without "@fylke.no" */
   feidenavnPrefix: string
-}
-
-/** A student while it is being assembled from FINT groups, before feidenavnPrefix is added */
-type StudentDraft = FintGruppeElev & {
-  skoler: ElevSkole[]
 }
 
 export type PersonData = {
@@ -142,6 +121,12 @@ export type UserData = {
   students: TeacherStudent[]
   classes: LarerKlasse[]
   invalidUndervisningsforhold: InvalidUndervisningsforhold[]
+}
+
+const logSkippedStudents = (skippedElevnummer: string[]): void => {
+  if (skippedElevnummer.length > 0) {
+    logger.warn("Skipping {StudentCount} students without feidenavn: {@Elevnummer}", skippedElevnummer.length, skippedElevnummer)
+  }
 }
 
 export const getUserData = async (user: User, maskSsn = true): Promise<UserData> => {
@@ -195,113 +180,26 @@ export const getUserData = async (user: User, maskSsn = true): Promise<UserData>
       }
     }
 
-    // Kontaktlærer flyttes fra rett på eleven til skolearrayet på eleven - sett om læreren er kontaktlærer for eleven på gitt skole
-    const students: StudentDraft[] = []
-    for (const undervisningsforhold of validUndervisningsforhold) {
-      for (const basisgruppe of undervisningsforhold.basisgrupper.filter((gruppe) => gruppe.aktiv)) {
-        for (const elev of basisgruppe.elever) {
-          // I tilfelle eleven er med i flere basisgrupper
-          const existingStudent = students.find((student) => student.elevnummer === elev.elevnummer)
-          if (existingStudent) {
-            const existingSchoolOnStudent = existingStudent.skoler.find((school) => school.skolenummer === undervisningsforhold.skole.skolenummer)
-            if (!existingSchoolOnStudent) {
-              // Ikke registrert lærerforholdet på eleven ved denne skolen enda, legger til i lista
-              existingStudent.skoler.push({
-                ...repackMiniSchool(undervisningsforhold.skole, elev.kontaktlarer),
-                klasser: [{ navn: basisgruppe.navn, type: "basisgruppe", systemId: basisgruppe.systemId, fag: [] }]
-              })
-            } else {
-              // Skolen allerede lagt inn, legger inn klassen på skolen (om den ikke er der allerede)
-              if (!existingSchoolOnStudent.klasser.some((group) => group.systemId === basisgruppe.systemId)) {
-                existingSchoolOnStudent.klasser.push({ navn: basisgruppe.navn, type: "basisgruppe", systemId: basisgruppe.systemId, fag: [] })
-              }
-            }
-            if (existingSchoolOnStudent && !existingSchoolOnStudent.kontaktlarer && elev.kontaktlarer) {
-              // Sjekker om er kontaktlærer på ekisterende skole (som ikke var funnet fra før av, for sikkerhets skyld)
-              existingSchoolOnStudent.kontaktlarer = true
-            }
-          } else {
-            // Ikke lagt inn eleven i students enda
-            students.push({
-              ...elev,
-              skoler: [{ ...repackMiniSchool(undervisningsforhold.skole, elev.kontaktlarer), klasser: [{ navn: basisgruppe.navn, type: "basisgruppe", systemId: basisgruppe.systemId, fag: [] }] }]
-            })
-          }
-        }
-      }
-      for (const undervisningsgruppe of undervisningsforhold.undervisningsgrupper.filter((gruppe) => gruppe.aktiv)) {
-        // Note to self - læreren kan ha flere undervisningsforhold med de samme undervisningsgruppene.. Lollert, lar det være inntil videre
-        for (const elev of undervisningsgruppe.elever) {
-          const existingStudent = students.find((student) => student.elevnummer === elev.elevnummer)
-          if (existingStudent) {
-            const existingSchoolOnStudent = existingStudent.skoler.find((school) => school.skolenummer === undervisningsforhold.skole.skolenummer)
-            if (!existingSchoolOnStudent) {
-              // Ikke registrert lærerforholdet på eleven ved denne skolen enda, legger til i lista
-              existingStudent.skoler.push({
-                ...repackMiniSchool(undervisningsforhold.skole, elev.kontaktlarer),
-                klasser: [{ navn: undervisningsgruppe.navn, type: "undervisningsgruppe", systemId: undervisningsgruppe.systemId, fag: undervisningsgruppe.fag }]
-              })
-            } else {
-              // Skolen allerede lagt inn, legger inn klassen på skolen (om den ikke er der allerede)
-              if (!existingSchoolOnStudent.klasser.some((group) => group.systemId === undervisningsgruppe.systemId)) {
-                existingSchoolOnStudent.klasser.push({ navn: undervisningsgruppe.navn, type: "undervisningsgruppe", systemId: undervisningsgruppe.systemId, fag: undervisningsgruppe.fag })
-              }
-            }
-            if (existingSchoolOnStudent && !existingSchoolOnStudent.kontaktlarer && elev.kontaktlarer) {
-              // Sjekker om er kontaktlærer på ekisterende skole (som ikke var funnet fra før av, for sikkerhets skyld)
-              existingSchoolOnStudent.kontaktlarer = true
-            }
-          } else {
-            // Ikke lagt inn eleven i students enda
-            students.push({
-              ...elev,
-              skoler: [
-                {
-                  ...repackMiniSchool(undervisningsforhold.skole, elev.kontaktlarer),
-                  klasser: [{ navn: undervisningsgruppe.navn, type: "undervisningsgruppe", systemId: undervisningsgruppe.systemId, fag: undervisningsgruppe.fag }]
-                }
-              ]
-            })
-          }
-        }
-      }
-    }
-    // Filtrer vekk elever uten feidenavn - fåkke brukt de (enda hvertfall)
-    const studentsWithoutFeidenavn = students.filter((stud) => !stud.feidenavn)
-    if (studentsWithoutFeidenavn.length > 0) {
-      logger.warn(
-        "Skipping {StudentCount} students without feidenavn: {@Elevnummer}",
-        studentsWithoutFeidenavn.length,
-        studentsWithoutFeidenavn.map((stud) => stud.elevnummer)
-      )
-    }
-    const studentsWithFeidenavn = students.filter((stud): stud is StudentDraft & { feidenavn: string } => Boolean(stud.feidenavn))
-
-    // Fjern kontaktlærer-property rett på eleven (den ligger på skoler i stedet), og sleng på kort-feidenavn på alle elever, sleng på IOP-access rett på skole-info om det IOP er skrudd på i ENV
-    const teacherStudents: TeacherStudent[] = studentsWithFeidenavn.map((stud) => {
-      if (maskSsn) {
-        stud.fodselsnummer = `${stud.fodselsnummer.substring(0, 6)}*****`
-      }
-      delete stud.kontaktlarer
-      // IOP special access
-      if (IOP_FAGLARER_ACCESS_ENABLED === "true") {
-        const iopSchools = getIOPSchools(stud)
-        stud.skoler = stud.skoler.map((school) => {
-          return {
-            ...school,
-            iop: iopSchools.some((IOPschool) => IOPschool.skolenummer === school.skolenummer)
-          }
+    // A teacher can have the same undervisningsgruppe in several undervisningsforhold, buildStudentList adds each class once
+    const memberships: StudentMembership[] = validUndervisningsforhold.flatMap((undervisningsforhold) => {
+      const school = repackMiniSchool(undervisningsforhold.skole)
+      const basisgruppeMemberships = undervisningsforhold.basisgrupper
+        .filter((gruppe) => gruppe.aktiv)
+        .flatMap((basisgruppe) => {
+          const klasse: ElevKlasse = { navn: basisgruppe.navn, type: "basisgruppe", systemId: basisgruppe.systemId, fag: [] }
+          return basisgruppe.elever.map((elev) => ({ elev, school, klasse }))
         })
-      }
-      return {
-        ...stud,
-        feidenavnPrefix: stud.feidenavn.substring(0, stud.feidenavn.indexOf("@"))
-      }
+      const undervisningsgruppeMemberships = undervisningsforhold.undervisningsgrupper
+        .filter((gruppe) => gruppe.aktiv)
+        .flatMap((undervisningsgruppe) => {
+          const klasse: ElevKlasse = { navn: undervisningsgruppe.navn, type: "undervisningsgruppe", systemId: undervisningsgruppe.systemId, fag: undervisningsgruppe.fag }
+          return undervisningsgruppe.elever.map((elev) => ({ elev, school, klasse }))
+        })
+      return [...basisgruppeMemberships, ...undervisningsgruppeMemberships]
     })
-    // Sorter elevene alfabetisk
-    teacherStudents.sort((a, b) => (a.navn > b.navn ? 1 : b.navn > a.navn ? -1 : 0))
-
-    userData.students = teacherStudents
+    const { students, skippedElevnummer } = buildStudentList(memberships, { maskSsn, isIopEnabled: IOP_FAGLARER_ACCESS_ENABLED === "true" })
+    logSkippedStudents(skippedElevnummer)
+    userData.students = students
   }
 
   // TODO - finn ut av leder rådgiver
@@ -313,7 +211,7 @@ export const getUserData = async (user: User, maskSsn = true): Promise<UserData>
     // Sjekker først om vi har schoolaccess for brukeren i cachen
     const leaderAccess = await getLeaderAccess(user)
 
-    const students: StudentDraft[] = []
+    const memberships: StudentMembership[] = []
     for (const schoolAccess of leaderAccess) {
       logger.info("Getting school {SchoolName} ({SchoolNumber}) from FINT", schoolAccess.schoolName, schoolAccess.schoolNumber)
       const school = await fintSchool(schoolAccess.schoolNumber)
@@ -337,70 +235,19 @@ export const getUserData = async (user: User, maskSsn = true): Promise<UserData>
         }
       }
 
-      const miniSchool = repackMiniSchool(school, false)
+      const miniSchool = repackMiniSchool(school)
 
-      // Dytt inn alle elevene på skolen
-      for (const student of school.elever) {
-        const existingStudent = students.find((stud) => stud.elevnummer === student.elevnummer)
-        if (existingStudent) {
-          if (!existingStudent.skoler.some((skole) => skole.skolenummer === school.skolenummer)) {
-            existingStudent.skoler.push({ ...miniSchool, klasser: [] })
-          }
-        } else {
-          students.push({ ...student, skoler: [{ ...miniSchool, klasser: [] }] })
-        }
-      }
-      // Dytt inn alle elever fra basisgruppene (og basisgruppene på eleven)
+      // All students at the school, then the basisgrupper they are in
+      memberships.push(...school.elever.map((elev) => ({ elev, school: miniSchool, klasse: null })))
       for (const basisgruppe of school.basisgrupper.filter((gruppe) => gruppe.aktiv)) {
-        // classes.push({ navn: basisgruppe.navn, type: 'basisgruppe', systemId: basisgruppe.systemId, fag: ['Basisgruppe'], skole: miniSchool.navn })
-        for (const elev of basisgruppe.elever) {
-          // Vi bør ha eleven allerede, men sjekker for sikkerhets skyld
-          const existingStudent = students.find((student) => student.elevnummer === elev.elevnummer)
-          if (existingStudent) {
-            const existingSchoolOnStudent = existingStudent.skoler.find((school) => school.skolenummer === miniSchool.skolenummer)
-            if (!existingSchoolOnStudent) {
-              // Ikke registrert skoletilgangen enda, legger til
-              existingStudent.skoler.push({ ...miniSchool, klasser: [{ navn: basisgruppe.navn, type: "basisgruppe", systemId: basisgruppe.systemId, fag: [] }] })
-            } else {
-              // Skolen allerede lagt inn, legger inn klassen på skolen (om den ikke er der allerede)
-              if (!existingSchoolOnStudent.klasser.some((group) => group.systemId === basisgruppe.systemId)) {
-                existingSchoolOnStudent.klasser.push({ navn: basisgruppe.navn, type: "basisgruppe", systemId: basisgruppe.systemId, fag: [] })
-              }
-            }
-            if (existingSchoolOnStudent && !existingSchoolOnStudent.kontaktlarer && elev.kontaktlarer) {
-              // Sjekker om er kontaktlærer på ekisterende skole (som ikke var funnet fra før av, for sikkerhets skyld)
-              existingSchoolOnStudent.kontaktlarer = true
-            }
-          } else {
-            // Ikke lagt inn eleven i students enda
-            students.push({ ...elev, skoler: [{ ...miniSchool, klasser: [{ navn: basisgruppe.navn, type: "basisgruppe", systemId: basisgruppe.systemId, fag: [] }] }] })
-          }
-        }
+        const klasse: ElevKlasse = { navn: basisgruppe.navn, type: "basisgruppe", systemId: basisgruppe.systemId, fag: [] }
+        memberships.push(...basisgruppe.elever.map((elev) => ({ elev, school: miniSchool, klasse })))
       }
     }
-    // Filtrer vekk elever uten feidenavn - fåkke brukt de (enda hvertfall)
-    const studentsWithoutFeidenavn = students.filter((stud) => !stud.feidenavn)
-    if (studentsWithoutFeidenavn.length > 0) {
-      logger.warn("Skipping {StudentCount} students without feidenavn", studentsWithoutFeidenavn.length)
-    }
-    const studentsWithFeidenavn = students.filter((stud): stud is StudentDraft & { feidenavn: string } => Boolean(stud.feidenavn))
-
-    // Fjern kontaktlærer-property rett på eleven (den ligger på skoler i stedet), og sleng på kort-feidenavn på alle elever, sleng på IOP-access rett på skole-info om det IOP er skrudd på i ENV
-    const teacherStudents: TeacherStudent[] = studentsWithFeidenavn.map((stud) => {
-      if (maskSsn) {
-        stud.fodselsnummer = `${stud.fodselsnummer.substring(0, 6)}*****`
-      }
-      delete stud.kontaktlarer
-
-      return {
-        ...stud,
-        feidenavnPrefix: stud.feidenavn.substring(0, stud.feidenavn.indexOf("@"))
-      }
-    })
-    // Sorter elevene alfabetisk
-    teacherStudents.sort((a, b) => (a.navn > b.navn ? 1 : b.navn > a.navn ? -1 : 0))
-
-    userData.students = teacherStudents
+    // IOP gives subject teachers access, leaders have access to all students at their schools anyway
+    const { students, skippedElevnummer } = buildStudentList(memberships, { maskSsn, isIopEnabled: false })
+    logSkippedStudents(skippedElevnummer)
+    userData.students = students
 
     return userData
   }
