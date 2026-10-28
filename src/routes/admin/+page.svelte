@@ -1,25 +1,18 @@
-<script>
-  /** @type {import('./$types').PageData} */
-	export let data
-</script>
+<h2>Administrator</h2>
 
-{#if data.user.hasAdminRole}
-  <h2>Administrator</h2>
-  <!--
-  <div class="adminOption">
-    <span class="material-symbols-outlined">supervisor_account</span><a href="/admin/impersonate">Logg inn som en annen bruker for feilsøking</a>
-  </div>
-  -->
-  <div class="adminOption">
-    <span class="material-symbols-outlined">group</span><a href="/admin/lederaccess">Se oversikt over ledertilganger</a>
-  </div>
-  <div class="adminOption">
-    <span class="material-symbols-outlined">history</span><a href="/admin/userlogs">Se logg</a>
-  </div>
-  <br>
-{:else}
-  Du har ikke tilgang på denne siden
-{/if}
+<!--
+<div class="adminOption">
+  <span class="material-symbols-outlined">supervisor_account</span><a href="/admin/impersonate">Logg inn som en annen bruker for feilsøking</a>
+</div>
+-->
+
+<div class="adminOption">
+  <span class="material-symbols-outlined">group</span><a href="/admin/lederaccess">Se oversikt over ledertilganger</a>
+</div>
+<div class="adminOption">
+  <span class="material-symbols-outlined">history</span><a href="/admin/userlogs">Se logg</a>
+</div>
+<br>
 
 <style>
   .adminOption {

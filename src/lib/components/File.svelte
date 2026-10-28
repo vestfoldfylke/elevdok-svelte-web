@@ -1,37 +1,40 @@
-<script>
-  import axios from "axios";
-  import PDFViewer from "./PDFViewer.svelte";
-  import LoadingSpinner from "./LoadingSpinner.svelte";
+<script lang="ts">
+  import { requestApi } from "#lib/request-api.js"
+  import type { StudentDocument } from "#lib/server/elevdok-api/get-student-documents.js"
+  import LoadingSpinner from "./LoadingSpinner.svelte"
+  import PDFViewer from "./PDFViewer.svelte"
 
-  export let file
-  export let document
+  type Props = {
+    file: StudentDocument["files"][number]
+    document: StudentDocument
+  }
 
-  const studentFeidenavnPrefix = document.feidenavn.substring(0, document.feidenavn.indexOf('@'))
-  const pdfUrl = `/api/students/${studentFeidenavnPrefix}/source/${document.source}/file/${file.id}`
+  let { file, document }: Props = $props()
 
-  let displayFile = false
-  let fileLoading = false
-  let errorMessage = ""
-  let base64Data
+  let isPdfOpen = $state(false)
+  let isFileLoading = $state(false)
+  let errorMessage = $state("")
+  let base64Data: string | undefined = $state()
 
-  const getFileData = async () => {
+  const openFile = async () => {
     errorMessage = ""
-    fileLoading = true
-    try {
-      const studentFeidenavnPrefix = document.feidenavn.substring(0, document.feidenavn.indexOf('@'))
-      const { data } = await axios.get(`/api/students/${studentFeidenavnPrefix}/source/${document.source}/file/${file.id}`)
-      base64Data = data
-      fileLoading = false
-      displayFile = true
-    } catch (error) {
-      fileLoading = false
-      errorMessage = `Det oppstod en feil ved henting av fil: ${error}`
+    isFileLoading = true
+
+    const studentFeidenavnPrefix = document.feidenavn.substring(0, document.feidenavn.indexOf("@"))
+    const result = await requestApi<string>(`/api/students/${studentFeidenavnPrefix}/source/${document.source}/file/${file.id}`)
+    isFileLoading = false
+    if (!result.ok) {
+      errorMessage = `Det oppstod en feil ved henting av fil: ${result.message}`
+      return
     }
+
+    base64Data = result.value
+    isPdfOpen = true
   }
 </script>
 
 <div class="fileContainer">
-  {#if fileLoading}
+  {#if isFileLoading}
     <button class="link" disabled><LoadingSpinner width={"1.5"} />{file.title}</button>
   {:else}
     {#if !file.canView}
@@ -39,7 +42,7 @@
     {:else if (!file.isAvailable)}
       <span class="material-symbols-outlined">block</span><button class="link" disabled>{file.title}</button><span>Kun tilgjengelig i arkiv</span>
     {:else}
-      <span class="material-symbols-outlined">picture_as_pdf</span><button class="link" on:click={() => {getFileData()}}>{file.title}</button>
+      <span class="material-symbols-outlined">picture_as_pdf</span><button class="link" onclick={() => {openFile()}}>{file.title}</button>
     {/if}
   {/if}
 </div>
@@ -51,8 +54,7 @@
   </div>
 {/if}
 
-<PDFViewer title={file.title} showPdf={displayFile} {base64Data} closePdf={() => {displayFile = false}} />
-
+<PDFViewer title={file.title} showPdf={isPdfOpen} {base64Data} closePdf={() => {isPdfOpen = false}} />
 
 <style>
   .fileContainer {

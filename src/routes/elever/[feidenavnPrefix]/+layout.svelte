@@ -1,9 +1,16 @@
-<script>
-  import { page } from "$app/stores";
-  /** @type {import('./$types').PageData} */
-  export let data
+<script lang="ts">
+  import type { Snippet } from "svelte"
+  import { page } from "$app/state"
+  import type { LayoutData } from "./$types"
 
-  let student = data.students.find(stud => stud.feidenavnPrefix === $page.params.feidenavnPrefix)
+  type Props = {
+    data: LayoutData
+    children?: Snippet
+  }
+
+  let { data, children }: Props = $props()
+
+  const student = $derived((data.students ?? []).find((teacherStudent) => teacherStudent.feidenavnPrefix === page.params.feidenavnPrefix))
 </script>
 
 {#if !student}
@@ -13,6 +20,7 @@
     <div class="studentIcon">
       <span class="material-symbols-outlined">school</span>
     </div>
+
     <div class="studentInfo">
       {#if student.skoler.some(school => school.kontaktlarer)}
         <div title="Du er kontaktlærer for denne eleven" class="studentId"><strong>Kontaktlærer</strong></div>
@@ -31,7 +39,11 @@
       </div>
     </div>
   </div>
-  <slot></slot>
+
+  <!-- A new page per student, so its page number, search and closed warnings do not carry over from the previous student -->
+  {#key student.feidenavnPrefix}
+    {@render children?.()}
+  {/key}
 {/if}
 
 <style>
@@ -40,6 +52,7 @@
     align-items: center;
     gap: 1.5rem;
   }
+
   .studentIcon {
     width: 4rem;
     height: 4rem;
@@ -47,17 +60,21 @@
     border-radius: 100%;
     background-color: var(--primary-color-40);
   }
+
   .studentIcon span {
     font-size: 4rem;
   }
+
   .studentTitle {
     padding: 0rem;
     margin: 0rem;
   }
+
   .subinfo {
     padding: 0rem;
     margin: 0rem;
   }
+
   .classes {
     display: flex;
     flex-wrap: wrap;

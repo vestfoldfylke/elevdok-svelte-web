@@ -1,16 +1,20 @@
-<script>
-  import File from "$lib/components/File.svelte";
-  import { prettyPrintDate } from "$lib/helpers/pretty-date";
+<script lang="ts">
+  import File from "#lib/components/File.svelte"
+  import { prettyPrintDate } from "#lib/helpers/pretty-date.js"
+  import type { StudentDocument } from "#lib/server/elevdok-api/get-student-documents.js"
 
-  export let document
-  export let currentIndex
-  export let open = false
+  type Props = {
+    document: StudentDocument
+    currentIndex: number
+    open?: boolean
+  }
 
-  const isEven = currentIndex % 2 === 0
+  let { document, currentIndex, open = $bindable(false) }: Props = $props()
 
+  const isEven = $derived(currentIndex % 2 === 0)
 </script>
 
-<button class="documentBoxButton{isEven ? ' even' : ''}{open ? ' open' : ''}" on:click={() => {open = !open}}>
+<button class="documentBoxButton{isEven ? ' even' : ''}{open ? ' open' : ''}" onclick={() => {open = !open}}>
   <div class=documentRow>
     <div class="upperTitle">{document.sourceName} {document.documentNumber}</div>
     <div class="title">{document.title}</div>
@@ -19,6 +23,7 @@
   <div>
     <span class="material-symbols-outlined">{open ? 'expand_circle_up' : 'expand_circle_down'}</span>
   </div>
+
   <!--
   <p>{document.title}</p>
   <p>{document.sourceName}</p>
@@ -36,6 +41,7 @@
   {/each}
   -->
 </button>
+
 {#if open}
   <div class="documentData{isEven ? ' even' : ''}">
     <div>
@@ -50,11 +56,13 @@
     <div>
       <strong>Tilgangskode:</strong> {document.accessCode}
     </div>
+
     {#each document.contacts as contact}
       <div>
         <strong>{contact.role}:</strong> {contact.name}
       </div>
     {/each}
+
     <div>
       <strong>Filer:</strong>
     </div>
@@ -63,7 +71,6 @@
     {/each}
   </div>
 {/if}
-
 
 <style>
   .documentBoxButton {
@@ -76,9 +83,11 @@
     text-align: left;
     justify-content: space-between;
   }
+
   .documentBoxButton:hover {
     background-color: var(--primary-color-20);
   }
+
   .documentBoxButton.open {
     border-top: 1px solid var(--primary-color);
     border-left: 1px solid var(--primary-color);
@@ -86,21 +95,24 @@
     /* padding: 1rem 2rem; */
     /* background-color: var(--primary-color-20); */
   }
+
   .even {
     background-color: var(--secondary-color-10);
   }
+
   .upperTitle {
     font-size: var(--font-size-small);
   }
+
   .title {
     font-size: 1.1rem;
     font-weight: bold;
   }
+
   .documentData {
     padding: 0rem 3rem 1.5rem 3rem;
     border-bottom: 1px solid var(--primary-color);
     border-left: 1px solid var(--primary-color);
     border-right: 1px solid var(--primary-color);
   }
-
 </style>

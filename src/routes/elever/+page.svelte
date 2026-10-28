@@ -1,42 +1,50 @@
-<script>
-	import { clickOutside } from '$lib/helpers/click-outside'
-	import { goto } from '$app/navigation'
-  import Pagination from '$lib/components/Pagination.svelte';
+<script lang="ts">
+  import Pagination from "#lib/components/Pagination.svelte"
+  import type { TeacherStudent } from "#lib/server/elevdok-api/get-user-data.js"
+  import type { PageData } from "./$types"
 
-	/** @type {import('./$types').PageData} */
-	export let data
+  type Props = {
+    data: PageData
+  }
 
-	let studentsPerPage = 10
-	let currentPage = 0 // zero-indexed
-	let students = data.students
-	let originalStudents = JSON.parse(JSON.stringify(data.students))
-	let searchValue
+  let { data }: Props = $props()
 
-	const nextPage = () => {
-		currentPage++
-	}
-	const previousPage = () => {
-		currentPage--
-	}
-	const gotoPage = (pageNumber) => {
-		currentPage = pageNumber
-	}
+  let studentsPerPage = 10
+  let currentPage = $state(0) // zero-indexed
+  let searchValue = $state("")
 
-	const search = (searchValue) => {
-		const filterFunc = (student) => {
-			const sv = searchValue.toLowerCase()
-			return (student.navn.toLowerCase().startsWith(sv) || student.etternavn.toLowerCase().startsWith(sv) || student.skoler.some(school => school.klasser.some(group => group.navn.toLowerCase().includes(sv))))
-		}
-		students = originalStudents.filter(filterFunc)
-    currentPage = 0
-	}
+  const nextPage = () => {
+    currentPage++
+  }
+
+  const previousPage = () => {
+    currentPage--
+  }
+
+  const gotoPage = (pageNumber: number) => {
+    currentPage = pageNumber
+  }
+
+  const matchesSearch = (student: TeacherStudent, searchValue: string): boolean => {
+    const normalizedSearch = searchValue.toLowerCase()
+    return (
+      student.navn.toLowerCase().startsWith(normalizedSearch) ||
+      student.etternavn.toLowerCase().startsWith(normalizedSearch) ||
+      student.skoler.some((school) => school.klasser.some((group) => group.navn.toLowerCase().includes(normalizedSearch)))
+    )
+  }
+
+  const originalStudents = $derived(data.students ?? [])
+  const students = $derived(originalStudents.filter((student) => matchesSearch(student, searchValue)))
 </script>
 
 <h2>Dine elever</h2>
+
 <div class="icon-input" style="width: 16rem;">
 	<span class="material-symbols-outlined">search</span>
-	<input type="text" bind:value={searchValue} on:input={() => { search(searchValue) }} placeholder="Søk etter elev eller klasse" />
+	<input type="text" bind:value={searchValue} oninput={() => { currentPage = 0 }} placeholder="Søk etter elev eller klasse" />
 </div>
+
 <div class="studentList">
 	{#if originalStudents.length === 0}
 		<br />
@@ -49,6 +57,7 @@
 			<div class="studentInfo">Navn</div>
 			<div>Skole / Klasse</div>
 		</div>
+
 		{#each students.slice(currentPage * studentsPerPage, (currentPage * studentsPerPage) + studentsPerPage) as student}
 			<div class=studentRow>
 				<div class="studentInfo">
@@ -74,6 +83,7 @@
 				</div>
 			</div>
 		{/each}
+
 		<Pagination {currentPage} elementName={'elever'} elementsPerPage={studentsPerPage} maxPageNumbers={11} {gotoPage} {nextPage} {previousPage} numberOfElements={students.length} />
 	{/if}
 </div>
@@ -84,22 +94,28 @@
 		align-items: center;
 		padding: 1rem 2rem;
 	}
+
 	.studentRow.header {
 		padding: 1rem 2rem 0rem 2rem;
 	}
+
 	.studentInfo {
 		max-width: 11rem;
 		flex-grow: 1;
 	}
+
 	.contactTeacher {
 		font-size: var(--font-size-extra-small);
 	}
+
 	.studentId {
 		font-size: var(--font-size-small);
 	}
+
 	.classGroup {
 		font-size: var(--font-size-small);
 	}
+
 	.studentRow:nth-child(even) {
 		background-color: var(--primary-color-10);
 	}

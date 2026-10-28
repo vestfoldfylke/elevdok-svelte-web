@@ -1,51 +1,49 @@
-<script>
-  import Document from "$lib/components/Document.svelte";
-  import { goto } from "$app/navigation";
-  import { page } from "$app/stores";
-  import LoadingSpinner from "$lib/components/LoadingSpinner.svelte";
-  import Pagination from "$lib/components/Pagination.svelte";
+<script lang="ts">
+  import Document from "#lib/components/Document.svelte"
+  import Pagination from "#lib/components/Pagination.svelte"
+  import type { StudentDocument } from "#lib/server/elevdok-api/get-student-documents.js"
+  import type { PageData } from "./$types"
 
-  /** @type {import('./$types').PageData} */
-  export let data
+  type Props = {
+    data: PageData
+  }
 
-  let student = data.students.find(stud => stud.feidenavnPrefix === $page.params.feidenavnPrefix)
+  let { data }: Props = $props()
 
-  let showArchiveWarning = true
+  let isArchiveWarningVisible = $state(true)
   let documentsPerPage = 10
-	let currentPage = 0 // zero-indexed
-	let documents = data.studentDocuments.documents
-	let originalDocuments = JSON.parse(JSON.stringify(data.studentDocuments.documents))
-	let searchValue
+  let currentPage = $state(0) // zero-indexed
+  let searchValue = $state("")
 
-	const nextPage = () => {
-		currentPage++
-	}
-	const previousPage = () => {
-		currentPage--
-	}
-	const gotoPage = (pageNumber) => {
-		currentPage = pageNumber
-	}
+  const nextPage = () => {
+    currentPage++
+  }
 
-	const search = (searchValue) => {
-		const filterFunc = (document) => {
-			const sv = searchValue.toLowerCase()
-      return (document.title.toLowerCase().startsWith(sv) || document.documentNumber.toLowerCase().startsWith(sv) || document.title.toLowerCase().includes(sv))
-		}
-		documents = originalDocuments.filter(filterFunc)
-    currentPage = 0
-	}
+  const previousPage = () => {
+    currentPage--
+  }
 
+  const gotoPage = (pageNumber: number) => {
+    currentPage = pageNumber
+  }
+
+  const matchesSearch = (document: StudentDocument, searchValue: string): boolean => {
+    const normalizedSearch = searchValue.toLowerCase()
+    return document.title.toLowerCase().startsWith(normalizedSearch) || document.documentNumber.toLowerCase().startsWith(normalizedSearch) || document.title.toLowerCase().includes(normalizedSearch)
+  }
+
+  const originalDocuments = $derived(data.studentDocuments.documents)
+  const documents = $derived(originalDocuments.filter((document) => matchesSearch(document, searchValue)))
 </script>
 
 <h2>Elevens dokumenter</h2>
 
 <div>
-  {#if data.studentDocuments.errors.length > 0 && showArchiveWarning}
+  {#if data.studentDocuments.errors.length > 0 && isArchiveWarningVisible}
     <div class="error-box">
       <div style="display:flex;justify-content:space-between;">
         <h4>Det skjedde en feil under hentingen av elevens dokumenter 😩</h4>
-        <button class="link" on:click={() => {showArchiveWarning = false}}>Lukk</button>
+        <button class="link" onclick={() => {isArchiveWarningVisible = false}}>Lukk</button>
       </div>
       <div>
         {#each data.studentDocuments.errors as error}
@@ -55,10 +53,12 @@
     </div>
     <br />
   {/if}
+
   <div class="icon-input" style="width: 16rem;">
     <span class="material-symbols-outlined">search</span>
-    <input type="text" bind:value={searchValue} on:input={() => { search(searchValue) }} placeholder="Søk etter tittel eller dokumentnummer" />
+    <input type="text" bind:value={searchValue} oninput={() => { currentPage = 0 }} placeholder="Søk etter tittel eller dokumentnummer" />
   </div>
+
   {#if originalDocuments.length === 0}
     <br />
     Fant ingen dokumenter for eleven 🤷‍♂️
@@ -69,6 +69,7 @@
     {#each documents.slice(currentPage * documentsPerPage, (currentPage * documentsPerPage) + documentsPerPage) as document, index}
       <Document {document} currentIndex={index} open={false} />
     {/each}
+
     <Pagination {currentPage} elementName={'dokumenter'} elementsPerPage={documentsPerPage} maxPageNumbers={11} {gotoPage} {nextPage} {previousPage} numberOfElements={documents.length} />
   {/if}    
 </div>
