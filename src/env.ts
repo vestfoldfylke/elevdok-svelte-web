@@ -42,6 +42,5 @@ export const variables = defineEnvVars({
   IOP_FAGLARER_ACCESS_ENABLED: optional,
   MAINTENANCE_MODE: optional,
   MAIN_SOURCE_NAME: required,
-  VTFK_ARCHIVE_ENABLED: optional,
   FRONTEND_APP_ID: required
 })

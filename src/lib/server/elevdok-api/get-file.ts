@@ -5,7 +5,7 @@ import { fetchAzfArchiveFile, getAzfArchiveDocuments } from "#lib/server/call-ar
 import { mockFile } from "#lib/server/call-archive/mock-data.js"
 import { requireStudentAccess } from "#lib/server/guards/require-student-access.js"
 import { getFileAccessForStudent } from "#lib/server/permissions.js"
-import { MOCK_API, VTFK_ARCHIVE_ENABLED } from "$app/env/private"
+import { MOCK_API } from "$app/env/private"
 import { createUserLogEntry } from "./user-logs.js"
 
 /** Returns the file as base64 */
@@ -54,8 +54,6 @@ export const getFile = async (user: User, studentFeidenavn: string, sourceId: st
     const { base64, metadata } = await fetchAzfArchiveFile(fileId)
     result.base64 = base64
     result.metadata = metadata
-  } else if (VTFK_ARCHIVE_ENABLED === "true" && sourceId === "vtfk") {
-    // implement
   }
 
   if (!result.base64 || !result.metadata) {
