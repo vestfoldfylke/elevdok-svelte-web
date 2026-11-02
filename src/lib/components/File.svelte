@@ -1,11 +1,11 @@
 <script lang="ts">
   import { requestApi } from "#lib/request-api.js"
-  import type { StudentDocument } from "#lib/server/elevdok-api/get-student-documents.js"
+  import type { StudentDocument, StudentFile } from "#lib/server/elevdok-api/get-student-documents.js"
   import LoadingSpinner from "./LoadingSpinner.svelte"
   import PDFViewer from "./PDFViewer.svelte"
 
   type Props = {
-    file: StudentDocument["files"][number]
+    file: StudentFile
     document: StudentDocument
   }
 

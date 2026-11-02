@@ -8,8 +8,10 @@ import { getFileAccessForStudent } from "#lib/server/permissions.js"
 import { MOCK_API } from "$app/env/private"
 import { createUserLogEntry } from "./user-logs.js"
 
+export type StudentFile = ArchiveFile & { canView: boolean }
+
 export type StudentDocument = ArchiveDocument & {
-  files: (ArchiveFile & { canView: boolean })[]
+  files: StudentFile[]
 }
 
 export type StudentDocumentsResult = {
