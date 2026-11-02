@@ -37,7 +37,6 @@ export const getStudentDocuments = async (user: User, studentFeidenavn: string):
     result.documents.push(...documents)
     result.errors.push("Bare en mocke-feil for å se hvordan det ser ut")
   } else {
-    // XFYLKE (mainArchive)
     try {
       const { documents, errors } = await getAzfArchiveDocuments(teacherStudent.fodselsnummer, studentFeidenavn)
       result.documents.push(...documents)
@@ -45,9 +44,6 @@ export const getStudentDocuments = async (user: User, studentFeidenavn: string):
     } catch (error) {
       logger.errorException(error, "Failed when fetching documents for student {StudentFeidenavn} from main archive", studentFeidenavn)
     }
-
-    // VTFK
-    // To be implemented
   }
 
   const { hasAccess, type } = getFileAccessForStudent(user, teacherStudent)
