@@ -23,23 +23,6 @@
   <div>
     <span class="material-symbols-outlined">{open ? 'expand_circle_up' : 'expand_circle_down'}</span>
   </div>
-
-  <!--
-  <p>{document.title}</p>
-  <p>{document.sourceName}</p>
-  <p>{document.responsibleEnterprise}</p>
-  <p>{document.documentNumber}</p>
-  <p>{document.documentDate}</p>
-  <p>{document.category}</p>
-  <p>{document.documentArchive}</p>
-  <p>{document.accessCode}</p>
-  {#each document.contacts as contact}
-    <p>{contact.name} - {contact.role}</p>
-  {/each}
-  {#each document.files as file}
-    <File {file} {document} />
-  {/each}
-  -->
 </button>
 
 {#if open}

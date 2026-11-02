@@ -54,7 +54,6 @@
         {/await}
       {/if}
   </div>
-  <!--<pre>{JSON.stringify(test.result.raw, null, 2)}</pre>-->
   </form>
 </dialog>
 

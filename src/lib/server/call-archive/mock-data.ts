@@ -20,7 +20,6 @@ const categories = [
   }
 ]
 const statusCodes = ["J", "F", "E", "A"]
-// const caseStatuses = ['Under behandling', 'Avsluttet'] // reminder
 const documentArchives = ["Elevdokument", "Sensitivt elevdokument"]
 const fileFormats = ["PDF", "pdf", "xlsx", "DOCX"]
 

@@ -559,34 +559,6 @@ const mockTeacher = {
   ]
 }
 
-/*
-function makeid (length) {
-  let result = ''
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
-  const charactersLength = characters.length
-  let counter = 0
-  while (counter < length) {
-    result += characters.charAt(Math.floor(Math.random() * charactersLength))
-    counter += 1
-  }
-  return result
-}
-
-for (let i = 0; i < 2000; i++) {
-  mockTeacher.undervisningsforhold[0].undervisningsgrupper[0].elever.push(
-    {
-      navn: makeid(5),
-      fornavn: 'Frodo',
-      etternavn: 'Baggins',
-      feidenavn: 'fro12345@domene.no',
-      elevnummer: makeid(5),
-      fodselsnummer: '12345*****',
-      kontaktlarer: false
-    }
-  )
-}
-*/
-
 export const fetchFintTeacher = async (userPrincipalName: string): Promise<FintTeacher | null> => {
   const identifier = userPrincipalName
   if (!identifier) {

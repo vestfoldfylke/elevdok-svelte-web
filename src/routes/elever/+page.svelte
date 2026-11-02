@@ -76,7 +76,6 @@
 						{#each school.klasser as group}
 							<div class="classGroup">
 								<div>{`${school.kortkortnavn}:${group.navn}`}</div>
-								<!--<a href="/klasser/{group.systemId}">{`${school.kortkortnavn}:${group.navn}`}</a>-->
 							</div>
 						{/each}
 					{/each}
