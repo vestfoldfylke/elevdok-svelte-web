@@ -4,7 +4,7 @@ import type { User } from "#lib/server/authentication.js"
 import { getEffectiveRole } from "#lib/server/effective-role.js"
 import { fetchFintSchool } from "#lib/server/fintfolk-api/school.js"
 import { fetchFintTeacher } from "#lib/server/fintfolk-api/teacher.js"
-import type { FintElev, FintFag, FintSkole } from "#lib/server/fintfolk-api/types.js"
+import type { FintElev, FintFag, FintSchool, FintSkole } from "#lib/server/fintfolk-api/types.js"
 import { IOP_FAGLARER_ACCESS_ENABLED } from "$app/env/private"
 import { getLeaderAccess } from "./leder-access.js"
 import { buildStudentList, type StudentMembership } from "./student-list.js"
@@ -124,6 +124,21 @@ const logSkippedStudents = (skippedElevnummer: string[]): void => {
   }
 }
 
+const findLeaderSchoolShortName = (school: FintSchool): string => {
+  const schoolsInfo = vtfkSchoolsInfo({ schoolNumber: school.skolenummer })
+  if (schoolsInfo.length !== 1) {
+    logger.info('School {SchoolNumber} is not found as unique in vtfk-schools-info, using the organisation short name or "SKOLE"', school.skolenummer)
+    return school.organisasjon?.kortnavn || "SKOLE"
+  }
+
+  const shortName = schoolsInfo[0]?.shortName
+  if (!shortName) {
+    throw new Error(`Could not find shortName for school with schoolNumber "${school.skolenummer}" in vtfk-schools-info!`)
+  }
+
+  return shortName
+}
+
 type UserDataOptions = {
   shouldMaskSsn?: boolean
 }
@@ -224,17 +239,7 @@ export const getUserData = async (user: User, { shouldMaskSsn = true }: UserData
 
       // If no shortname, try to find it in vtfk-schools-info
       if (school.skolenummer && !school.kortnavn) {
-        const schoolsInfo = vtfkSchoolsInfo({ schoolNumber: school.skolenummer })
-        if (schoolsInfo.length === 1) {
-          const shortName = schoolsInfo[0]?.shortName
-          if (!shortName) {
-            throw new Error(`Could not find shortName for school with schoolNumber "${school.skolenummer}" in vtfk-schools-info!`)
-          }
-          school.kortnavn = shortName // Sett kortnavn til kortnavnet i vtfk-schools-info dersom vi fant en skole på skolenummeret
-        } else {
-          logger.info('School {SchoolNumber} is not in vtfk-schools-info, using the organisation short name or "SKOLE"', school.skolenummer)
-          school.kortnavn = school.organisasjon?.kortnavn || "SKOLE" // Sett kortnavn til SKOLE dersom vi ikke finner noe annet
-        }
+        school.kortnavn = findLeaderSchoolShortName(school)
       }
 
       const miniSchool = repackMiniSchool(school)
