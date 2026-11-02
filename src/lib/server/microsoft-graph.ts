@@ -141,7 +141,6 @@ export const getAllLeaderUsers = async (appId: string): Promise<LeaderUser[]> =>
       }
     ]
 
-    // Legg til MOCK auth sin bruker med de rollene den har satt i env
     if (MOCK_AUTH === "true" && MOCK_AUTH_LEDER_ROLE === "true") {
       mockUsers.push({
         appRoleValue: LEDER_ROLE,
@@ -212,22 +211,19 @@ export const getAllLeaderUsers = async (appId: string): Promise<LeaderUser[]> =>
 
   logger.info("Found {LeaderUserCount} leader users", leaderUsers.length)
 
-  // Legg til MOCK auth sin bruker med de rollene den har satt i env om vi har MOCK_AUTH lik true
-  if (MOCK_AUTH === "true") {
-    if (MOCK_AUTH_LEDER_ROLE === "true") {
-      leaderUsers.push({
-        appRoleValue: LEDER_ROLE,
-        appRoleId: "mockleder",
-        id: "mockId7",
-        principalDisplayName: "Demo Spøkelse",
-        principalId: "12345-4378493-fjdiofjd",
-        principalType: "User",
-        principalName: `demo.spokelse@${FEIDENAVN_SUFFIX}`,
-        schoolNumber: "12345",
-        schoolName: "Mordor vidergående skole",
-        schoolShortName: "MRD"
-      })
-    }
+  if (MOCK_AUTH === "true" && MOCK_AUTH_LEDER_ROLE === "true") {
+    leaderUsers.push({
+      appRoleValue: LEDER_ROLE,
+      appRoleId: "mockleder",
+      id: "mockId7",
+      principalDisplayName: "Demo Spøkelse",
+      principalId: "12345-4378493-fjdiofjd",
+      principalType: "User",
+      principalName: `demo.spokelse@${FEIDENAVN_SUFFIX}`,
+      schoolNumber: "12345",
+      schoolName: "Mordor vidergående skole",
+      schoolShortName: "MRD"
+    })
   }
 
   internalCache.set(cacheKey, leaderUsers)
