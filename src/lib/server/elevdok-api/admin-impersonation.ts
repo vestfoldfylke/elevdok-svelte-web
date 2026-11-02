@@ -17,9 +17,9 @@ type ImpersonationLogEntry = {
   impersonationRole: Impersonation["type"]
 }
 
-const isGuid = (value: string) => {
-  return String(value).match(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[4][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/)
-}
+const GUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+const isGuid = (value: string): boolean => GUID_PATTERN.test(value)
 
 export const getAdminImpersonation = (user: Pick<User, "principalId" | "hasAdminRole">): Impersonation | null => {
   requireAdminRole(user)
