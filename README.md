@@ -90,7 +90,6 @@ FAGLARER_ACCESS_ENABLED="false | true"
 IOP_FAGLARER_ACCESS_ENABLED="true | false"
 MAINTENANCE_MODE="false | false"
 MAIN_SOURCE_NAME="Fis fylkeskommune" # Navnet på "hovedarkivet" ditt 
-VTFK_ARCHIVE_ENABLED="false" # Får skru på etterhvert vel
 FRONTEND_APP_ID="guid" # Client id til entra app registration for pålogging, brukes til å hente ledertilganger
 ```
 
