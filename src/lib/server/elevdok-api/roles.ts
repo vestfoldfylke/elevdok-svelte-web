@@ -22,10 +22,8 @@ export const getActiveRole = async (principalId: string): Promise<string | null>
   const mongoClient = await getMongoClient()
   const collection = mongoClient.db(MONGODB_DB_NAME).collection<UserSettings>(MONGODB_USER_SETTINGS_COLLECTION)
   const userSettings = await collection.findOne({ principalId })
-  if (!userSettings) {
-    return null
-  }
-  return userSettings.activeRole || null
+
+  return userSettings?.activeRole || null
 }
 
 export const setActiveRole = async (user: User, requestedRole: string): Promise<void> => {
