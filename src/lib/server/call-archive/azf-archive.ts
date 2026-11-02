@@ -17,7 +17,7 @@ export const repackP360Document = (document: P360Document, feidenavn: string, so
     document.Files = []
   }
 
-  const repacked = {
+  return {
     title: document.Title,
     feidenavn,
     source,
@@ -44,8 +44,6 @@ export const repackP360Document = (document: P360Document, feidenavn: string, so
       }
     })
   }
-
-  return repacked
 }
 
 export const getAzfArchiveDocuments = async (ssn: string, feidenavn: string): Promise<ArchiveDocumentsResult> => {
@@ -73,7 +71,7 @@ export const getAzfArchiveDocuments = async (ssn: string, feidenavn: string): Pr
   const caseNumbers: string[] = []
 
   try {
-    const elevmappeRequest = {
+    const allCases = await callArchive<P360Case[]>({
       service: "CaseService",
       method: "GetCases",
       parameter: {
@@ -81,8 +79,7 @@ export const getAzfArchiveDocuments = async (ssn: string, feidenavn: string): Pr
         CaseType: "Elev",
         ContactReferenceNumber: ssn
       }
-    }
-    const allCases = await callArchive<P360Case[]>(elevmappeRequest)
+    })
 
     const allowedCaseStatuses = ["Under behandling", "Avsluttet"]
     const allowedAccessGroups = ["VFK Robot", "TFK Robot"]
@@ -111,14 +108,13 @@ export const getAzfArchiveDocuments = async (ssn: string, feidenavn: string): Pr
 
   for (const caseNumber of caseNumbers) {
     try {
-      const documentsRequest = {
+      const allCaseDocuments = await callArchive<P360Document[]>({
         service: "DocumentService",
         method: "GetDocuments",
         parameter: {
           CaseNumber: caseNumber
         }
-      }
-      const allCaseDocuments = await callArchive<P360Document[]>(documentsRequest)
+      })
       const caseDocuments = allCaseDocuments.filter((document) => allowedDocumentStatuses.includes(document.StatusCode))
 
       archiveDocuments.push(...caseDocuments)
@@ -150,15 +146,14 @@ export const fetchAzfArchiveFile = async (fileId: string): Promise<ArchiveFileWi
     throw new Error('Missing required parameter "fileId"')
   }
 
-  const fileRequest = {
+  const file = await callArchive<P360FileWithData>({
     service: "FileService",
     method: "GetFileWithMetadata",
     parameter: {
       Recno: fileId,
       IncludeFileData: true
     }
-  }
-  const file = await callArchive<P360FileWithData>(fileRequest)
+  })
 
   return {
     base64: file.Base64Data,
