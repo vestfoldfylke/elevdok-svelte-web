@@ -56,8 +56,7 @@ export const setAdminImpersonation = async (user: User, target: string, type: Im
     impersonationTarget: target,
     impersonationRole: type
   }
-  const insertLogResult = await collection.insertOne(logEntry)
-  return insertLogResult
+  return await collection.insertOne(logEntry)
 }
 
 export const deleteAdminImpersonation = (user: User): void => {
