@@ -55,15 +55,16 @@ export const repackMiniSchool = (school: FintSkole): MiniSchool => {
   // Sjekker om skolen har et kortnavn, hvis ikke slår vi opp i vtfk-schools-info for å finne det basert på skolenummer
   if (!school.kortnavn) {
     const schoolsInfo = vtfkSchoolsInfo({ schoolNumber: school.skolenummer })
-    if (schoolsInfo.length === 1) {
-      const shortName = schoolsInfo[0]?.shortName
-      if (!shortName) {
-        throw new Error(`Could not find shortName for school with schoolNumber "${school.skolenummer}" in vtfk-schools-info!`)
-      }
-      school.kortnavn = shortName // Sett kortnavn til kortnavnet i vtfk-schools-info dersom vi fant en skole på skolenummeret
-    } else {
-      throw new Error(`Could not find school with schoolNumber "${school.skolenummer}" in vtfk-schools-info!`)
+    if (schoolsInfo.length !== 1) {
+      throw new Error(`Could not find unique school with schoolNumber "${school.skolenummer}" in vtfk-schools-info!`)
     }
+
+    const shortName = schoolsInfo[0]?.shortName
+    if (!shortName) {
+      throw new Error(`Could not find shortName for school with schoolNumber "${school.skolenummer}" in vtfk-schools-info!`)
+    }
+
+    school.kortnavn = shortName
   }
 
   const kortkortnavn = school.kortnavn.includes("-") ? school.kortnavn.substring(school.kortnavn.indexOf("-") + 1) : school.kortnavn
