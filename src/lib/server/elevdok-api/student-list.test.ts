@@ -5,7 +5,7 @@ import type { ElevKlasse, MiniSchool } from "./get-user-data.ts"
 import { buildStudentList, type StudentMembership } from "./student-list.ts"
 
 const mordor: MiniSchool = { kortkortnavn: "MRD", skolenummer: "12345", kortnavn: "OF-MRD", navn: "Mordor videregående skole" }
-const hobbiton: MiniSchool = { kortkortnavn: "HOB", skolenummer: "12346", kortnavn: "OF-HOB", navn: "Hobbittun videregående skole" }
+const hobbitun: MiniSchool = { kortkortnavn: "HOB", skolenummer: "12346", kortnavn: "OF-HOB", navn: "Hobbittun videregående skole" }
 const basisgruppe: ElevKlasse = { navn: "2BU", type: "basisgruppe", systemId: "1472079", fag: [] }
 const kroppsoving: ElevKlasse = { navn: "2PI/KRO1018", type: "undervisningsgruppe", systemId: "12041923", fag: [{ systemId: { identifikatorverdi: "KRO1018" } }] }
 const iopGruppe: ElevKlasse = { navn: "1ALA/IOP4000/1", type: "undervisningsgruppe", systemId: "120419277", fag: [{ systemId: { identifikatorverdi: "IOP4000" } }] }
@@ -44,7 +44,7 @@ describe("buildStudentList", () => {
   })
 
   it("gives a student met at two schools one entry with both schools, in the order they were met", () => {
-    const { students } = buildStudentList([membership(mordor, basisgruppe), membership(hobbiton, kroppsoving)], noMaskNoIop)
+    const { students } = buildStudentList([membership(mordor, basisgruppe), membership(hobbitun, kroppsoving)], noMaskNoIop)
 
     assert.equal(students.length, 1)
     assert.deepEqual(
@@ -66,7 +66,7 @@ describe("buildStudentList", () => {
   })
 
   it("marks kontaktlarer only on the school where the membership is", () => {
-    const { students } = buildStudentList([membership(mordor, basisgruppe, { kontaktlarer: true }), membership(hobbiton, kroppsoving)], noMaskNoIop)
+    const { students } = buildStudentList([membership(mordor, basisgruppe, { kontaktlarer: true }), membership(hobbitun, kroppsoving)], noMaskNoIop)
 
     assert.deepEqual(
       students[0]?.skoler.map((school) => school.kontaktlarer),
@@ -103,7 +103,7 @@ describe("buildStudentList", () => {
   })
 
   it("marks only the schools with an IOP course when IOP is enabled", () => {
-    const { students } = buildStudentList([membership(mordor, basisgruppe), membership(hobbiton, iopGruppe)], { shouldMaskSsn: false, isIopEnabled: true })
+    const { students } = buildStudentList([membership(mordor, basisgruppe), membership(hobbitun, iopGruppe)], { shouldMaskSsn: false, isIopEnabled: true })
 
     assert.deepEqual(
       students[0]?.skoler.map((school) => school.iop),
@@ -112,7 +112,7 @@ describe("buildStudentList", () => {
   })
 
   it("does not mark schools with iop when IOP is disabled", () => {
-    const { students } = buildStudentList([membership(hobbiton, iopGruppe)], noMaskNoIop)
+    const { students } = buildStudentList([membership(hobbitun, iopGruppe)], noMaskNoIop)
 
     assert.equal("iop" in (students[0]?.skoler[0] ?? {}), false)
   })
