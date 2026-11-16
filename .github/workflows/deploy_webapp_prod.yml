@@ -12,7 +12,7 @@ jobs:
       (github.event_name == 'release' && github.event.release.target_commitish == 'main')
     uses: vestfoldfylke/shared/.github/workflows/deploy-az-app-service-node.yml@main
     with:
-      azure_appname: 'vfkplzminelevprodedweb'
-      azure_functionapp_package_path: '.'
+      azure_appname: "vfkplzminelevprodedweb"
+      azure_functionapp_package_path: "."
     secrets:
       azure_publishprofile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_PROD }}
