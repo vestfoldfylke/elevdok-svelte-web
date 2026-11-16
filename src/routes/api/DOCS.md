@@ -1,2 +1,0 @@
-# Elevdok API
-Jaudajaduad
